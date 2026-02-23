@@ -1,5 +1,20 @@
 {
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium",
-  "model": "sonnet"
+  "model": "sonnet",
+  "mcpServers": {
+    "github": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "."]
+    }
+  }
 }
