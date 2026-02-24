@@ -1,115 +1,115 @@
 # sdd-apply
 
-> Implementa las tareas del plan siguiendo specs y diseño, marcando el progreso.
+> Implements the plan tasks following specs and design, marking progress as it goes.
 
-**Triggers**: sdd:apply, implementar, escribir código, aplicar cambios, sdd apply
-
----
-
-## Propósito
-
-La fase de implementación convierte el plan de tareas en código real. El implementador sigue los specs (QUÉ hacer) y el design (CÓMO hacerlo), marcando tareas como completadas en tiempo real.
+**Triggers**: sdd:apply, implement, write code, apply changes, sdd apply
 
 ---
 
-## Proceso
+## Purpose
 
-### Paso 1 — Leer contexto completo
+The implementation phase converts the task plan into real code. The implementer follows the specs (WHAT to do) and the design (HOW to do it), marking tasks as completed in real time.
 
-Leo en este orden:
-1. `openspec/changes/<nombre-cambio>/tasks.md` — qué tareas están asignadas
-2. `openspec/changes/<nombre-cambio>/specs/` — los criterios de éxito (QUÉ debe hacer)
-3. `openspec/changes/<nombre-cambio>/design.md` — cómo implementarlo (decisiones técnicas, interfaces)
-4. `openspec/config.yaml` — reglas del proyecto
-5. `docs/ai-context/conventions.md` — convenciones de código
-6. Archivos de código existentes que voy a modificar o que sirven de referencia de patrón
+---
 
-### Paso 2 — Verificar alcance de trabajo
+## Process
 
-El orquestador me pasa qué tareas implementar (ej: "Fase 1, tareas 1.1-1.3").
-Implemento SOLO esas tareas. No avanzo a las siguientes sin confirmación.
+### Step 1 — Read full context
 
-### Paso 3 — Implementar tarea por tarea
+I read in this order:
+1. `openspec/changes/<change-name>/tasks.md` — which tasks are assigned
+2. `openspec/changes/<change-name>/specs/` — the success criteria (WHAT it must do)
+3. `openspec/changes/<change-name>/design.md` — how to implement it (technical decisions, interfaces)
+4. `openspec/config.yaml` — project rules
+5. `docs/ai-context/conventions.md` — code conventions
+6. Existing code files that I will modify or that serve as pattern references
 
-Para cada tarea asignada:
+### Step 2 — Verify work scope
 
-1. **Leo la tarea** en tasks.md
-2. **Consulto las specs** del dominio afectado (criterios de éxito)
-3. **Consulto el design** (interfaces, decisiones, patrones)
-4. **Leo código existente** en archivos relacionados (para seguir el patrón)
-5. **Escribo el código** siguiendo todo lo anterior
-6. **Marco la tarea como completa** en tasks.md: `- [x]`
+The orchestrator tells me which tasks to implement (e.g. "Phase 1, tasks 1.1-1.3").
+I implement ONLY those tasks. I do not advance to the next ones without confirmation.
 
-### Paso 4 — Respetar el diseño
+### Step 3 — Implement task by task
 
-Si durante la implementación encuentro que el diseño tiene un problema:
-- **NO lo corrijo silenciosamente**
-- Lo noto en mi reporte como "DESVIACIÓN: [qué y por qué]"
-- Si es bloqueante, paro y reporto `status: blocked`
+For each assigned task:
 
-### Paso 5 — Actualizar progreso en tasks.md
+1. **I read the task** in tasks.md
+2. **I consult the specs** for the affected domain (success criteria)
+3. **I consult the design** (interfaces, decisions, patterns)
+4. **I read existing code** in related files (to follow the pattern)
+5. **I write the code** following all of the above
+6. **I mark the task as complete** in tasks.md: `- [x]`
 
-Actualizo el contador de progreso en tasks.md:
+### Step 4 — Respect the design
+
+If during implementation I find that the design has a problem:
+- **I do NOT fix it silently**
+- I note it in my report as "DEVIATION: [what and why]"
+- If it is a blocker, I stop and report `status: blocked`
+
+### Step 5 — Update progress in tasks.md
+
+I update the progress counter in tasks.md:
 ```markdown
-## Progreso: [completadas]/[total] tareas
+## Progress: [completed]/[total] tasks
 ```
 
-Y marco cada tarea completada:
+And I mark each completed task:
 ```markdown
-- [x] 1.1 Crear `src/types/auth.types.ts` ✓
-- [x] 1.2 Crear `src/schemas/auth.schema.ts` ✓
-- [ ] 1.3 Modificar `src/config/jwt.config.ts`
+- [x] 1.1 Create `src/types/auth.types.ts` ✓
+- [x] 1.2 Create `src/schemas/auth.schema.ts` ✓
+- [ ] 1.3 Modify `src/config/jwt.config.ts`
 ```
 
 ---
 
-## Estándares de código
+## Code standards
 
-### Sigo siempre las convenciones del proyecto
-Si existe `docs/ai-context/conventions.md`, lo aplico estrictamente.
-Si no, observo el código existente y sigo sus patrones.
+### I always follow project conventions
+If `docs/ai-context/conventions.md` exists, I apply it strictly.
+If not, I observe the existing code and follow its patterns.
 
-### Cargo skills de tecnología si aplica
-Si estoy implementando en un stack específico, cargo el skill correspondiente:
-- TypeScript → `~/.claude/skills/typescript/SKILL.md` si existe
-- React → `~/.claude/skills/react-19/SKILL.md` si existe
+### I load technology skills if applicable
+If I am implementing in a specific stack, I load the corresponding skill:
+- TypeScript → `~/.claude/skills/typescript/SKILL.md` if it exists
+- React → `~/.claude/skills/react-19/SKILL.md` if it exists
 - etc.
 
-### No sobre-ingeniero
-- Implemento lo mínimo necesario para pasar los escenarios de la spec
-- No agrego features que no están en la propuesta
-- No refactorizo código que no es parte del cambio
+### No over-engineering
+- I implement the minimum necessary to pass the spec's scenarios
+- I do not add features that are not in the proposal
+- I do not refactor code that is not part of the change
 
 ---
 
-## Output al Orquestador
+## Output to Orchestrator
 
 ```json
 {
   "status": "ok|warning|blocked|failed",
-  "resumen": "Implementadas [N] tareas de [total]. Fase [X] completa.",
+  "resumen": "Implemented [N] tasks of [total]. Phase [X] complete.",
   "artefactos": [
-    "src/services/auth.service.ts — creado",
-    "src/types/auth.types.ts — creado",
-    "openspec/changes/<nombre>/tasks.md — actualizado"
+    "src/services/auth.service.ts — created",
+    "src/types/auth.types.ts — created",
+    "openspec/changes/<name>/tasks.md — updated"
   ],
   "desviaciones": [
-    "DESVIACIÓN en tarea 2.1: [descripción y razón]"
+    "DEVIATION in task 2.1: [description and reason]"
   ],
-  "siguiente_recomendado": ["sdd-apply (Fase 2)"] ,
+  "siguiente_recomendado": ["sdd-apply (Phase 2)"],
   "riesgos": []
 }
 ```
 
 ---
 
-## Reglas
+## Rules
 
-- Leo specs ANTES de escribir código — son mis criterios de aceptación
-- Sigo decisiones del design — no las ignoro ni mejoro silenciosamente
-- Sigo patrones existentes del proyecto — no introduzco nuevos sin justificación
-- Marco tareas como completadas EN EL MOMENTO de terminarlas
-- Si una tarea está bloqueada, paro y reporto — no la salteo
-- No implemento tareas fuera de mi alcance asignado
-- No modifico specs ni design durante la implementación
-- Si algo en el spec es ambiguo, pregunto antes de asumir
+- I read specs BEFORE writing code — they are my acceptance criteria
+- I follow design decisions — I do not ignore or silently improve them
+- I follow existing project patterns — I do not introduce new ones without justification
+- I mark tasks as completed AT THE MOMENT I finish them
+- If a task is blocked, I stop and report — I do not skip it
+- I do not implement tasks outside my assigned scope
+- I do not modify specs or design during implementation
+- If something in the spec is ambiguous, I ask before assuming

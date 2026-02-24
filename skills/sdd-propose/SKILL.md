@@ -1,131 +1,131 @@
 # sdd-propose
 
-> Crea una propuesta de cambio con intención clara, alcance definido y enfoque técnico.
+> Creates a change proposal with clear intent, defined scope, and technical approach.
 
-**Triggers**: sdd:propose, crear propuesta, definir cambio, propuesta sdd
-
----
-
-## Propósito
-
-La propuesta define el **QUÉ y el POR QUÉ** antes de entrar en detalles técnicos. Es el contrato de alcance del cambio. Sin propuesta aprobada, no hay specs ni diseño.
+**Triggers**: sdd:propose, create proposal, define change, sdd proposal
 
 ---
 
-## Proceso
+## Purpose
 
-### Paso 1 — Leer contexto previo
+The proposal defines the **WHAT and WHY** before entering into technical details. It is the scope contract of the change. Without an approved proposal, there are no specs or design.
 
-Si existe `openspec/changes/<nombre-cambio>/exploration.md`, lo leo primero.
-Si existe `openspec/config.yaml`, leo las reglas del proyecto.
-Si existe `docs/ai-context/architecture.md`, lo consulto para coherencia.
+---
 
-### Paso 2 — Entender la petición en profundidad
+## Process
 
-Si la petición es ambigua, pregunto:
-- ¿Cuál es el problema o necesidad que motiva este cambio?
-- ¿Hay restricciones conocidas (performance, compatibilidad, etc.)?
-- ¿Hay partes que explícitamente están FUERA de alcance?
+### Step 1 — Read prior context
 
-### Paso 3 — Crear directorio del cambio
+If `openspec/changes/<change-name>/exploration.md` exists, I read it first.
+If `openspec/config.yaml` exists, I read the project rules.
+If `docs/ai-context/architecture.md` exists, I consult it for coherence.
+
+### Step 2 — Understand the request in depth
+
+If the request is ambiguous, I ask:
+- What is the problem or need that motivates this change?
+- Are there known constraints (performance, compatibility, etc.)?
+- Are there parts that are explicitly OUT of scope?
+
+### Step 3 — Create the change directory
 
 ```
-openspec/changes/<nombre-cambio>/
+openspec/changes/<change-name>/
 ```
 
-### Paso 4 — Escribir proposal.md
+### Step 4 — Write proposal.md
 
-Creo `openspec/changes/<nombre-cambio>/proposal.md`:
+I create `openspec/changes/<change-name>/proposal.md`:
 
 ```markdown
-# Propuesta: [nombre-cambio]
+# Proposal: [change-name]
 
-Fecha: [YYYY-MM-DD]
-Estado: Borrador
+Date: [YYYY-MM-DD]
+Status: Draft
 
-## Intención
-[Una oración clara: qué problema resuelve o qué necesidad cubre]
+## Intent
+[One clear sentence: what problem it solves or what need it covers]
 
-## Motivación
-[Por qué esto es necesario ahora. Contexto del negocio o técnico.]
+## Motivation
+[Why this is necessary now. Business or technical context.]
 
-## Alcance
+## Scope
 
-### Incluido
-- [entregable 1]
-- [entregable 2]
-- [entregable 3]
+### Included
+- [deliverable 1]
+- [deliverable 2]
+- [deliverable 3]
 
-### Excluido (explícitamente fuera de alcance)
-- [qué NO se va a hacer y por qué]
+### Excluded (explicitly out of scope)
+- [what will NOT be done and why]
 
-## Enfoque Propuesto
-[Descripción de alto nivel de la solución técnica.
-No entra en detalle de implementación — eso es el design.
-Explica el "cómo" a nivel conceptual.]
+## Proposed Approach
+[High-level description of the technical solution.
+Does not go into implementation detail — that is the design's job.
+Explains the "how" at a conceptual level.]
 
-## Áreas Afectadas
-| Área/Módulo | Tipo de Cambio | Impacto |
-|-------------|----------------|---------|
-| [área] | Nuevo/Modificado/Eliminado | Bajo/Medio/Alto |
+## Affected Areas
+| Area/Module | Type of Change | Impact |
+|-------------|----------------|--------|
+| [area] | New/Modified/Removed | Low/Medium/High |
 
-## Riesgos
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|--------|-------------|---------|-----------|
-| [riesgo] | Baja/Media/Alta | Bajo/Medio/Alto | [cómo mitigarlo] |
+## Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| [risk] | Low/Medium/High | Low/Medium/High | [how to mitigate] |
 
-## Plan de Rollback
-[Cómo revertir si algo sale mal.
-Debe ser concreto: qué archivos, qué comandos, qué pasos.]
+## Rollback Plan
+[How to revert if something goes wrong.
+Must be concrete: which files, which commands, which steps.]
 
-## Dependencias
-- [Qué debe existir/completarse antes de empezar]
-- [Cambios en otras partes del sistema que esto requiere]
+## Dependencies
+- [What must exist/be completed before starting]
+- [Changes in other parts of the system that this requires]
 
-## Criterios de Éxito
-- [ ] [criterio medible y verificable 1]
-- [ ] [criterio medible y verificable 2]
-- [ ] [criterio medible y verificable 3]
+## Success Criteria
+- [ ] [measurable and verifiable criterion 1]
+- [ ] [measurable and verifiable criterion 2]
+- [ ] [measurable and verifiable criterion 3]
 
-## Estimación de Esfuerzo
-[Bajo (horas) / Medio (1-2 días) / Alto (varios días)]
+## Effort Estimate
+[Low (hours) / Medium (1-2 days) / High (several days)]
 ```
 
-### Paso 5 — Resumen al orquestador
+### Step 5 — Summary to orchestrator
 
-Devuelvo un resumen ejecutivo claro:
+I return a clear executive summary:
 
 ```
-Propuesta creada: [nombre-cambio]
+Proposal created: [change-name]
 
-Intención: [una línea]
-Alcance: [N entregables incluidos, M excluidos]
-Enfoque: [una línea]
-Riesgo: Bajo/Medio/Alto
-Siguiente paso: specs + design (pueden correr en paralelo)
+Intent: [one line]
+Scope: [N deliverables included, M excluded]
+Approach: [one line]
+Risk: Low/Medium/High
+Next step: specs + design (can run in parallel)
 ```
 
 ---
 
-## Output al Orquestador
+## Output to Orchestrator
 
 ```json
 {
   "status": "ok|warning|blocked",
-  "resumen": "Propuesta [nombre]: [intención en una línea]. Riesgo [nivel].",
-  "artefactos": ["openspec/changes/<nombre>/proposal.md"],
+  "resumen": "Proposal [name]: [intent in one line]. Risk [level].",
+  "artefactos": ["openspec/changes/<name>/proposal.md"],
   "siguiente_recomendado": ["sdd-spec", "sdd-design"],
-  "riesgos": ["[riesgo principal si hay]"]
+  "riesgos": ["[main risk if any]"]
 }
 ```
 
 ---
 
-## Reglas
+## Rules
 
-- SIEMPRE crear `proposal.md` — es la entrada para todas las fases siguientes
-- Toda propuesta DEBE tener plan de rollback y criterios de éxito
-- Los criterios de éxito deben ser MEDIBLES y VERIFICABLES (no vagos)
-- El alcance excluido es tan importante como el incluido — previene scope creep
-- No entro en detalles de implementación — eso es trabajo de `sdd-design`
-- Si la propuesta es trivial (cambio de 1-2 líneas), lo indico y sugiero omitir el ciclo completo
+- ALWAYS create `proposal.md` — it is the entry point for all subsequent phases
+- Every proposal MUST have a rollback plan and success criteria
+- Success criteria must be MEASURABLE and VERIFIABLE (not vague)
+- Excluded scope is as important as included scope — it prevents scope creep
+- I do not go into implementation details — that is the job of `sdd-design`
+- If the proposal is trivial (1-2 line change), I indicate it and suggest skipping the full cycle

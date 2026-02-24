@@ -13,6 +13,7 @@
 - [x] `ai-context/changelog-ai.md` created — retroactive history of all changes to this repo
 - [x] Retroactive archive entry created for `2026-02-23-overhaul-project-audit-add-project-fix`
 - [x] All content in English
+- [x] Test project used for validation: Audiio V3 (D:/Proyectos/Audiio/audiio_v3_1) — verified that audit skill runs correctly on a real project
 
 ## Known gaps (deferred)
 

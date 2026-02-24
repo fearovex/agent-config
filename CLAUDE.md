@@ -9,6 +9,55 @@ Soy un asistente de desarrollo experto. A nivel de usuario tengo **dos roles**:
 
 ---
 
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Language | Markdown + YAML + Bash |
+| Framework | Claude Code SDD meta-system |
+| Entry point | SKILL.md per skill directory |
+| Package manager | N/A (skill files, not code) |
+| Testing | /project:audit (integration test) |
+| Version control | Git |
+| Sync | sync.sh (~/claude-config → ~/.claude/) |
+| Install | install.sh (~/.claude/ ← ~/claude-config) |
+
+## Architecture
+
+```
+claude-config (repo)  ←sync→  ~/.claude/ (runtime)
+```
+
+Three-layer structure:
+1. **Orchestrator** — CLAUDE.md: defines how Claude coordinates SDD phases
+2. **Skills catalog** — skills/: one directory per skill, SKILL.md entry point
+3. **Memory layer** — ai-context/: stack, architecture, conventions, known-issues, changelog
+
+SDD meta-cycle for this repo:
+```
+/sdd:ff <change>  →  review  →  /sdd:apply  →  sync.sh  →  git commit
+```
+
+## Unbreakable Rules
+
+### 1. Language
+- ALL content — skills, YAML, scripts, docs, commits — MUST be in English
+- No exceptions
+
+### 2. Skill structure
+- Every skill is a directory with exactly one SKILL.md entry point
+- SKILL.md must have: trigger definition, process steps, rules section
+
+### 3. SDD compliance
+- Every skill modification requires at minimum /sdd:ff before apply
+- Every archived change must have a verify-report.md with at least one [x] criterion
+
+### 4. Sync discipline
+- Always run sync.sh before committing
+- Never edit ~/.claude/ directly without syncing back to the repo
+
+---
+
 ## Principios de Trabajo
 
 - Código limpio y legible sobre código "inteligente"
@@ -32,7 +81,7 @@ Soy un asistente de desarrollo experto. A nivel de usuario tengo **dos roles**:
 | `/project:update` | Actualiza CLAUDE.md del proyecto con cambios del user-level |
 | `/skill:create <nombre>` | Crea una skill nueva (genérica o de proyecto) |
 | `/skill:add <nombre>` | Agrega skill del catálogo global al proyecto actual |
-| `/memory:init` | Genera archivos docs/ai-context/ leyendo el proyecto desde cero |
+| `/memory:init` | Genera archivos ai-context/ leyendo el proyecto desde cero |
 | `/memory:update` | Actualiza ai-context/ con lo trabajado en la sesión actual |
 
 ### SDD Phases — Ciclo de desarrollo
@@ -188,7 +237,7 @@ openspec/
 
 ## Memoria de Proyecto
 
-Cada proyecto tiene su capa de memoria en `docs/ai-context/`:
+Cada proyecto tiene su capa de memoria en `ai-context/`:
 
 | Archivo | Contenido |
 |---------|-----------|
@@ -218,6 +267,7 @@ Cada proyecto tiene su capa de memoria en `docs/ai-context/`:
 ### Skills Meta-tools
 - `~/.claude/skills/project-setup/SKILL.md`
 - `~/.claude/skills/project-audit/SKILL.md`
+- `~/.claude/skills/project-fix/SKILL.md` — reads audit-report.md and applies all corrections (APPLY phase of meta-SDD)
 - `~/.claude/skills/project-update/SKILL.md`
 - `~/.claude/skills/skill-creator/SKILL.md`
 - `~/.claude/skills/memory-manager/SKILL.md`
@@ -252,3 +302,8 @@ Cada proyecto tiene su capa de memoria en `docs/ai-context/`:
 
 **Lenguajes:**
 - `~/.claude/skills/elixir-antipatterns/SKILL.md`
+
+**Tools / Platforms:**
+- `~/.claude/skills/claude-code-expert/SKILL.md` — CLAUDE.md configuration, custom skills, hooks, MCP servers, and advanced Claude Code workflows
+- `~/.claude/skills/excel-expert/SKILL.md` — creating, reading, and analyzing Excel files with ExcelJS, SheetJS (JS/TS) and openpyxl, pandas (Python)
+- `~/.claude/skills/openclaw-assistant/SKILL.md` — installing, configuring, and developing skills for OpenClaw, the open-source self-hosted AI agent runtime

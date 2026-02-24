@@ -1,172 +1,172 @@
 # sdd-spec
 
-> Escribe especificaciones delta con requisitos y escenarios Given/When/Then.
+> Writes delta specifications with requirements and Given/When/Then scenarios.
 
-**Triggers**: sdd:spec, escribir specs, especificaciones, requisitos funcionales, sdd spec
-
----
-
-## Propósito
-
-Las specs definen el **QUÉ debe hacer el sistema** desde la perspectiva del comportamiento observable. No dicen cómo implementarlo. Son la fuente de verdad para la verificación.
-
-**Concepto clave — Delta Specs:**
-Las specs son deltas (cambios) sobre lo que ya existe, no reemplazos completos.
-- Si no hay spec existente: escribo una spec completa
-- Si ya hay spec: escribo ADDED/MODIFIED/REMOVED sections
+**Triggers**: sdd:spec, write specs, specifications, functional requirements, sdd spec
 
 ---
 
-## Proceso
+## Purpose
 
-### Paso 1 — Leer artefactos previos
+Specs define **WHAT the system must do** from the perspective of observable behavior. They do not say how to implement it. They are the source of truth for verification.
 
-Leo obligatoriamente:
-- `openspec/changes/<nombre-cambio>/proposal.md` (el QUÉ y POR QUÉ)
-- `openspec/specs/<dominio>/spec.md` si existe (spec actual del dominio)
-- `docs/ai-context/architecture.md` si existe (para entender el sistema actual)
+**Key concept — Delta Specs:**
+Specs are deltas (changes) on top of what already exists, not full replacements.
+- If there is no existing spec: I write a complete spec
+- If a spec already exists: I write ADDED/MODIFIED/REMOVED sections
 
-### Paso 2 — Identificar dominios afectados
+---
 
-De la propuesta extraigo los dominios que necesitan specs:
-- Un dominio = un área funcional coherente (auth, payments, users, notifications, etc.)
-- Cada dominio tiene su propio archivo de spec
+## Process
 
-### Paso 3 — Escribir delta specs
+### Step 1 — Read prior artifacts
 
-Para cada dominio afectado, creo o actualizo:
-`openspec/changes/<nombre-cambio>/specs/<dominio>/spec.md`
+I must read:
+- `openspec/changes/<change-name>/proposal.md` (the WHAT and WHY)
+- `openspec/specs/<domain>/spec.md` if it exists (current domain spec)
+- `docs/ai-context/architecture.md` if it exists (to understand the current system)
 
-#### Si NO hay spec existente — Spec completa:
+### Step 2 — Identify affected domains
+
+From the proposal I extract the domains that need specs:
+- One domain = one coherent functional area (auth, payments, users, notifications, etc.)
+- Each domain has its own spec file
+
+### Step 3 — Write delta specs
+
+For each affected domain, I create or update:
+`openspec/changes/<change-name>/specs/<domain>/spec.md`
+
+#### If NO existing spec — Full spec:
 
 ```markdown
-# Spec: [Dominio]
+# Spec: [Domain]
 
-Cambio: [nombre-cambio]
-Fecha: [YYYY-MM-DD]
+Change: [change-name]
+Date: [YYYY-MM-DD]
 
-## Requisitos
+## Requirements
 
-### Requisito: [Nombre descriptivo]
-[Descripción usando keywords RFC 2119]
+### Requirement: [Descriptive name]
+[Description using RFC 2119 keywords]
 
-#### Escenario: [Nombre del caso]
-- **DADO** [precondición — estado del sistema]
-- **CUANDO** [acción — qué ocurre]
-- **ENTONCES** [resultado observable — qué debe pasar]
-- **Y** [resultado adicional si aplica]
+#### Scenario: [Case name]
+- **GIVEN** [precondition — system state]
+- **WHEN** [action — what happens]
+- **THEN** [observable result — what must happen]
+- **AND** [additional result if applicable]
 
-#### Escenario: [Caso límite]
-- **DADO** [...]
-- **CUANDO** [...]
-- **ENTONCES** [...]
+#### Scenario: [Edge case]
+- **GIVEN** [...]
+- **WHEN** [...]
+- **THEN** [...]
 ```
 
-#### Si YA existe spec — Delta:
+#### If spec ALREADY EXISTS — Delta:
 
 ```markdown
-# Delta Spec: [Dominio]
+# Delta Spec: [Domain]
 
-Cambio: [nombre-cambio]
-Fecha: [YYYY-MM-DD]
-Base: openspec/specs/[dominio]/spec.md
+Change: [change-name]
+Date: [YYYY-MM-DD]
+Base: openspec/specs/[domain]/spec.md
 
-## ADDED — Requisitos nuevos
+## ADDED — New requirements
 
-### Requisito: [Nombre]
-[Descripción]
+### Requirement: [Name]
+[Description]
 
-#### Escenario: [Nombre]
-- **DADO** [...]
-- **CUANDO** [...]
-- **ENTONCES** [...]
+#### Scenario: [Name]
+- **GIVEN** [...]
+- **WHEN** [...]
+- **THEN** [...]
 
-## MODIFIED — Requisitos modificados
+## MODIFIED — Modified requirements
 
-### Requisito: [Nombre del requisito existente]
-[Nueva descripción]
-*(Antes: [descripción anterior])*
+### Requirement: [Name of existing requirement]
+[New description]
+*(Before: [previous description])*
 
-#### Escenario: [Nombre] *(modificado)*
-- **DADO** [...]
-- **CUANDO** [...]
-- **ENTONCES** [...]
+#### Scenario: [Name] *(modified)*
+- **GIVEN** [...]
+- **WHEN** [...]
+- **THEN** [...]
 
-## REMOVED — Requisitos eliminados
+## REMOVED — Removed requirements
 
-### Requisito: [Nombre]
-*(Razón: [por qué se elimina])*
+### Requirement: [Name]
+*(Reason: [why it is being removed])*
 ```
 
-### Keywords RFC 2119 (obligatorio usarlos)
+### RFC 2119 Keywords (required)
 
-| Keyword | Significado |
-|---------|-------------|
-| **DEBE** / **MUST** | Requisito absoluto |
-| **NO DEBE** / **MUST NOT** | Prohibición absoluta |
-| **DEBERÍA** / **SHOULD** | Recomendado (excepciones permitidas con justificación) |
-| **PUEDE** / **MAY** | Opcional |
+| Keyword | Meaning |
+|---------|---------|
+| **MUST** | Absolute requirement |
+| **MUST NOT** | Absolute prohibition |
+| **SHOULD** | Recommended (exceptions allowed with justification) |
+| **MAY** | Optional |
 
-### Tipos de escenarios a cubrir
+### Types of scenarios to cover
 
-Para cada requisito incluyo:
-1. **Happy path**: El flujo normal y exitoso
-2. **Casos límite**: Valores extremos, listas vacías, máximos
-3. **Casos de error**: Qué pasa cuando algo falla
-4. **Casos de seguridad**: Si aplica (autenticación, autorización, permisos)
+For each requirement I include:
+1. **Happy path**: The normal, successful flow
+2. **Edge cases**: Extreme values, empty lists, maximums
+3. **Error cases**: What happens when something fails
+4. **Security cases**: If applicable (authentication, authorization, permissions)
 
 ---
 
-## Ejemplos de escenarios bien escritos
+## Examples of well-written scenarios
 
-### ✅ Bien escrito
+### Well written
 ```
-#### Escenario: Login exitoso con credenciales válidas
-- DADO que el usuario existe con email "user@example.com" y contraseña correcta
-- CUANDO envía POST /auth/login con esas credenciales
-- ENTONCES recibe status 200
-- Y recibe un JWT válido en el campo "token"
-- Y el token expira en 24 horas
+#### Scenario: Successful login with valid credentials
+- GIVEN that the user exists with email "user@example.com" and the correct password
+- WHEN they send POST /auth/login with those credentials
+- THEN they receive status 200
+- AND they receive a valid JWT in the "token" field
+- AND the token expires in 24 hours
 
-#### Escenario: Login fallido con contraseña incorrecta
-- DADO que el usuario existe con email "user@example.com"
-- CUANDO envía POST /auth/login con contraseña incorrecta
-- ENTONCES recibe status 401
-- Y el mensaje de error NO revela si el email existe o no
+#### Scenario: Failed login with incorrect password
+- GIVEN that the user exists with email "user@example.com"
+- WHEN they send POST /auth/login with an incorrect password
+- THEN they receive status 401
+- AND the error message does NOT reveal whether the email exists
 ```
 
-### ❌ Mal escrito (muy vago)
+### Poorly written (too vague)
 ```
-#### Escenario: El usuario puede hacer login
-- DADO que hay un usuario
-- CUANDO hace login
-- ENTONCES funciona
+#### Scenario: The user can log in
+- GIVEN there is a user
+- WHEN they log in
+- THEN it works
 ```
 
 ---
 
-## Output al Orquestador
+## Output to Orchestrator
 
 ```json
 {
   "status": "ok|warning|blocked",
-  "resumen": "Specs para [nombre-cambio]: [N] dominios, [M] requisitos, [K] escenarios.",
+  "resumen": "Specs for [change-name]: [N] domains, [M] requirements, [K] scenarios.",
   "artefactos": [
-    "openspec/changes/<nombre>/specs/<dominio1>/spec.md",
-    "openspec/changes/<nombre>/specs/<dominio2>/spec.md"
+    "openspec/changes/<name>/specs/<domain1>/spec.md",
+    "openspec/changes/<name>/specs/<domain2>/spec.md"
   ],
-  "siguiente_recomendado": ["sdd-tasks (después de sdd-design)"],
+  "siguiente_recomendado": ["sdd-tasks (after sdd-design)"],
   "riesgos": []
 }
 ```
 
 ---
 
-## Reglas
+## Rules
 
-- Las specs describen COMPORTAMIENTO OBSERVABLE, no implementación
-- Cada requisito DEBE tener al menos 1 escenario (happy path mínimo)
-- Los escenarios DEBEN ser testables y verificables
-- NO incluyo detalles de implementación (eso es `sdd-design`)
-- NO invento comportamiento — me baso en la propuesta y código existente
-- Si algo es ambiguo en la propuesta, lo marco como `[Pendiente clarificación]` y lo listo en riesgos
+- Specs describe OBSERVABLE BEHAVIOR, not implementation
+- Each requirement MUST have at least 1 scenario (happy path minimum)
+- Scenarios MUST be testable and verifiable
+- I do NOT include implementation details (that is `sdd-design`)
+- I do NOT invent behavior — I base everything on the proposal and existing code
+- If something is ambiguous in the proposal, I mark it as `[Pending clarification]` and list it in risks

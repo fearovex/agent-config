@@ -1,146 +1,146 @@
 # sdd-tasks
 
-> Desglosa el diseño en un plan de tareas atómicas, ordenadas y verificables.
+> Breaks down the design into an atomic, ordered, and verifiable task plan.
 
-**Triggers**: sdd:tasks, plan de tareas, desglosar implementación, task breakdown, sdd tasks
-
----
-
-## Propósito
-
-El plan de tareas convierte el diseño en una **lista de trabajo ejecutable**. Cada tarea es atómica (una sola cosa), concreta (tiene ruta de archivo), y verificable (se puede marcar como hecha).
-
-Es la entrada para `sdd-apply`. Sin tasks aprobado, no se implementa.
+**Triggers**: sdd:tasks, task plan, break down implementation, task breakdown, sdd tasks
 
 ---
 
-## Proceso
+## Purpose
 
-### Paso 1 — Leer artefactos previos
+The task plan converts the design into an **executable work list**. Each task is atomic (one single thing), concrete (has a file path), and verifiable (can be marked as done).
 
-Leo obligatoriamente:
-- `openspec/changes/<nombre-cambio>/design.md` (la matriz de archivos y el enfoque)
-- `openspec/changes/<nombre-cambio>/specs/` (los criterios de éxito)
-- `openspec/config.yaml` si existe (reglas del proyecto)
+It is the input for `sdd-apply`. Without an approved tasks file, nothing gets implemented.
 
-### Paso 2 — Analizar dependencias entre tareas
+---
 
-Identifico el orden natural de implementación:
-- Tipos/interfaces antes que su uso
-- Providers/services antes que sus consumidores
-- Schema/migration antes que el código que los usa
-- Tests de unidad junto con el código (no al final)
+## Process
 
-### Paso 3 — Organizar en fases
+### Step 1 — Read prior artifacts
 
-Agrupo las tareas en fases lógicas:
+I must read:
+- `openspec/changes/<change-name>/design.md` (the file matrix and approach)
+- `openspec/changes/<change-name>/specs/` (the success criteria)
+- `openspec/config.yaml` if it exists (project rules)
+
+### Step 2 — Analyze dependencies between tasks
+
+I identify the natural implementation order:
+- Types/interfaces before their usage
+- Providers/services before their consumers
+- Schema/migration before the code that uses them
+- Unit tests alongside the code (not at the end)
+
+### Step 3 — Organize into phases
+
+I group tasks into logical phases:
 
 ```
-Fase 1 — Fundación: tipos, interfaces, schemas, configuración
-Fase 2 — Core: lógica de negocio principal
-Fase 3 — Integración: conectar con el resto del sistema
-Fase 4 — Testing: tests de las fases anteriores
-Fase 5 — Limpieza: eliminar código temporal, actualizar docs
+Phase 1 — Foundation: types, interfaces, schemas, configuration
+Phase 2 — Core: main business logic
+Phase 3 — Integration: connect with the rest of the system
+Phase 4 — Testing: tests for previous phases
+Phase 5 — Cleanup: remove temporary code, update docs
 ```
 
-(Adapto los nombres de fase al contexto del cambio)
+(I adapt phase names to the context of the change)
 
-### Paso 4 — Crear tasks.md
+### Step 4 — Create tasks.md
 
-Creo `openspec/changes/<nombre-cambio>/tasks.md`:
+I create `openspec/changes/<change-name>/tasks.md`:
 
 ```markdown
-# Plan de Tareas: [nombre-cambio]
+# Task Plan: [change-name]
 
-Fecha: [YYYY-MM-DD]
-Design: openspec/changes/[nombre]/design.md
+Date: [YYYY-MM-DD]
+Design: openspec/changes/[name]/design.md
 
-## Progreso: 0/[total] tareas
+## Progress: 0/[total] tasks
 
-## Fase 1: [Nombre de Fase]
+## Phase 1: [Phase Name]
 
-- [ ] 1.1 Crear `src/types/auth.types.ts` con interfaces `LoginRequest`, `LoginResponse`, `JwtPayload`
-- [ ] 1.2 Crear `src/schemas/auth.schema.ts` con schemas Zod para validación de login
-- [ ] 1.3 Modificar `src/config/jwt.config.ts` — añadir `refreshSecret` y `refreshExpiresIn`
+- [ ] 1.1 Create `src/types/auth.types.ts` with interfaces `LoginRequest`, `LoginResponse`, `JwtPayload`
+- [ ] 1.2 Create `src/schemas/auth.schema.ts` with Zod schemas for login validation
+- [ ] 1.3 Modify `src/config/jwt.config.ts` — add `refreshSecret` and `refreshExpiresIn`
 
-## Fase 2: [Nombre de Fase]
+## Phase 2: [Phase Name]
 
-- [ ] 2.1 Crear `src/services/auth.service.ts` con métodos `login()`, `logout()`, `refreshToken()`
-- [ ] 2.2 Modificar `src/repositories/user.repository.ts` — añadir método `findByEmail()`
-- [ ] 2.3 Crear `src/middleware/auth.middleware.ts` para validación de JWT en rutas protegidas
+- [ ] 2.1 Create `src/services/auth.service.ts` with methods `login()`, `logout()`, `refreshToken()`
+- [ ] 2.2 Modify `src/repositories/user.repository.ts` — add `findByEmail()` method
+- [ ] 2.3 Create `src/middleware/auth.middleware.ts` for JWT validation on protected routes
 
-## Fase 3: [Nombre de Fase]
+## Phase 3: [Phase Name]
 
-- [ ] 3.1 Crear `src/controllers/auth.controller.ts` con endpoints POST /login, POST /logout, POST /refresh
-- [ ] 3.2 Modificar `src/routes/index.ts` — registrar rutas de auth
-- [ ] 3.3 Modificar `src/app.ts` — integrar auth middleware en rutas protegidas
+- [ ] 3.1 Create `src/controllers/auth.controller.ts` with endpoints POST /login, POST /logout, POST /refresh
+- [ ] 3.2 Modify `src/routes/index.ts` — register auth routes
+- [ ] 3.3 Modify `src/app.ts` — integrate auth middleware on protected routes
 
-## Fase 4: Testing
+## Phase 4: Testing
 
-- [ ] 4.1 Crear `tests/unit/auth.service.spec.ts` — tests unitarios de AuthService
-- [ ] 4.2 Crear `tests/integration/auth.controller.spec.ts` — tests de endpoints
-- [ ] 4.3 Verificar cobertura de escenarios del spec (revisar openspec/changes/[nombre]/specs/)
+- [ ] 4.1 Create `tests/unit/auth.service.spec.ts` — unit tests for AuthService
+- [ ] 4.2 Create `tests/integration/auth.controller.spec.ts` — endpoint tests
+- [ ] 4.3 Verify scenario coverage from spec (review openspec/changes/[name]/specs/)
 
-## Fase 5: Limpieza
+## Phase 5: Cleanup
 
-- [ ] 5.1 Actualizar `README.md` — documentar nuevos endpoints
-- [ ] 5.2 Actualizar `docs/ai-context/architecture.md` si hubo cambios estructurales
-
----
-
-## Notas de Implementación
-
-[Decisiones del design que el implementador debe tener en cuenta:]
-- [nota importante 1]
-- [nota importante 2]
-
-## Bloqueantes
-
-[Tareas que no pueden empezar hasta que algo externo esté listo:]
-- [bloqueante]: [qué lo resuelve]
-
-[Si no hay: "Ninguno."]
-```
+- [ ] 5.1 Update `README.md` — document new endpoints
+- [ ] 5.2 Update `docs/ai-context/architecture.md` if there were structural changes
 
 ---
 
-## Formato de tarea bien escrita
+## Implementation Notes
 
-### ✅ Bien escrita
-```
-- [ ] 2.1 Crear `src/services/payment.service.ts` con método `processPayment(dto: PaymentDto): Promise<PaymentResult>`
-```
+[Design decisions the implementer must keep in mind:]
+- [important note 1]
+- [important note 2]
 
-### ❌ Mal escrita
-```
-- [ ] Agregar lógica de pagos
-```
+## Blockers
 
-**Regla**: Cada tarea debe responder "¿qué archivo y qué cambio concreto?"
+[Tasks that cannot start until something external is ready:]
+- [blocker]: [what resolves it]
+
+[If none: "None."]
+```
 
 ---
 
-## Output al Orquestador
+## Format of a well-written task
+
+### Well written
+```
+- [ ] 2.1 Create `src/services/payment.service.ts` with method `processPayment(dto: PaymentDto): Promise<PaymentResult>`
+```
+
+### Poorly written
+```
+- [ ] Add payment logic
+```
+
+**Rule**: Each task must answer "which file and what specific change?"
+
+---
+
+## Output to Orchestrator
 
 ```json
 {
   "status": "ok|warning|blocked",
-  "resumen": "Plan para [nombre-cambio]: [N] fases, [M] tareas totales. Estimación: [Bajo/Medio/Alto].",
-  "artefactos": ["openspec/changes/<nombre>/tasks.md"],
+  "resumen": "Plan for [change-name]: [N] phases, [M] total tasks. Estimate: [Low/Medium/High].",
+  "artefactos": ["openspec/changes/<name>/tasks.md"],
   "siguiente_recomendado": ["sdd-apply"],
-  "riesgos": ["[bloqueante si existe]"]
+  "riesgos": ["[blocker if any]"]
 }
 ```
 
 ---
 
-## Reglas
+## Rules
 
-- Cada tarea DEBE tener ruta de archivo concreta
-- Cada tarea DEBE ser atómica (una sola responsabilidad)
-- Cada tarea DEBE ser verificable (se puede marcar done con certeza)
-- Los tests van con su código, no todos al final
-- El orden de fases respeta las dependencias técnicas
-- Tareas de documentación y memoria (ai-context) van en la última fase
-- NO incluyo tareas que van más allá del alcance de la propuesta
-- Si detecto que el diseño está incompleto para generar tareas, reporto como bloqueante
+- Each task MUST have a concrete file path
+- Each task MUST be atomic (single responsibility)
+- Each task MUST be verifiable (can be marked done with certainty)
+- Tests go with their code, not all at the end
+- Phase order respects technical dependencies
+- Documentation and memory tasks (ai-context) go in the last phase
+- I do NOT include tasks that go beyond the proposal's scope
+- If I detect that the design is incomplete to generate tasks, I report it as a blocker

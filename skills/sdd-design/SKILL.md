@@ -1,63 +1,63 @@
 # sdd-design
 
-> Produce el diseño técnico con decisiones de arquitectura, flujo de datos y plan de cambios en archivos.
+> Produces the technical design with architecture decisions, data flow, and a file change plan.
 
-**Triggers**: sdd:design, diseño técnico, arquitectura cambio, technical design, sdd design
-
----
-
-## Propósito
-
-El diseño define el **CÓMO se implementará** lo que las specs dicen que DEBE hacer. Es el puente entre los requisitos y el código. Documenta las decisiones técnicas y su justificación.
+**Triggers**: sdd:design, technical design, change architecture, technical design, sdd design
 
 ---
 
-## Proceso
+## Purpose
 
-### Paso 1 — Leer artefactos previos
+The design defines **HOW to implement** what the specs say the system MUST do. It is the bridge between requirements and code. It documents technical decisions and their justification.
 
-Leo obligatoriamente:
-- `openspec/changes/<nombre-cambio>/proposal.md`
-- `openspec/changes/<nombre-cambio>/specs/` (todos los spec.md)
-- `docs/ai-context/architecture.md` si existe
-- `docs/ai-context/conventions.md` si existe
+---
 
-Luego leo código real:
-- Entry points relevantes
-- Archivos que serán afectados según la propuesta
-- Patrones existentes para seguirlos (no reinventar)
-- Tests existentes (revelan contratos actuales)
+## Process
 
-### Paso 2 — Diseñar la solución técnica
+### Step 1 — Read prior artifacts
 
-Evalúo la solución considerando:
-- Patrones ya usados en el proyecto (preferir consistencia)
-- Impacto mínimo en código existente
-- Testabilidad
-- Reversibilidad (rollback plan de la propuesta)
+I must read:
+- `openspec/changes/<change-name>/proposal.md`
+- `openspec/changes/<change-name>/specs/` (all spec.md files)
+- `docs/ai-context/architecture.md` if it exists
+- `docs/ai-context/conventions.md` if it exists
 
-### Paso 3 — Crear design.md
+Then I read real code:
+- Relevant entry points
+- Files that will be affected according to the proposal
+- Existing patterns to follow (not reinvent)
+- Existing tests (they reveal current contracts)
 
-Creo `openspec/changes/<nombre-cambio>/design.md`:
+### Step 2 — Design the technical solution
+
+I evaluate the solution considering:
+- Patterns already used in the project (prefer consistency)
+- Minimal impact on existing code
+- Testability
+- Reversibility (rollback plan from the proposal)
+
+### Step 3 — Create design.md
+
+I create `openspec/changes/<change-name>/design.md`:
 
 ```markdown
-# Diseño Técnico: [nombre-cambio]
+# Technical Design: [change-name]
 
-Fecha: [YYYY-MM-DD]
-Propuesta: openspec/changes/[nombre]/proposal.md
+Date: [YYYY-MM-DD]
+Proposal: openspec/changes/[name]/proposal.md
 
-## Enfoque General
-[Descripción de alto nivel de la solución técnica en 3-5 líneas]
+## General Approach
+[High-level description of the technical solution in 3-5 lines]
 
-## Decisiones Técnicas
-| Decisión | Elección | Alternativas Descartadas | Justificación |
-|----------|----------|--------------------------|---------------|
-| [decisión] | [qué se elige] | [alternativa A, alternativa B] | [por qué esta elección] |
+## Technical Decisions
+| Decision | Choice | Discarded Alternatives | Justification |
+|----------|--------|------------------------|---------------|
+| [decision] | [what is chosen] | [alternative A, alternative B] | [why this choice] |
 
-## Flujo de Datos
-[Diagrama ASCII o descripción del flujo]
+## Data Flow
+[ASCII diagram or description of the flow]
 
-Ejemplo:
+Example:
 ```
 Request → Middleware → Controller → Service → Repository → DB
                            ↓
@@ -66,20 +66,20 @@ Request → Middleware → Controller → Service → Repository → DB
                        Response DTO
 ```
 
-## Matriz de Cambios en Archivos
-| Archivo | Acción | Qué se agrega/modifica |
-|---------|--------|------------------------|
-| `src/modules/auth/auth.service.ts` | Modificar | Agregar método `refreshToken()` |
-| `src/modules/auth/auth.controller.ts` | Modificar | Nuevo endpoint POST /auth/refresh |
-| `src/modules/auth/dto/refresh.dto.ts` | Crear | DTO para request de refresh |
-| `src/modules/auth/auth.module.ts` | Modificar | Registrar nuevo provider |
-| `tests/auth/refresh-token.spec.ts` | Crear | Tests del nuevo endpoint |
+## File Change Matrix
+| File | Action | What is added/modified |
+|------|--------|------------------------|
+| `src/modules/auth/auth.service.ts` | Modify | Add `refreshToken()` method |
+| `src/modules/auth/auth.controller.ts` | Modify | New endpoint POST /auth/refresh |
+| `src/modules/auth/dto/refresh.dto.ts` | Create | DTO for refresh request |
+| `src/modules/auth/auth.module.ts` | Modify | Register new provider |
+| `tests/auth/refresh-token.spec.ts` | Create | Tests for the new endpoint |
 
-## Interfaces y Contratos
-[Definiciones de tipos, interfaces, DTOs, schemas que se crearán]
+## Interfaces and Contracts
+[Type definitions, interfaces, DTOs, schemas to be created]
 
 ```typescript
-// Ejemplo
+// Example
 interface RefreshTokenRequest {
   refreshToken: string;
 }
@@ -90,50 +90,50 @@ interface RefreshTokenResponse {
 }
 ```
 
-## Estrategia de Testing
-| Capa | Qué testear | Herramienta |
-|------|-------------|-------------|
-| Unit | [servicio/función] | [jest/vitest/pytest] |
-| Integration | [endpoint/módulo] | [supertest/httpx] |
-| E2E | [flujo completo si aplica] | [playwright/cypress] |
+## Testing Strategy
+| Layer | What to test | Tool |
+|-------|-------------|------|
+| Unit | [service/function] | [jest/vitest/pytest] |
+| Integration | [endpoint/module] | [supertest/httpx] |
+| E2E | [full flow if applicable] | [playwright/cypress] |
 
-## Plan de Migración
-[Si hay cambios en DB, schema, o datos existentes:]
-- Paso 1: [migration script]
-- Paso 2: [rollout gradual si aplica]
-- Paso 3: [limpieza posterior]
+## Migration Plan
+[If there are changes to DB, schema, or existing data:]
+- Step 1: [migration script]
+- Step 2: [gradual rollout if applicable]
+- Step 3: [post-cleanup]
 
-[Si no hay migración: "No requiere migración de datos."]
+[If no migration: "No data migration required."]
 
-## Preguntas Abiertas
-[Aspectos que necesitan clarificación antes de implementar]
-- [pregunta]: [impacto si no se resuelve]
+## Open Questions
+[Aspects that need clarification before implementing]
+- [question]: [impact if not resolved]
 
-[Si no hay: "Ninguna."]
+[If none: "None."]
 ```
 
 ---
 
-## Ejemplos de decisiones bien documentadas
+## Examples of well-documented decisions
 
-### ✅ Bien documentado
+### Well documented
 ```markdown
-| Validación de entrada | Zod en capa de controller | Class-validator, manual |
-El proyecto ya usa Zod para schemas de DB (Drizzle).
-Mantener consistencia evita dos sistemas de validación. |
+| Input validation | Zod at controller layer | Class-validator, manual |
+The project already uses Zod for DB schemas (Drizzle).
+Maintaining consistency avoids two validation systems. |
 ```
 
-### ❌ Mal documentado
+### Poorly documented
 ```markdown
-| Validación | Zod | otros | Es mejor |
+| Validation | Zod | others | It's better |
 ```
 
 ---
 
-## Diagramas ASCII útiles
+## Useful ASCII diagrams
 
 ```
-# Flujo de autenticación
+# Authentication flow
 Client → POST /auth/login
             ↓
         AuthController
@@ -148,7 +148,7 @@ Client → POST /auth/login
             ↓
         Response { token, refreshToken }
 
-# Estructura de módulo
+# Module structure
 auth/
 ├── auth.module.ts
 ├── auth.controller.ts
@@ -163,26 +163,26 @@ auth/
 
 ---
 
-## Output al Orquestador
+## Output to Orchestrator
 
 ```json
 {
   "status": "ok|warning|blocked",
-  "resumen": "Diseño para [nombre-cambio]: [N] archivos afectados, enfoque [descripción breve], riesgo [nivel].",
-  "artefactos": ["openspec/changes/<nombre>/design.md"],
-  "siguiente_recomendado": ["sdd-tasks (requiere spec + design completados)"],
-  "riesgos": ["[riesgo técnico si encontrado]"]
+  "resumen": "Design for [change-name]: [N] affected files, approach [brief description], risk [level].",
+  "artefactos": ["openspec/changes/<name>/design.md"],
+  "siguiente_recomendado": ["sdd-tasks (requires spec + design completed)"],
+  "riesgos": ["[technical risk if found]"]
 }
 ```
 
 ---
 
-## Reglas
+## Rules
 
-- SIEMPRE leer código real antes de diseñar — nunca asumo la estructura
-- Cada decisión DEBE tener justificación (el "por qué", no solo el "qué")
-- Seguir patrones existentes del proyecto a menos que el cambio los corrija explícitamente
-- La matriz de archivos debe ser concreta (rutas reales, no "algún archivo de auth")
-- Los diagramas ASCII son preferibles a descripciones largas
-- Si detecto que la propuesta es incompatible con la arquitectura actual, lo reporto como bloqueante
-- NO escribo código de implementación — eso es `sdd-apply`
+- ALWAYS read real code before designing — never assume the structure
+- Every decision MUST have justification (the "why", not just the "what")
+- Follow existing project patterns unless the change explicitly corrects them
+- The file matrix must be concrete (real paths, not "some auth file")
+- ASCII diagrams are preferable to long descriptions
+- If I detect that the proposal is incompatible with the current architecture, I report it as a blocker
+- I do NOT write implementation code — that is `sdd-apply`

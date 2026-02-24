@@ -1,158 +1,158 @@
 # sdd-archive
 
-> Sincroniza las delta specs a las specs maestras y archiva el cambio completado.
+> Syncs delta specs to the master specs and archives the completed change.
 
-**Triggers**: sdd:archive, archivar cambio, finalizar ciclo sdd, cerrar cambio, sdd archive
-
----
-
-## Propósito
-
-El archivo es el **paso final** del ciclo SDD. Integra los aprendizajes del cambio en las specs maestras (fuente de verdad permanente) y mueve el cambio al historial. Es irreversible — confirmo con el usuario antes de ejecutar.
+**Triggers**: sdd:archive, archive change, finalize sdd cycle, close change, sdd archive
 
 ---
 
-## Ciclo de Vida de las Specs
+## Purpose
+
+Archiving is the **final step** of the SDD cycle. It integrates the learnings from the change into the master specs (permanent source of truth) and moves the change to history. It is irreversible — I confirm with the user before executing.
+
+---
+
+## Spec Lifecycle
 
 ```
-1. openspec/specs/ describe el comportamiento ACTUAL del sistema
-2. Un cambio propone modificaciones (como deltas)
-3. La implementación hace los cambios reales en el código
-4. El archivo FUSIONA los deltas con las specs maestras
-5. openspec/specs/ ahora describe el NUEVO comportamiento
-6. El próximo cambio parte de las specs actualizadas
+1. openspec/specs/ describes the CURRENT behavior of the system
+2. A change proposes modifications (as deltas)
+3. The implementation makes the actual changes in the code
+4. Archiving MERGES the deltas into the master specs
+5. openspec/specs/ now describes the NEW behavior
+6. The next change starts from the updated specs
 ```
 
 ---
 
-## Proceso
+## Process
 
-### Paso 1 — Verificar que es archivable
+### Step 1 — Verify it is archivable
 
-Leo `openspec/changes/<nombre-cambio>/verify-report.md` si existe.
+I read `openspec/changes/<change-name>/verify-report.md` if it exists.
 
-Si hay issues CRÍTICOS sin resolver:
+If there are unresolved CRITICAL issues:
 ```
-⛔ No se puede archivar.
+No archiving allowed.
 
-El reporte de verificación tiene [N] issues críticos:
+The verification report has [N] critical issues:
 - [issue 1]
 - [issue 2]
 
-Resuelve los issues y ejecuta /sdd:verify de nuevo antes de archivar.
+Resolve the issues and run /sdd:verify again before archiving.
 ```
 
-Si no hay reporte de verificación, lo informo y pregunto si continuar de todas formas.
+If there is no verification report, I inform the user and ask whether to proceed anyway.
 
-### Paso 2 — Confirmar con el usuario
+### Step 2 — Confirm with the user
 
 ```
-¿Confirmas archivar el cambio "[nombre-cambio]"?
+Do you confirm archiving the change "[change-name]"?
 
-Esto realizará las siguientes acciones IRREVERSIBLES:
-1. Fusionar delta specs → specs maestras en openspec/specs/
-2. Mover openspec/changes/[nombre]/ → openspec/changes/archive/[fecha]-[nombre]/
+This will perform the following IRREVERSIBLE actions:
+1. Merge delta specs → master specs in openspec/specs/
+2. Move openspec/changes/[name]/ → openspec/changes/archive/[date]-[name]/
 
-[PASS CON ADVERTENCIAS — las advertencias quedaron sin resolver]
-[o: Verificación: PASS]
+[PASS WITH WARNINGS — warnings were left unresolved]
+[or: Verification: PASS]
 
-¿Continuar? [s/n]
+Continue? [y/n]
 ```
 
-### Paso 3 — Sincronizar delta specs a specs maestras
+### Step 3 — Sync delta specs to master specs
 
-Para cada archivo de delta spec en `openspec/changes/<nombre>/specs/`:
+For each delta spec file in `openspec/changes/<name>/specs/`:
 
-#### Si existe spec maestra (`openspec/specs/<dominio>/spec.md`):
+#### If master spec exists (`openspec/specs/<domain>/spec.md`):
 
-Aplico el delta:
+I apply the delta:
 
-**ADDED** → Agrego los requisitos nuevos al final del archivo de spec maestra
-**MODIFIED** → Reemplazo el requisito existente con la nueva versión
-**REMOVED** → Elimino el requisito (con comentario de auditoría)
+**ADDED** → I append the new requirements at the end of the master spec file
+**MODIFIED** → I replace the existing requirement with the new version
+**REMOVED** → I delete the requirement (with an audit comment)
 
-Ejemplo de merge:
+Merge example:
 ```markdown
-<!-- Antes en spec maestra -->
-### Requisito: Export JSON
-El sistema DEBE exportar datos en formato JSON.
+<!-- Before in master spec -->
+### Requirement: Export JSON
+The system MUST export data in JSON format.
 
-<!-- Después de aplicar MODIFIED desde delta -->
-### Requisito: Export JSON
-El sistema DEBE exportar datos en formato JSON y CSV.
-*(Modificado en: 2026-02-23 por cambio "add-csv-export")*
+<!-- After applying MODIFIED from delta -->
+### Requirement: Export JSON
+The system MUST export data in JSON and CSV format.
+*(Modified in: 2026-02-23 by change "add-csv-export")*
 ```
 
-**Preservo TODO lo que NO está en el delta.**
+**I PRESERVE EVERYTHING that is NOT in the delta.**
 
-#### Si NO existe spec maestra:
+#### If NO master spec exists:
 
-Copio el archivo delta a `openspec/specs/<dominio>/spec.md` (se convierte en spec completa).
+I copy the delta file to `openspec/specs/<domain>/spec.md` (it becomes the full spec).
 
-### Paso 4 — Mover a archivo
+### Step 4 — Move to archive
 
-Muevo la carpeta del cambio:
+I move the change folder:
 ```
-openspec/changes/<nombre-cambio>/
-→ openspec/changes/archive/YYYY-MM-DD-<nombre-cambio>/
+openspec/changes/<change-name>/
+→ openspec/changes/archive/YYYY-MM-DD-<change-name>/
 ```
 
-Creo `openspec/changes/archive/` si no existe.
+I create `openspec/changes/archive/` if it does not exist.
 
-### Paso 5 — Crear nota de cierre
+### Step 5 — Create closure note
 
-Creo `openspec/changes/archive/YYYY-MM-DD-<nombre>/CLOSURE.md`:
+I create `openspec/changes/archive/YYYY-MM-DD-<name>/CLOSURE.md`:
 
 ```markdown
-# Cierre: [nombre-cambio]
+# Closure: [change-name]
 
-Fecha de inicio: [fecha de proposal.md]
-Fecha de cierre: [YYYY-MM-DD]
+Start date: [date from proposal.md]
+Close date: [YYYY-MM-DD]
 
-## Resumen
-[Qué se hizo en una o dos líneas]
+## Summary
+[What was done in one or two lines]
 
-## Specs Modificadas
-| Dominio | Acción | Cambio |
-|---------|--------|--------|
-| [dominio] | Añadido/Modificado/Creado | [descripción] |
+## Modified Specs
+| Domain | Action | Change |
+|--------|--------|--------|
+| [domain] | Added/Modified/Created | [description] |
 
-## Archivos Modificados en el Código
-[Lista de archivos principales que cambiaron]
+## Modified Code Files
+[List of main files that changed]
 
-## Decisiones Clave Tomadas
-[Las decisiones de architecture.md relevantes para el futuro]
+## Key Decisions Made
+[The architecture.md decisions relevant for the future]
 
-## Lecciones Aprendidas
-[Si hubo desviaciones, problemas, o insights durante el ciclo]
+## Lessons Learned
+[If there were deviations, problems, or insights during the cycle]
 ```
 
-### Paso 6 — Sugerir actualizar memoria
+### Step 6 — Suggest updating memory
 
 ```
-✅ Cambio "[nombre-cambio]" archivado correctamente.
+Change "[change-name]" successfully archived.
 
-Specs maestras actualizadas:
-  - openspec/specs/auth/spec.md — 2 requisitos añadidos
+Master specs updated:
+  - openspec/specs/auth/spec.md — 2 requirements added
 
-Archivado en:
-  - openspec/changes/archive/2026-02-23-[nombre]/
+Archived at:
+  - openspec/changes/archive/2026-02-23-[name]/
 
-Recomendación: Ejecuta /memory:update para actualizar
-docs/ai-context/ con las decisiones de este ciclo.
+Recommendation: Run /memory:update to update
+docs/ai-context/ with the decisions from this cycle.
 ```
 
 ---
 
-## Output al Orquestador
+## Output to Orchestrator
 
 ```json
 {
   "status": "ok|warning|failed",
-  "resumen": "Cambio [nombre] archivado. [N] specs maestras actualizadas.",
+  "resumen": "Change [name] archived. [N] master specs updated.",
   "artefactos": [
-    "openspec/specs/<dominio>/spec.md — actualizado",
-    "openspec/changes/archive/YYYY-MM-DD-<nombre>/ — creado"
+    "openspec/specs/<domain>/spec.md — updated",
+    "openspec/changes/archive/YYYY-MM-DD-<name>/ — created"
   ],
   "siguiente_recomendado": ["memory:update"],
   "riesgos": []
@@ -161,11 +161,11 @@ docs/ai-context/ con las decisiones de este ciclo.
 
 ---
 
-## Reglas
+## Rules
 
-- NUNCA archivo con issues CRÍTICOS sin resolver
-- SIEMPRE confirmo con el usuario antes de ejecutar (es irreversible)
-- PRESERVO todo el contenido de specs maestras que no esté en el delta
-- El historial de archive es INMUTABLE — nunca elimino archivos de archive/
-- Si el merge es destructivo (ej: el delta elimina mucho), lo muestro explícitamente al usuario
-- Si spec maestra tiene conflictos con el delta, los muestro y pregunto cómo resolver
+- NEVER archive with unresolved CRITICAL issues
+- ALWAYS confirm with the user before executing (it is irreversible)
+- PRESERVE all master spec content that is not in the delta
+- The archive history is IMMUTABLE — I never delete files from archive/
+- If the merge is destructive (e.g. the delta removes a lot), I show this explicitly to the user
+- If the master spec has conflicts with the delta, I show them and ask how to resolve

@@ -1,118 +1,118 @@
 # sdd-explore
 
-> Investiga y analiza una idea o área del codebase antes de comprometerse a cambios.
+> Investigates and analyzes an idea or area of the codebase before committing to changes.
 
-**Triggers**: sdd:explore, explorar, investigar codebase, analizar antes de cambiar, research feature
-
----
-
-## Propósito
-
-La fase de exploración es **opcional pero valiosa**. Su objetivo es entender el terreno antes de proponer cambios. No crea código, no modifica nada. Solo lee y analiza.
-
-Úsala cuando:
-- La petición es vaga o compleja
-- No estás seguro del alcance del cambio
-- Quieres entender el impacto antes de comprometerte
-- Hay múltiples enfoques posibles
+**Triggers**: sdd:explore, explore, investigate codebase, analyze before changing, research feature
 
 ---
 
-## Proceso
+## Purpose
 
-### Paso 1 — Entender la petición
+The exploration phase is **optional but valuable**. Its goal is to understand the terrain before proposing changes. It creates no code and modifies nothing. It only reads and analyzes.
 
-Clasifico qué tipo de exploración se necesita:
-- **Feature nueva**: ¿Qué existe ya? ¿Dónde encajaría?
-- **Bug**: ¿Dónde está el problema? ¿Cuál es la causa raíz?
-- **Refactor**: ¿Qué código está afectado? ¿Cuáles son los riesgos?
-- **Integración**: ¿Qué existe para conectar? ¿Qué falta?
+Use it when:
+- The request is vague or complex
+- You are unsure of the scope of the change
+- You want to understand the impact before committing
+- There are multiple possible approaches
 
-### Paso 2 — Investigar el codebase
+---
 
-Leo código real siguiendo esta jerarquía:
-1. Entry points del área afectada
-2. Archivos relacionados con la funcionalidad
-3. Tests existentes (revelan comportamiento esperado)
-4. Configuraciones relevantes
-5. `docs/ai-context/architecture.md` si existe (para entender decisiones pasadas)
+## Process
 
-### Paso 3 — Analizar enfoques
+### Step 1 — Understand the request
 
-Para cada enfoque posible genero una tabla comparativa:
+I classify what type of exploration is needed:
+- **New feature**: What already exists? Where would it fit?
+- **Bug**: Where is the problem? What is the root cause?
+- **Refactor**: What code is affected? What are the risks?
+- **Integration**: What exists to connect? What is missing?
 
-| Enfoque | Pros | Contras | Esfuerzo | Riesgo |
-|---------|------|---------|----------|--------|
-| [Opción A] | | | Bajo/Medio/Alto | Bajo/Medio/Alto |
-| [Opción B] | | | | |
+### Step 2 — Investigate the codebase
 
-### Paso 4 — Identificar riesgos y dependencias
+I read real code following this hierarchy:
+1. Entry points of the affected area
+2. Files related to the functionality
+3. Existing tests (they reveal expected behavior)
+4. Relevant configurations
+5. `docs/ai-context/architecture.md` if it exists (to understand past decisions)
 
-- Código que se rompería con el cambio
-- Dependencias que habría que actualizar
-- Tests que fallarían
-- Efectos secundarios no obvios
+### Step 3 — Analyze approaches
 
-### Paso 5 — Guardar si se especificó nombre de cambio
+For each possible approach I generate a comparison table:
 
-Si se invocó como `/sdd:explore <nombre-cambio>`, guardo en:
-`openspec/changes/<nombre-cambio>/exploration.md`
+| Approach | Pros | Cons | Effort | Risk |
+|----------|------|------|--------|------|
+| [Option A] | | | Low/Medium/High | Low/Medium/High |
+| [Option B] | | | | |
+
+### Step 4 — Identify risks and dependencies
+
+- Code that would break with the change
+- Dependencies that would need to be updated
+- Tests that would fail
+- Non-obvious side effects
+
+### Step 5 — Save if a change name was specified
+
+If invoked as `/sdd:explore <change-name>`, I save to:
+`openspec/changes/<change-name>/exploration.md`
 
 ```markdown
-# Exploración: [tema]
+# Exploration: [topic]
 
-## Estado Actual
-[Qué existe hoy en el codebase]
+## Current State
+[What currently exists in the codebase]
 
-## Áreas Afectadas
-| Archivo/Módulo | Impacto | Notas |
-|----------------|---------|-------|
+## Affected Areas
+| File/Module | Impact | Notes |
+|-------------|--------|-------|
 
-## Enfoques Analizados
+## Analyzed Approaches
 
-### Enfoque A: [nombre]
-**Descripción**: [cómo funcionaría]
-**Pros**: [ventajas]
-**Contras**: [desventajas]
-**Esfuerzo estimado**: Bajo/Medio/Alto
-**Riesgo**: Bajo/Medio/Alto
+### Approach A: [name]
+**Description**: [how it would work]
+**Pros**: [advantages]
+**Cons**: [disadvantages]
+**Estimated effort**: Low/Medium/High
+**Risk**: Low/Medium/High
 
-### Enfoque B: [nombre]
-[mismo formato]
+### Approach B: [name]
+[same format]
 
-## Recomendación
-[Enfoque recomendado y por qué]
+## Recommendation
+[Recommended approach and why]
 
-## Riesgos Identificados
-- [riesgo]: [impacto] — [mitigación sugerida]
+## Identified Risks
+- [risk]: [impact] — [suggested mitigation]
 
-## Preguntas Abiertas
-- [cosas que necesitan clarificación antes de proponer]
+## Open Questions
+- [things that need clarification before proposing]
 
-## Listo para Propuesta
-[Sí/No — y por qué si es No]
+## Ready for Proposal
+[Yes/No — and why if No]
 ```
 
 ---
 
-## Output al Orquestador
+## Output to Orchestrator
 
 ```json
 {
   "status": "ok|warning|blocked",
-  "resumen": "Análisis de [tema]: [2-3 líneas del hallazgo principal]",
-  "artefactos": ["openspec/changes/<nombre>/exploration.md"],
+  "resumen": "Analysis of [topic]: [2-3 lines of the main finding]",
+  "artefactos": ["openspec/changes/<name>/exploration.md"],
   "siguiente_recomendado": ["sdd-propose"],
-  "riesgos": ["[riesgo si encontrado]"]
+  "riesgos": ["[risk if found]"]
 }
 ```
 
 ---
 
-## Reglas
+## Rules
 
-- SOLO leo código — nunca modifico nada en esta fase
-- Leo código real, nunca asumo ni invento
-- Si encuentro algo inesperado (deuda técnica, inconsistencias), lo reporto
-- Mantengo el análisis conciso: el objetivo es informar, no escribir una tesis
-- Si la exploración revela que el cambio es trivial, lo digo claramente
+- I ONLY read code — I never modify anything in this phase
+- I read real code, never assume or invent
+- If I find something unexpected (technical debt, inconsistencies), I report it
+- I keep the analysis concise: the goal is to inform, not to write a thesis
+- If the exploration reveals that the change is trivial, I say so clearly
