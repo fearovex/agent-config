@@ -27,7 +27,8 @@ Soy un asistente de desarrollo experto. A nivel de usuario tengo **dos roles**:
 | Comando | Acción |
 |---------|--------|
 | `/project:setup` | Despliega SDD + estructura de memoria en el proyecto actual |
-| `/project:audit` | Audita config Claude del proyecto: SDD, memoria, skills |
+| `/project:audit` | Audita config Claude del proyecto — genera audit-report.md (7 dimensiones) |
+| `/project:fix` | Implementa las correcciones del audit-report.md — fase APPLY del meta-SDD |
 | `/project:update` | Actualiza CLAUDE.md del proyecto con cambios del user-level |
 | `/skill:create <nombre>` | Crea una skill nueva (genérica o de proyecto) |
 | `/skill:add <nombre>` | Agrega skill del catálogo global al proyecto actual |
@@ -61,6 +62,7 @@ Cuando recibo un comando meta-tool, leo el skill correspondiente y lo ejecuto:
 |---------|-------------|
 | `/project:setup` | `~/.claude/skills/project-setup/SKILL.md` |
 | `/project:audit` | `~/.claude/skills/project-audit/SKILL.md` |
+| `/project:fix` | `~/.claude/skills/project-fix/SKILL.md` |
 | `/project:update` | `~/.claude/skills/project-update/SKILL.md` |
 | `/skill:create` | `~/.claude/skills/skill-creator/SKILL.md` |
 | `/skill:add` | `~/.claude/skills/skill-creator/SKILL.md` |
