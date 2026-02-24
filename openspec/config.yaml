@@ -1,0 +1,43 @@
+project:
+  name: "claude-config"
+  description: "Global Claude Code configuration: SDD orchestrator, meta-tools, and skill catalog"
+  root: "~/claude-config"
+  stack:
+    language: "markdown + yaml + bash"
+    framework: "Claude Code SDD meta-system"
+    database: "none"
+    testing: "manual validation via /project:audit"
+  conventions:
+    naming: "kebab-case (skills, commands) / UPPER_SNAKE (constants)"
+    structure: "skill-per-directory with SKILL.md entry point"
+
+artifact_store:
+  mode: openspec
+  changes_dir: openspec/changes
+  archive_dir: openspec/changes/archive
+
+rules:
+  proposal:
+    - "Every modification to an existing skill requires a proposal with justification"
+    - "Every new skill must define its trigger and relationship to other skills"
+    - "Changes to the global CLAUDE.md require a proposal if they affect the orchestrator"
+  specs:
+    - "Define expected skill behavior with concrete examples"
+    - "Specify which files the skill creates/modifies/reads"
+    - "Define a verifiable success criterion"
+  design:
+    - "Document the internal skill flow step by step"
+    - "Specify how it communicates with other skills (shared artifacts)"
+    - "Justify non-obvious design decisions"
+  tasks:
+    - "One task = one section of SKILL.md or one new file"
+    - "Include the exact file path to create/modify"
+    - "Each task must be independently verifiable"
+  apply:
+    - "Follow tasks.md exactly — no improvising"
+    - "Run /project:audit on claude-config after each apply"
+    - "Update global CLAUDE.md if the change adds/removes commands"
+  verify:
+    - "Run /project:audit — score must be >= previous score"
+    - "Verify the modified skill works on a test project"
+    - "Confirm sync.sh + install.sh work with the new files"
