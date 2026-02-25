@@ -17,7 +17,7 @@ I am an expert development assistant. At the user level I have **two roles**:
 | Framework | Claude Code SDD meta-system |
 | Entry point | SKILL.md per skill directory |
 | Package manager | N/A (skill files, not code) |
-| Testing | /project:audit (integration test) |
+| Testing | /project-audit (integration test) |
 | Version control | Git |
 | Sync | sync.sh (~/claude-config → ~/.claude/) |
 | Install | install.sh (~/.claude/ ← ~/claude-config) |
@@ -35,7 +35,7 @@ Three-layer structure:
 
 SDD meta-cycle for this repo:
 ```
-/sdd:ff <change>  →  review  →  /sdd:apply  →  sync.sh  →  git commit
+/sdd-ff <change>  →  review  →  /sdd-apply  →  sync.sh  →  git commit
 ```
 
 ## Unbreakable Rules
@@ -49,7 +49,7 @@ SDD meta-cycle for this repo:
 - SKILL.md must have: trigger definition, process steps, rules section
 
 ### 3. SDD compliance
-- Every skill modification requires at minimum /sdd:ff before apply
+- Every skill modification requires at minimum /sdd-ff before apply
 - Every archived change must have a verify-report.md with at least one [x] criterion
 
 ### 4. Sync discipline
@@ -72,7 +72,7 @@ When working on a skill change in plan mode:
    - Success criteria (verifiable)
 
 3. **After apply:**
-   - Run `/project:audit` to verify score >= previous
+   - Run `/project-audit` to verify score >= previous
    - Create `verify-report.md` with at least one `[x]` item
    - Run `sync.sh` and `git commit` before archiving
 
@@ -95,30 +95,30 @@ When working on a skill change in plan mode:
 
 | Command | Action |
 |---------|--------|
-| `/project:setup` | Deploys SDD + memory structure in the current project |
-| `/project:audit` | Audits project Claude config — generates audit-report.md (7 dimensions) |
-| `/project:fix` | Implements the corrections from audit-report.md — APPLY phase of the meta-SDD |
-| `/project:update` | Updates the project CLAUDE.md with user-level changes |
-| `/skill:create <name>` | Creates a new skill (generic or project-specific) |
-| `/skill:add <name>` | Adds a skill from the global catalog to the current project |
-| `/memory:init` | Generates ai-context/ files by reading the project from scratch |
-| `/memory:update` | Updates ai-context/ with the work done in the current session |
+| `/project-setup` | Deploys SDD + memory structure in the current project |
+| `/project-audit` | Audits project Claude config — generates audit-report.md (7 dimensions) |
+| `/project-fix` | Implements the corrections from audit-report.md — APPLY phase of the meta-SDD |
+| `/project-update` | Updates the project CLAUDE.md with user-level changes |
+| `/skill-create <name>` | Creates a new skill (generic or project-specific) |
+| `/skill-add <name>` | Adds a skill from the global catalog to the current project |
+| `/memory-init` | Generates ai-context/ files by reading the project from scratch |
+| `/memory-update` | Updates ai-context/ with the work done in the current session |
 
 ### SDD Phases — Development Cycle
 
 | Command | Action |
 |---------|--------|
-| `/sdd:new <change>` | Starts a complete SDD cycle for a change |
-| `/sdd:ff <change>` | Fast-forward: propose → spec+design (parallel) → tasks |
-| `/sdd:explore <topic>` | Explore/investigate without committing to changes |
-| `/sdd:propose <change>` | Create proposal |
-| `/sdd:spec <change>` | Write delta specifications |
-| `/sdd:design <change>` | Create technical design |
-| `/sdd:tasks <change>` | Break down task plan |
-| `/sdd:apply <change>` | Implement tasks |
-| `/sdd:verify <change>` | Verify implementation against specs |
-| `/sdd:archive <change>` | Archive completed change |
-| `/sdd:status` | View the active SDD cycle status |
+| `/sdd-new <change>` | Starts a complete SDD cycle for a change |
+| `/sdd-ff <change>` | Fast-forward: propose → spec+design (parallel) → tasks |
+| `/sdd-explore <topic>` | Explore/investigate without committing to changes |
+| `/sdd-propose <change>` | Create proposal |
+| `/sdd-spec <change>` | Write delta specifications |
+| `/sdd-design <change>` | Create technical design |
+| `/sdd-tasks <change>` | Break down task plan |
+| `/sdd-apply <change>` | Implement tasks |
+| `/sdd-verify <change>` | Verify implementation against specs |
+| `/sdd-archive <change>` | Archive completed change |
+| `/sdd-status` | View the active SDD cycle status |
 
 ---
 
@@ -129,14 +129,14 @@ When I receive a meta-tool command, I read the corresponding skill and execute i
 
 | Command | Skill to read |
 |---------|--------------|
-| `/project:setup` | `~/.claude/skills/project-setup/SKILL.md` |
-| `/project:audit` | `~/.claude/skills/project-audit/SKILL.md` |
-| `/project:fix` | `~/.claude/skills/project-fix/SKILL.md` |
-| `/project:update` | `~/.claude/skills/project-update/SKILL.md` |
-| `/skill:create` | `~/.claude/skills/skill-creator/SKILL.md` |
-| `/skill:add` | `~/.claude/skills/skill-creator/SKILL.md` |
-| `/memory:init` | `~/.claude/skills/memory-manager/SKILL.md` |
-| `/memory:update` | `~/.claude/skills/memory-manager/SKILL.md` |
+| `/project-setup` | `~/.claude/skills/project-setup/SKILL.md` |
+| `/project-audit` | `~/.claude/skills/project-audit/SKILL.md` |
+| `/project-fix` | `~/.claude/skills/project-fix/SKILL.md` |
+| `/project-update` | `~/.claude/skills/project-update/SKILL.md` |
+| `/skill-create` | `~/.claude/skills/skill-creator/SKILL.md` |
+| `/skill-add` | `~/.claude/skills/skill-creator/SKILL.md` |
+| `/memory-init` | `~/.claude/skills/memory-manager/SKILL.md` |
+| `/memory-update` | `~/.claude/skills/memory-manager/SKILL.md` |
 
 ### SDD Orchestrator — Delegation Pattern
 
@@ -213,13 +213,13 @@ explore (optional)
 
 ---
 
-## Fast-Forward (/sdd:ff)
+## Fast-Forward (/sdd-ff)
 
 1. Launch `sdd-propose` → wait
 2. Launch `sdd-spec` + `sdd-design` in parallel → wait for both
 3. Launch `sdd-tasks` → wait
 4. Present COMPLETE summary
-5. Ask: "Ready to implement with /sdd:apply?"
+5. Ask: "Ready to implement with `/sdd-apply`?"
 
 ---
 
@@ -268,7 +268,7 @@ Each project has its memory layer in `ai-context/`:
 | `changelog-ai.md` | Log of changes made by AI |
 
 **At the start of each session** in a project with this structure: I read the relevant ai-context/ files.
-**After completing significant work**: I update the corresponding files or notify the user with `/memory:update`.
+**After completing significant work**: I update the corresponding files or notify the user with `/memory-update`.
 
 ---
 
@@ -319,6 +319,7 @@ Each project has its memory layer in `ai-context/`:
 - `~/.claude/skills/github-pr/SKILL.md`
 - `~/.claude/skills/jira-task/SKILL.md`
 - `~/.claude/skills/jira-epic/SKILL.md`
+- `~/.claude/skills/smart-commit/SKILL.md`
 
 **Languages:**
 - `~/.claude/skills/elixir-antipatterns/SKILL.md`

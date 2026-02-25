@@ -122,6 +122,8 @@ Design: openspec/changes/[name]/design.md
 
 ## Output to Orchestrator
 
+Return ONLY this JSON block. Do NOT add free-form text, command suggestions, or implementation steps after it.
+
 ```json
 {
   "status": "ok|warning|blocked",
@@ -132,10 +134,13 @@ Design: openspec/changes/[name]/design.md
 }
 ```
 
+The orchestrator will present `next_recommended` to the user as `/sdd-apply` (hyphen-separated, with slash prefix). Do not format it yourself.
+
 ---
 
 ## Rules
 
+- **HARD STOP**: My only output is `tasks.md` + the JSON block. I NEVER implement any task, write code, or modify project files beyond creating tasks.md
 - Each task MUST have a concrete file path
 - Each task MUST be atomic (single responsibility)
 - Each task MUST be verifiable (can be marked done with certainty)
