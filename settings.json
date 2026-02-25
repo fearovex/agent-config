@@ -2,6 +2,13 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium",
   "model": "sonnet",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep"
+    ]
+  },
   "mcpServers": {
     "github": {
       "type": "stdio",
