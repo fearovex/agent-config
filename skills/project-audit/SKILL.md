@@ -654,3 +654,67 @@ skill_quality_actions:
 5. **I never modify anything** — this skill is 100% read-only
 6. **If I cannot read a file**, I report it as ❌ with the exact error, I do not assume it does not exist
 7. **When finished**, I notify the user: "Report saved in `.claude/audit-report.md`. To implement the corrections: `/project-fix`"
+8. **All shell-based discovery MUST be consolidated into a single Bash script call (Phase A). Maximum 3 Bash calls per audit run. Never issue individual `ls`, `grep`, `wc -l`, or `find` calls per dimension.**
+
+   Use the following reference script template for Phase A discovery:
+
+   ```sh
+   #!/usr/bin/env bash
+   # project-audit discovery — Phase A
+   # Usage: bash <(echo "$SCRIPT") [project_root]
+   PROJECT="${1:-.}"
+   f() { [ -f "$PROJECT/$1" ] && echo 1 || echo 0; }
+   d() { [ -d "$PROJECT/$1" ] && echo 1 || echo 0; }
+   lc() { [ -f "$PROJECT/$1" ] && wc -l < "$PROJECT/$1" || echo 0; }
+
+   echo "CLAUDE_MD_EXISTS=$(f .claude/CLAUDE.md)"
+   echo "ROOT_CLAUDE_MD_EXISTS=$(f CLAUDE.md)"
+   echo "OPENSPEC_EXISTS=$(d openspec)"
+   echo "CONFIG_YAML_EXISTS=$(f openspec/config.yaml)"
+   echo "INSTALL_SH_EXISTS=$(f install.sh)"
+   echo "SYNC_SH_EXISTS=$(f sync.sh)"
+   echo "STACK_MD_EXISTS=$(f ai-context/stack.md)"
+   echo "ARCH_MD_EXISTS=$(f ai-context/architecture.md)"
+   echo "CONV_MD_EXISTS=$(f ai-context/conventions.md)"
+   echo "ISSUES_MD_EXISTS=$(f ai-context/known-issues.md)"
+   echo "CHANGELOG_MD_EXISTS=$(f ai-context/changelog-ai.md)"
+   echo "CLAUDE_MD_LINES=$(lc CLAUDE.md)"
+   echo "STACK_MD_LINES=$(lc ai-context/stack.md)"
+
+   # Orphaned changes (dirs in changes/ not in archive/, modified >14 days ago)
+   ORPHANED=""
+   if [ -d "$PROJECT/openspec/changes" ]; then
+     for dir in "$PROJECT/openspec/changes"/*/; do
+       name=$(basename "$dir")
+       [ "$name" = "archive" ] && continue
+       [ -z "$(find "$dir" -maxdepth 0 -not -newer "$PROJECT/openspec/changes" -mtime +14 2>/dev/null)" ] || \
+         ORPHANED="${ORPHANED:+$ORPHANED,}$name"
+     done
+   fi
+   echo "ORPHANED_CHANGES=${ORPHANED:-NONE}"
+
+   # SDD phase skills present
+   SDD_COUNT=0
+   for phase in explore propose spec design tasks apply verify archive; do
+     [ -f "$HOME/.claude/skills/sdd-$phase/SKILL.md" ] && SDD_COUNT=$((SDD_COUNT+1))
+   done
+   echo "SDD_SKILLS_PRESENT=$SDD_COUNT"
+   ```
+
+   **Output key schema** (each key is a `key=value` line in stdout):
+
+   - `CLAUDE_MD_EXISTS` — 1 if `.claude/CLAUDE.md` exists, 0 if absent
+   - `ROOT_CLAUDE_MD_EXISTS` — 1 if root `CLAUDE.md` exists, 0 if absent
+   - `OPENSPEC_EXISTS` — 1 if `openspec/` directory exists, 0 if absent
+   - `CONFIG_YAML_EXISTS` — 1 if `openspec/config.yaml` exists, 0 if absent
+   - `INSTALL_SH_EXISTS` — 1 if `install.sh` exists at project root, 0 if absent
+   - `SYNC_SH_EXISTS` — 1 if `sync.sh` exists at project root, 0 if absent
+   - `STACK_MD_EXISTS` — 1 if `ai-context/stack.md` exists, 0 if absent
+   - `ARCH_MD_EXISTS` — 1 if `ai-context/architecture.md` exists, 0 if absent
+   - `CONV_MD_EXISTS` — 1 if `ai-context/conventions.md` exists, 0 if absent
+   - `ISSUES_MD_EXISTS` — 1 if `ai-context/known-issues.md` exists, 0 if absent
+   - `CHANGELOG_MD_EXISTS` — 1 if `ai-context/changelog-ai.md` exists, 0 if absent
+   - `CLAUDE_MD_LINES` — integer line count of root `CLAUDE.md` (0 if absent)
+   - `STACK_MD_LINES` — integer line count of `ai-context/stack.md` (0 if absent)
+   - `ORPHANED_CHANGES` — comma-separated names of orphaned change dirs, or `NONE`
+   - `SDD_SKILLS_PRESENT` — integer count of present `~/.claude/skills/sdd-*/SKILL.md` files (0–8)

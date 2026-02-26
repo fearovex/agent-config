@@ -6,7 +6,8 @@
     "allow": [
       "Read",
       "Glob",
-      "Grep"
+      "Grep",
+      "Bash"
     ]
   },
   "mcpServers": {
