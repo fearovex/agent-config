@@ -19,13 +19,14 @@ I am an expert development assistant. At the user level I have **two roles**:
 | Package manager | N/A (skill files, not code) |
 | Testing | /project-audit (integration test) |
 | Version control | Git |
-| Sync | sync.sh (~/claude-config → ~/.claude/) |
+| Sync | sync.sh (~/.claude/memory/ → repo/memory/ only) |
 | Install | install.sh (~/.claude/ ← ~/claude-config) |
 
 ## Architecture
 
 ```
-claude-config (repo)  ←sync→  ~/.claude/ (runtime)
+claude-config (repo)  ──install.sh──►  ~/.claude/ (runtime)
+                       ◄──sync.sh────  (memory/ only)
 ```
 
 Three-layer structure:
@@ -35,7 +36,7 @@ Three-layer structure:
 
 SDD meta-cycle for this repo:
 ```
-/sdd-ff <change>  →  review  →  /sdd-apply  →  sync.sh  →  git commit
+/sdd-ff <change>  →  review  →  /sdd-apply  →  install.sh  →  git commit
 ```
 
 ## Unbreakable Rules
@@ -53,8 +54,9 @@ SDD meta-cycle for this repo:
 - Every archived change must have a verify-report.md with at least one [x] criterion
 
 ### 4. Sync discipline
-- Always run sync.sh before committing
-- Never edit ~/.claude/ directly without syncing back to the repo
+- `sync.sh` captures **memory/ only** (`~/.claude/memory/ → repo/memory/`). Run it periodically to persist user memory.
+- Config changes (skills, CLAUDE.md, hooks) use `install.sh` (repo → `~/.claude/`), never `sync.sh`.
+- Never edit `~/.claude/` directly — always edit in the repo and deploy via `install.sh`.
 
 ---
 
@@ -74,7 +76,7 @@ When working on a skill change in plan mode:
 3. **After apply:**
    - Run `/project-audit` to verify score >= previous
    - Create `verify-report.md` with at least one `[x]` item
-   - Run `sync.sh` and `git commit` before archiving
+   - Run `install.sh` (deploy config) and `git commit` before archiving
 
 ---
 

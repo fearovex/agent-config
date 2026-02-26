@@ -1,39 +1,33 @@
 #!/usr/bin/env bash
-# sync.sh — Captures current ~/.claude/ state into the repo for committing.
-# Run before: git add -A && git commit
+# sync.sh — Captures global user memory from ~/.claude/memory/ into the repo.
+#
+# Direction : ~/.claude/memory/  →  repo/memory/
+# Scope     : memory/ ONLY
+# Excluded  : skills/, hooks/, ai-context/, openspec/, CLAUDE.md, settings.json
+#             (all of those are repo-authoritative — edit in repo, deploy via install.sh)
+#
+# When to run:
+#   Workflow B (memory capture): bash sync.sh → git add memory/ && git commit
+#   For config changes use install.sh instead (Workflow A).
 
 set -e
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 
-echo "Syncing $CLAUDE_DIR → $REPO_DIR ..."
+# Guard: nothing to do if ~/.claude/memory/ does not exist
+if [ ! -d "$CLAUDE_DIR/memory" ]; then
+  echo "~/.claude/memory/ not found — nothing to sync."
+  exit 0
+fi
 
-# Copy single files
-cp "$CLAUDE_DIR/CLAUDE.md"    "$REPO_DIR/CLAUDE.md"
-cp "$CLAUDE_DIR/settings.json" "$REPO_DIR/settings.json"
+echo "Syncing $CLAUDE_DIR/memory → $REPO_DIR/memory ..."
 
-# Copy directories (cross-platform: no rsync required)
-sync_dir() {
-  local src="$1"
-  local dst="$2"
-  if [ -d "$src" ]; then
-    mkdir -p "$dst"
-    # Remove destination contents first to mirror --delete behavior
-    rm -rf "${dst:?}/"*  2>/dev/null || true
-    cp -r "$src/." "$dst/"
-    echo "  synced: $src → $dst"
-  else
-    echo "  skipped (not found): $src"
-  fi
-}
-
-sync_dir "$CLAUDE_DIR/memory"     "$REPO_DIR/memory"
-sync_dir "$CLAUDE_DIR/skills"     "$REPO_DIR/skills"
-sync_dir "$CLAUDE_DIR/hooks"      "$REPO_DIR/hooks"
-sync_dir "$CLAUDE_DIR/openspec"   "$REPO_DIR/openspec"
-sync_dir "$CLAUDE_DIR/ai-context" "$REPO_DIR/ai-context"
+mkdir -p "$REPO_DIR/memory"
+rm -rf "${REPO_DIR}/memory/"* 2>/dev/null || true
+cp -r "$CLAUDE_DIR/memory/." "$REPO_DIR/memory/"
 
 echo ""
-echo "Done. Review changes with: git diff"
-echo "Then commit with: git add -A && git commit -m 'chore: sync claude config'"
+echo "Done. memory/ synced from ~/.claude/memory/"
+echo "Review with  : git diff memory/"
+echo "Commit with  : git add memory/ && git commit -m 'chore: sync user memory'"

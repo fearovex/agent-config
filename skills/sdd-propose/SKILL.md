@@ -18,7 +18,7 @@ The proposal defines the **WHAT and WHY** before entering into technical details
 
 If `openspec/changes/<change-name>/exploration.md` exists, I read it first.
 If `openspec/config.yaml` exists, I read the project rules.
-If `docs/ai-context/architecture.md` exists, I consult it for coherence.
+If `ai-context/architecture.md` exists, I consult it for coherence.
 
 ### Step 2 — Understand the request in depth
 

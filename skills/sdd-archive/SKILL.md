@@ -139,7 +139,7 @@ Archived at:
   - openspec/changes/archive/2026-02-23-[name]/
 
 Recommendation: Run /memory:update to update
-docs/ai-context/ with the decisions from this cycle.
+ai-context/ with the decisions from this cycle.
 ```
 
 ---

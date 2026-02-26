@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
-# install.sh — Restores Claude Code configuration from repo to ~/.claude/
-# Use when setting up a new machine or restoring after a reset.
+# install.sh — Deploys repo configuration to ~/.claude/ (the Claude Code runtime).
+#
+# Direction : repo/  →  ~/.claude/
+# Scope     : ALL directories (CLAUDE.md, settings.json, skills/, hooks/, openspec/, ai-context/, memory/)
+# Note      : memory/ flows the REVERSE direction via sync.sh — run sync.sh periodically
+#             to capture Claude's automatic memory updates back into the repo.
+#
+# When to run:
+#   Workflow A (config changes): edit repo → bash install.sh → git commit
+#   New machine setup          : git clone → bash install.sh
 
 set -e
 

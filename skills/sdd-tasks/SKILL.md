@@ -84,7 +84,7 @@ Design: openspec/changes/[name]/design.md
 ## Phase 5: Cleanup
 
 - [ ] 5.1 Update `README.md` — document new endpoints
-- [ ] 5.2 Update `docs/ai-context/architecture.md` if there were structural changes
+- [ ] 5.2 Update `ai-context/architecture.md` if there were structural changes
 
 ---
 

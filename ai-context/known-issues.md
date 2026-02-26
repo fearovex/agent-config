@@ -1,6 +1,43 @@
 # Known Issues & Gotchas — claude-config
 
-> Last updated: 2026-02-23
+> Last updated: 2026-02-26
+
+## CRLF line endings break bash scripts on Windows (FIXED)
+
+Shell scripts (`sync.sh`, `install.sh`) and `hooks/smart-commit-context.js` were committed with Windows CRLF line endings. When running `bash sync.sh` from PowerShell/WSL the shell emits errors like:
+```
+sync.sh: line 4: $'\r': command not found
+```
+
+**Root cause**: `git config core.autocrlf=true` (Windows default) converts LF→CRLF on checkout.
+
+**Fix applied (2026-02-26)**:
+1. Converted existing files: `sed -i 's/\r$//' sync.sh install.sh hooks/smart-commit-context.js`
+2. Created `.gitattributes` to force LF for all scripts going forward:
+   ```
+   *.sh   text eol=lf
+   *.js   text eol=lf
+   *.md   text eol=lf
+   ```
+
+**Correct workflow**: If this occurs on a new clone, run:
+```bash
+sed -i 's/\r$//' sync.sh install.sh
+```
+
+---
+
+## ~~sync.sh overwrites repo edits if run before install.sh~~ (FIXED 2026-02-26)
+
+`sync.sh` copies **`~/.claude/ → repo/`**. If edits are made in the repo and `sync.sh` is run before `install.sh`, the edits are silently overwritten by the old `~/.claude/` content.
+
+**Correct workflow after editing repo files:**
+```
+edit repo files  →  bash install.sh  →  bash sync.sh  →  git commit
+```
+Never run `sync.sh` as the first step after editing repo files.
+
+---
 
 ## rsync not available on Windows
 

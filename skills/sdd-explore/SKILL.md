@@ -35,7 +35,7 @@ I read real code following this hierarchy:
 2. Files related to the functionality
 3. Existing tests (they reveal expected behavior)
 4. Relevant configurations
-5. `docs/ai-context/architecture.md` if it exists (to understand past decisions)
+5. `ai-context/architecture.md` if it exists (to understand past decisions)
 
 ### Step 3 — Analyze approaches
 

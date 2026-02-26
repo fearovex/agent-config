@@ -21,7 +21,7 @@ I read in this order:
 2. `openspec/changes/<change-name>/specs/` — the success criteria (WHAT it must do)
 3. `openspec/changes/<change-name>/design.md` — how to implement it (technical decisions, interfaces)
 4. `openspec/config.yaml` — project rules
-5. `docs/ai-context/conventions.md` — code conventions
+5. `ai-context/conventions.md` — code conventions
 6. Existing code files that I will modify or that serve as pattern references
 
 ### Step 2 — Verify work scope
@@ -66,7 +66,7 @@ And I mark each completed task:
 ## Code standards
 
 ### I always follow project conventions
-If `docs/ai-context/conventions.md` exists, I apply it strictly.
+If `ai-context/conventions.md` exists, I apply it strictly.
 If not, I observe the existing code and follow its patterns.
 
 ### I load technology skills if applicable

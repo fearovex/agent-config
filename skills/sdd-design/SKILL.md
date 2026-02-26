@@ -19,8 +19,8 @@ The design defines **HOW to implement** what the specs say the system MUST do. I
 I must read:
 - `openspec/changes/<change-name>/proposal.md`
 - `openspec/changes/<change-name>/specs/` (all spec.md files)
-- `docs/ai-context/architecture.md` if it exists
-- `docs/ai-context/conventions.md` if it exists
+- `ai-context/architecture.md` if it exists
+- `ai-context/conventions.md` if it exists
 
 Then I read real code:
 - Relevant entry points

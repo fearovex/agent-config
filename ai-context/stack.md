@@ -53,16 +53,20 @@ claude-config/
 | Tech — Tooling | 5 | github-pr, jira-task, jira-epic, elixir-antipatterns, electron |
 | Misc | 4 | claude-code-expert, excel-expert, openclaw-assistant, image-ocr |
 
-## Sync workflow
+## Workflows
 
 ```bash
-# Capture changes from ~/.claude/ into repo
-bash sync.sh && git add -A && git commit -m "chore: sync"
+# Workflow A — Config changes (skills, CLAUDE.md, hooks, ai-context, openspec)
+# edit in repo → deploy → commit
+bash install.sh && git add -A && git commit -m "feat: ..."
 
-# Restore repo config to ~/.claude/ (new machine or after reset)
-bash install.sh
+# Workflow B — Memory capture (periodic)
+# sync user memory from ~/.claude/memory/ → repo
+bash sync.sh && git add memory/ && git commit -m "chore: sync user memory"
+
+# New machine setup
+git clone <repo> && bash install.sh
 ```
 
-## Important: install.sh does NOT sync
-
-`install.sh` copies FROM the repo TO `~/.claude/`. It does not read what's currently in `~/.claude/`. Always run `sync.sh` before making changes in the repo directly, to avoid overwriting work done via Claude Code sessions.
+`install.sh` is repo-authoritative: copies everything repo → `~/.claude/`.
+`sync.sh` captures memory/ only: `~/.claude/memory/ → repo/memory/`. Never run it expecting to capture skill or config changes.

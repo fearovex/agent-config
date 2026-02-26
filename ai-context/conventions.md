@@ -53,21 +53,33 @@ Every SKILL.md must have these sections in order:
 
 - Commit messages in English
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
-- Always run `sync.sh` before committing to capture `~/.claude/` state
+- **Workflow A (config changes)**: edit in repo → `bash install.sh` → `git commit`
+- **Workflow B (memory capture)**: `bash sync.sh` → `git add memory/` → `git commit`
 - Commit after each SDD phase (at minimum after apply and after archive)
 
 ## SDD workflow for this repo
 
 **Minimum for any skill change:**
 ```
-/sdd:ff <change-name>   →   user approves   →   /sdd:apply   →   sync.sh   →   git commit
+/sdd:ff <change-name>   →   user approves   →   /sdd:apply   →   install.sh   →   git commit
 ```
 
 **Required for breaking changes to orchestrator or SDD phase skills:**
 Full cycle: explore → propose → spec + design → tasks → apply → verify → archive
 
-## install.sh / sync.sh usage
+## Workflows
 
-- `sync.sh` — run BEFORE committing. Captures current `~/.claude/` state into the repo.
-- `install.sh` — run on new machines or after a reset. Restores `~/.claude/` from repo.
-- Never edit files directly in `~/.claude/` and forget to sync. Changes will be lost on next install.
+### Workflow A — Config changes (skills, CLAUDE.md, hooks, ai-context, openspec)
+```
+edit in repo → bash install.sh → git commit
+```
+Use this when you modify any skill, CLAUDE.md, settings.json, hooks/, ai-context/, or openspec/.
+`install.sh` deploys the repo to `~/.claude/` so Claude picks up the changes on the next session.
+Never run `sync.sh` for these — it will not capture them (by design).
+
+### Workflow B — Memory capture
+```
+bash sync.sh → git add memory/ && git commit
+```
+Use this periodically to persist Claude's automatic memory updates (`~/.claude/memory/`) into the repo.
+This is the ONLY directory that flows `~/.claude/ → repo/`.

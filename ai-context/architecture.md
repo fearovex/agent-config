@@ -17,11 +17,15 @@ claude-config (repo)          ~/.claude/ (runtime)
       ├── CLAUDE.md    ──install──►  ├── CLAUDE.md       ← Claude reads at session start
       ├── skills/      ──install──►  ├── skills/          ← Claude reads on demand
       ├── settings.json ─install──►  ├── settings.json    ← Claude Code config
-      └── hooks/       ──install──►  └── hooks/           ← Event hooks
-                            ◄─sync─
+      ├── hooks/       ──install──►  ├── hooks/           ← Event hooks
+      ├── openspec/    ──install──►  ├── openspec/        ← SDD artifacts
+      ├── ai-context/  ──install──►  ├── ai-context/      ← Project memory
+      └── memory/      ──install──►  └── memory/          ← User memory snapshot
+                            ◄──sync────  (memory/ only — Claude writes here during sessions)
 ```
 
-Changes flow: **edit in repo → sync → commit** OR **Claude modifies `~/.claude/` → sync → commit**
+- `install.sh` : repo/ → ~/.claude/  (all directories — the deploy operation)
+- `sync.sh`    : ~/.claude/memory/ → repo/memory/  (memory only — periodic capture)
 
 ## Skill architecture
 
@@ -67,4 +71,4 @@ Skills that need to pass state to each other use **file artifacts**:
 2. **SKILL.md is the convention** — every skill directory has exactly one entry point named `SKILL.md`
 3. **Artifacts over in-memory state** — skills communicate via files, never via conversation context alone
 4. **Orchestrator delegates everything** — the global CLAUDE.md never executes work itself, always spawns subagents via Task tool
-5. **install.sh is one-way** — repo → `~/.claude/`. The reverse is `sync.sh`. Never mix directions.
+5. **install.sh is repo-authoritative** — all directories flow repo → ~/.claude/. The only reverse direction is `sync.sh`, which captures `memory/` only. Every other directory (skills/, CLAUDE.md, hooks/, openspec/, ai-context/) must always be edited in the repo — never in ~/.claude/ directly.

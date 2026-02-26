@@ -1,0 +1,7 @@
+# Force LF line endings for files that must run in bash
+*.sh     text eol=lf
+*.js     text eol=lf
+*.md     text eol=lf
+*.yaml   text eol=lf
+*.yml    text eol=lf
+*.json   text eol=lf

@@ -23,7 +23,7 @@ When the user runs `/project-update`, I synchronize the project's Claude configu
 The project has new dependencies or versions not yet documented:
 
 1. I read the current stack from code (`package.json`, etc.)
-2. I compare with `docs/ai-context/stack.md`
+2. I compare with `ai-context/stack.md`
 3. I show a diff of detected changes
 4. I update `stack.md` with the differences (confirming with the user)
 
@@ -49,7 +49,7 @@ Sections I NEVER touch without explicit confirmation:
 
 ### Case C — Add missing memory files
 
-If `docs/ai-context/` exists but is missing files:
+If `ai-context/` exists but is missing files:
 
 1. I detect which files are missing
 2. I generate only the missing ones, reading the real code
@@ -62,7 +62,7 @@ If the project has a different memory structure (e.g., AGENTS.md, memory.md, etc
 1. I identify the existing structure
 2. I propose migration to the new format
 3. I preserve ALL existing content in the migration
-4. I create the new structure and archive the old one in `docs/ai-context/legacy/`
+4. I create the new structure and archive the old one in `ai-context/legacy/`
 
 ---
 
@@ -80,16 +80,16 @@ I present to the user exactly what I am going to change:
 Proposed changes:
 
 UPDATE:
-  - docs/ai-context/stack.md
+  - ai-context/stack.md
     Reason: 3 new dependencies detected (zod 4.0, tanstack-query 5.x)
 
 CREATE:
-  - docs/ai-context/known-issues.md
+  - ai-context/known-issues.md
     Reason: Missing file
 
 NO CHANGES:
   - CLAUDE.md (project customization detected)
-  - docs/ai-context/architecture.md (updated 5 days ago)
+  - ai-context/architecture.md (updated 5 days ago)
 
 Proceed? [y/n]
 ```
@@ -107,14 +107,14 @@ I apply only the approved changes:
 ✅ Update completed
 
 Changes applied:
-  - docs/ai-context/stack.md — 3 dependencies updated
-  - docs/ai-context/known-issues.md — created
+  - ai-context/stack.md — 3 dependencies updated
+  - ai-context/known-issues.md — created
 
 No changes:
   - CLAUDE.md
-  - docs/ai-context/architecture.md
+  - ai-context/architecture.md
 
-Recommendation: Review docs/ai-context/architecture.md,
+Recommendation: Review ai-context/architecture.md,
 the folder structure changed since the last update.
 ```
 
@@ -126,4 +126,4 @@ the folder structure changed since the last update.
 - I preserve ALL existing content as a base, I only add/update
 - If there is a conflict between what exists and what is new, I show it and ask
 - Automatic backup before modifying (`CLAUDE.md.bak`, etc.) if the file has more than 30 lines
-- The files in `docs/ai-context/` belong to the team — I treat them with care
+- The files in `ai-context/` belong to the team — I treat them with care

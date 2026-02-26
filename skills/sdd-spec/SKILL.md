@@ -24,7 +24,7 @@ Specs are deltas (changes) on top of what already exists, not full replacements.
 I must read:
 - `openspec/changes/<change-name>/proposal.md` (the WHAT and WHY)
 - `openspec/specs/<domain>/spec.md` if it exists (current domain spec)
-- `docs/ai-context/architecture.md` if it exists (to understand the current system)
+- `ai-context/architecture.md` if it exists (to understand the current system)
 
 ### Step 2 — Identify affected domains
 
