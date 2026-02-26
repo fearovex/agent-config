@@ -135,8 +135,11 @@ When I receive a meta-tool command, I read the corresponding skill and execute i
 | `/project-audit` | `~/.claude/skills/project-audit/SKILL.md` |
 | `/project-fix` | `~/.claude/skills/project-fix/SKILL.md` |
 | `/project-update` | `~/.claude/skills/project-update/SKILL.md` |
+| `/sdd-ff` | `~/.claude/skills/sdd-ff/SKILL.md` |
+| `/sdd-new` | `~/.claude/skills/sdd-new/SKILL.md` |
+| `/sdd-status` | `~/.claude/skills/sdd-status/SKILL.md` |
 | `/skill-create` | `~/.claude/skills/skill-creator/SKILL.md` |
-| `/skill-add` | `~/.claude/skills/skill-creator/SKILL.md` |
+| `/skill-add` | `~/.claude/skills/skill-add/SKILL.md` |
 | `/memory-init` | `~/.claude/skills/memory-manager/SKILL.md` |
 | `/memory-update` | `~/.claude/skills/memory-manager/SKILL.md` |
 
@@ -276,6 +279,11 @@ Each project has its memory layer in `ai-context/`:
 
 ## Skills Registry
 
+### SDD Orchestrator Skills
+- `~/.claude/skills/sdd-ff/SKILL.md` — fast-forward: propose → spec+design (parallel) → tasks, then asks before apply
+- `~/.claude/skills/sdd-new/SKILL.md` — full SDD cycle with optional explore and user confirmation gates
+- `~/.claude/skills/sdd-status/SKILL.md` — shows active changes and artifact presence from openspec/changes/
+
 ### SDD Skills (phases)
 - `~/.claude/skills/sdd-explore/SKILL.md`
 - `~/.claude/skills/sdd-propose/SKILL.md`
@@ -292,6 +300,7 @@ Each project has its memory layer in `ai-context/`:
 - `~/.claude/skills/project-fix/SKILL.md` — reads audit-report.md and applies all corrections (APPLY phase of meta-SDD)
 - `~/.claude/skills/project-update/SKILL.md`
 - `~/.claude/skills/skill-creator/SKILL.md`
+- `~/.claude/skills/skill-add/SKILL.md` — adds an existing global skill to the current project's CLAUDE.md registry
 - `~/.claude/skills/memory-manager/SKILL.md`
 
 ### Technology Skills (global catalog — extracted from Gentleman-Skills)

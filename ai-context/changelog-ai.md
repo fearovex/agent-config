@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-02-26 — add-orchestrator-skills applied
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6
+**Files created**:
+- `skills/sdd-ff/SKILL.md` — orchestrator: fast-forward SDD cycle (propose → parallel spec+design → tasks)
+- `skills/sdd-new/SKILL.md` — orchestrator: full SDD cycle with optional explore + confirmation gates
+- `skills/sdd-status/SKILL.md` — status reader: scans openspec/changes/ and renders artifact presence table
+- `skills/skill-add/SKILL.md` — skill installer: adds global skills to project CLAUDE.md registry
+**Files modified**:
+- `CLAUDE.md` — routing table (4 new rows: sdd-ff, sdd-new, sdd-status, skill-add updated); Skills Registry (new SDD Orchestrators subsection + skill-add entry)
+- `ai-context/conventions.md` — added Orchestrator skills subsection with Task tool delegation guidance
+**Archived**: `openspec/changes/archive/2026-02-26-add-orchestrator-skills/`
+
+**Decisions made**:
+- Orchestrator skills (sdd-ff, sdd-new) are self-contained SKILL.md files that use Task tool directly — they do not rely on CLAUDE.md being read at runtime
+- skill-add is a separate skill from skill-creator (add existing vs create new)
+- sdd-ff has no user gates (fast-forward runs automatically); sdd-new has two confirmation gates (after propose, after spec+design)
+- sdd-status is filesystem-only — no git inspection
+
+**Motivation**: `/sdd-ff` returned "Unknown skill: sdd-ff" because CLAUDE.md documentation is insufficient for Claude Code CLI to register commands. Actual SKILL.md files are required.
+
+---
+
 ## 2026-02-26 — sync-sh-redesign applied
 
 **Type**: Refactor / Architecture clarity
