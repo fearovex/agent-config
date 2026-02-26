@@ -72,6 +72,29 @@ If the project has a different memory structure (e.g., AGENTS.md, memory.md, etc
 
 I run an internal audit (like `project-audit` but without a full report) to identify what needs updating.
 
+### Step 1b — Stale-doc scan
+
+After the quick diagnosis, I check user documentation freshness:
+
+For each of the following files (only if they exist):
+- `ai-context/onboarding.md`
+- `ai-context/scenarios.md`
+- `ai-context/quick-reference.md`
+
+For each existing file:
+1. Read its first 10 lines and search for `^> Last verified: (\d{4}-\d{2}-\d{2})$`
+2. If the field is absent or malformed → treat as infinitely stale (add to REFRESH list)
+3. If the date is more than 90 days from today → add to the proposed change plan as a `REFRESH` item
+4. If the date is ≤ 90 days → no action
+5. If the file does not exist → skip silently (not in scope of project-update; suggest `/project-onboard` to create)
+
+Any file added to the REFRESH list appears in Step 2 as:
+```
+REFRESH:
+  - ai-context/[filename]
+    Reason: Last verified [date] ([N] days ago — exceeds 90-day threshold)
+```
+
 ### Step 2 — Change plan
 
 I present to the user exactly what I am going to change:
@@ -95,6 +118,16 @@ Proceed? [y/n]
 ```
 
 ### Step 3 — Execution
+
+For REFRESH items: I offer regeneration but require explicit user confirmation before overwriting:
+```
+Regenerate ai-context/[filename]?
+This will overwrite the current file with updated content.
+Your manually curated content may be replaced.
+
+Preview available? [Y to preview diff / N to skip regeneration]
+```
+**Never regenerate automatically.** The user must explicitly confirm.
 
 I apply only the approved changes:
 - Stack changes: I update section by section, I do not rewrite

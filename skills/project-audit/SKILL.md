@@ -97,6 +97,21 @@ If detected as global-config:
 
 **Note on location**: The path can be `ai-context/` (without docs/) or `docs/ai-context/`. I check both.
 
+**Additional sub-checks — User documentation freshness:**
+
+For each of the following files, apply identical logic:
+- `ai-context/scenarios.md`
+- `ai-context/quick-reference.md`
+
+Logic per file:
+1. If the file does NOT exist → emit LOW finding: `"[filename] missing — create via /project-onboard or manually following the template in ai-context/"`
+2. If the file exists → read first 10 lines and search for `^> Last verified: (\d{4}-\d{2}-\d{2})$`
+   - Field absent or malformed → emit LOW: `"Last verified field not found or malformed in [filename]"`
+   - Field present and date ≤ 90 days from today → no finding
+   - Field present and date > 90 days from today → emit LOW: `"[filename] stale ([N] days since last verification) — run /project-update to refresh"`
+
+**Severity note**: All findings for these sub-checks are LOW (informational). They do NOT deduct from the D2 numeric score.
+
 ---
 
 ### Dimension 3 — SDD Orchestrator

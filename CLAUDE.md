@@ -98,6 +98,7 @@ When working on a skill change in plan mode:
 | Command | Action |
 |---------|--------|
 | `/project-setup` | Deploys SDD + memory structure in the current project |
+| `/project-onboard` | Reads project state, detects onboarding case (1–6), recommends first command |
 | `/project-audit` | Audits project Claude config — generates audit-report.md (7 dimensions) |
 | `/project-fix` | Implements the corrections from audit-report.md — APPLY phase of the meta-SDD |
 | `/project-update` | Updates the project CLAUDE.md with user-level changes |
@@ -132,6 +133,7 @@ When I receive a meta-tool command, I read the corresponding skill and execute i
 | Command | Skill to read |
 |---------|--------------|
 | `/project-setup` | `~/.claude/skills/project-setup/SKILL.md` |
+| `/project-onboard` | `~/.claude/skills/project-onboard/SKILL.md` |
 | `/project-audit` | `~/.claude/skills/project-audit/SKILL.md` |
 | `/project-fix` | `~/.claude/skills/project-fix/SKILL.md` |
 | `/project-update` | `~/.claude/skills/project-update/SKILL.md` |
@@ -296,6 +298,7 @@ Each project has its memory layer in `ai-context/`:
 
 ### Meta-tool Skills
 - `~/.claude/skills/project-setup/SKILL.md`
+- `~/.claude/skills/project-onboard/SKILL.md` — diagnosing the current project state, detecting which of 6 onboarding cases applies, and recommending the exact command sequence
 - `~/.claude/skills/project-audit/SKILL.md`
 - `~/.claude/skills/project-fix/SKILL.md` — reads audit-report.md and applies all corrections (APPLY phase of meta-SDD)
 - `~/.claude/skills/project-update/SKILL.md`

@@ -44,6 +44,20 @@ Resolve the issues and run /sdd:verify again before archiving.
 
 If there is no verification report, I inform the user and ask whether to proceed anyway.
 
+**User-docs review checkbox** (non-blocking):
+
+After reading the verify-report.md (if it exists), surface the user-docs review item status:
+
+```
+User docs review checkbox: [CHECKED / UNCHECKED / ABSENT]
+```
+
+- CHECKED: `verify-report.md` contains `[x] Review user docs` — good
+- UNCHECKED: `verify-report.md` contains `[ ] Review user docs` — remind the user to check if this change affects `scenarios.md`, `quick-reference.md`, or `onboarding.md`
+- ABSENT: the checkbox is not in the verify-report — no action needed (older changes pre-date this requirement)
+
+This check is **non-blocking** — the archive operation continues regardless of the checkbox state.
+
 ### Step 2 — Confirm with the user
 
 ```
@@ -125,7 +139,24 @@ Close date: [YYYY-MM-DD]
 
 ## Lessons Learned
 [If there were deviations, problems, or insights during the cycle]
+
+## User Docs Reviewed
+[YES — updated scenarios.md / quick-reference.md / onboarding.md as needed | NO — change does not affect user-facing workflows | N/A — pre-dates this requirement]
 ```
+
+### Step 5b — Verify-report template (for reference when creating verify-report.md)
+
+When writing a `verify-report.md` as part of an SDD cycle, include this checkbox at the end:
+
+```markdown
+## User Documentation
+
+- [ ] Review user docs (ai-context/scenarios.md / ai-context/quick-reference.md / ai-context/onboarding.md)
+      if this change adds, removes, or renames skills, changes onboarding workflows, or introduces new commands.
+      Mark [x] when confirmed reviewed (or confirmed no update needed).
+```
+
+This checkbox is **not blocking** — you may archive even if unchecked.
 
 ### Step 6 — Suggest updating memory
 

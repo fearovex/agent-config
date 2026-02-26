@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-02-26 — user-docs-and-onboard-skill applied
+
+**Type**: Feature / Documentation
+**Agent**: Claude Sonnet 4.6
+**Files created**:
+- `ai-context/scenarios.md` — 6-case onboarding guide with symptoms, commands, expected outcomes, failure modes
+- `ai-context/quick-reference.md` — compact single-page reference: situation table, SDD flow, command glossary, /sdd-ff vs /sdd-new
+- `skills/project-onboard/SKILL.md` — automated project state diagnostic skill (/project-onboard)
+**Files modified**:
+- `skills/project-audit/SKILL.md` — D2: added freshness sub-checks for scenarios.md and quick-reference.md (LOW severity, no score deduction)
+- `skills/sdd-archive/SKILL.md` — Step 1: surfaces user-docs review checkbox; CLOSURE.md template: User Docs Reviewed field; Step 5b: verify-report template checkbox
+- `skills/project-update/SKILL.md` — Step 1b: stale-doc scan for all 3 user docs; Step 3: explicit confirmation before regeneration
+- `CLAUDE.md` — /project-onboard in Available Commands, routing table, and Skills Registry
+- `ai-context/architecture.md` — 3 new artifact table rows
+
+**Decisions made**:
+- project-onboard uses strict priority-order waterfall (not heuristic scoring) — deterministic, one case per run
+- Check 4 (local skills) is non-blocking — project can be Case 6 and have local skill issues simultaneously
+- sdd-archive user-docs checkbox is non-blocking — surfaced, not enforced
+- project-update stale-doc regeneration requires explicit user confirmation — never automatic
+
+**Motivation**: Users with multiple external projects need intuitive documentation to understand the correct SDD onboarding flow and know which commands to run in each project state.
+
+---
+
 ## 2026-02-26 — enhance-project-audit-skill-review applied
 
 **Type**: Feature
