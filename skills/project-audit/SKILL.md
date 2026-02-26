@@ -63,7 +63,6 @@ If detected as global-config:
 | Stack matches package.json/pyproject.toml | Read both, compare key versions | ⚠️ HIGH |
 | Has Architecture section | Search for `## Architecture` | ⚠️ HIGH |
 | Has Skills registry | Search for skills table | ⚠️ HIGH |
-| Has Commands registry | Search for commands table | ⚠️ MEDIUM |
 | Has Unbreakable Rules | Search for `## Unbreakable Rules` or similar | ⚠️ MEDIUM |
 | Has Plan Mode Rules | Search for `## Plan Mode` | ℹ️ LOW |
 | Mentions SDD (`/sdd:new` or `/sdd:ff`) | Search for text `/sdd:` | ⚠️ HIGH |
@@ -174,8 +173,8 @@ For each skill file (`.md` or directory with `SKILL.md`):
 - Does it have more than 30 lines? → If not, it is probably a stub
 - Does it have some process/instructions section? → If not, it is not functional
 
-#### 4c. Relevant global tech skills not installed
-I read the project stack (package.json) and check whether relevant technology skills exist in `~/.claude/skills/` that are not in the project:
+#### 4c. Relevant global tech skills coverage (scored: 0–10 pts)
+I read the project stack (package.json) and identify which global technology skills in `~/.claude/skills/` are applicable but not yet installed in the project:
 
 | If project uses | Available global skill |
 |-----------------|------------------------|
@@ -187,24 +186,19 @@ I read the project stack (package.json) and check whether relevant technology sk
 | Zod | `zod-4/SKILL.md` |
 | Playwright | `playwright/SKILL.md` |
 
----
+**Scoring rubric:**
 
-### Dimension 5 — Commands Quality
+| Coverage | Points |
+|----------|--------|
+| No relevant global skills detected in stack, OR all applicable ones already added | 10 |
+| ≥ 75% of applicable global skills installed | 8 |
+| 50–74% installed | 5 |
+| 25–49% installed | 2 |
+| < 25% installed (relevant skills exist but none added) | 0 |
 
-**Objective**: Verify that commands are functional and the registry is accurate.
+"Applicable" means: the project stack uses the technology AND a matching global skill exists in `~/.claude/skills/`. Projects with no matching global skills get full credit automatically.
 
-**Checks:**
-
-#### 5a. Registry vs disk (bidirectional)
-- For each command listed in CLAUDE.md → I verify that the file exists in `.claude/commands/`
-- For each file in `.claude/commands/` → I verify that it is listed in CLAUDE.md
-- I report discrepancies in both directions
-
-#### 5b. Minimum content
-For each command file:
-- Does it have more than 20 lines?
-- Does it have a steps or defined process section? (I search for "##", "Step", numbered list)
-- If it is a stub without a defined process → mark it as ⚠️ NOT FUNCTIONAL
+**D4 maximum: 20 points** (4a+4b registry and content = 10 pts; 4c global skills coverage = 10 pts)
 
 ---
 
@@ -441,8 +435,7 @@ skill_quality_actions:
 | Memory initialized | [X] | 15 | ✅/⚠️/❌ |
 | Memory with substantial content | [X] | 10 | ✅/⚠️/❌ |
 | SDD Orchestrator operational | [X] | 20 | ✅/⚠️/❌ |
-| Skills registry complete and functional | [X] | 10 | ✅/⚠️/❌ |
-| Commands registry complete and functional | [X] | 10 | ✅/⚠️/❌ |
+| Skills registry complete and functional | [X] | 20 | ✅/⚠️/❌ |
 | Cross-references valid | [X] | 5 | ✅/⚠️/❌ |
 | Architecture compliance | [X] | 5 | ✅/⚠️/❌ |
 | Testing & Verification integrity | [X] | 5 | ✅/⚠️/❌ |
@@ -466,7 +459,6 @@ skill_quality_actions:
 | Stack vs package.json | ✅/⚠️/❌ | [specific discrepancies] |
 | Has Architecture section | ✅/⚠️/❌ | |
 | Skills registry present | ✅/⚠️/❌ | |
-| Commands registry present | ✅/⚠️/❌ | |
 | Mentions SDD (/sdd:*) | ✅/⚠️/❌ | |
 
 **Stack Discrepancies:**
@@ -529,19 +521,6 @@ skill_quality_actions:
 
 **Recommended global tech skills not installed:**
 [list with install command: /skill:add name]
-
----
-
-## Dimension 5 — Commands [OK|WARNING|CRITICAL]
-
-**Commands in registry but not on disk:**
-[list or "none"]
-
-**Commands on disk but not in registry:**
-[list or "none"]
-
-**Commands without defined process (stubs):**
-[list or "none"]
 
 ---
 
@@ -630,8 +609,7 @@ skill_quality_actions:
 | **Memory — existence** | All 5 files exist | 15 |
 | **Memory — quality** | Substantial content + coherent with code | 10 |
 | **SDD Orchestrator** | Global skills + openspec/ + config.yaml + CLAUDE.md refs | 20 |
-| **Skills** | Exact registry + minimum content + no missing global skills | 10 |
-| **Commands** | Exact registry + functional commands | 10 |
+| **Skills** | Registry accuracy + content depth = 10 pts; global tech skills coverage (D4c) = 10 pts | 20 |
 | **Cross-references** | No broken references | 5 |
 | **Architecture** | No critical violations in samples | 5 |
 | **Testing & Verification** | config.yaml has testing block + archived changes have verify-report.md | 5 |
@@ -718,3 +696,17 @@ skill_quality_actions:
    - `STACK_MD_LINES` — integer line count of `ai-context/stack.md` (0 if absent)
    - `ORPHANED_CHANGES` — comma-separated names of orphaned change dirs, or `NONE`
    - `SDD_SKILLS_PRESENT` — integer count of present `~/.claude/skills/sdd-*/SKILL.md` files (0–8)
+
+   **Legacy commands/ detection (Phase A post-script check):**
+
+   After running the Phase A script, check whether `.claude/commands/` exists in the project root:
+
+   ```
+   if [ -d "$PROJECT/.claude/commands" ]; then
+     emit LOW finding: "Legacy .claude/commands/ directory detected — migrate to .claude/skills/ following the official Claude Code standard."
+   fi
+   ```
+
+   - Severity: LOW (informational)
+   - Score penalty: none
+   - FIX_MANIFEST entry: none (do NOT add a `required_actions` entry for this finding)

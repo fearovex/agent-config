@@ -274,3 +274,4 @@ Next steps:
 - If `ai-context/` already exists, I offer to update only what is missing
 - I always read real code — I never invent the stack
 - If I cannot determine something with certainty, I mark it as `[To confirm]`
+- NEVER create a `.claude/commands/` directory — commands/ is a legacy mechanism; `.claude/skills/` is the only supported extensibility path for new projects.

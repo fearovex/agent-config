@@ -228,9 +228,6 @@ section: skills_registry
 - Add to the registry the skills that are on disk but not listed
 - Mark as `[MISSING FILE]` the skills listed but without a file (do not remove them, inform)
 
-**2.4 Fix Commands registry**
-Same process as skills.
-
 **Checkpoint**: I present high-priority actions executed. I ask for confirmation to continue with medium-priority ones.
 
 ---
@@ -502,3 +499,4 @@ See Step 2 — 1.2 above for the complete `openspec/config.yaml` template.
 6. **If a file already has more complete content than the template**, I do not overwrite it — I do an intelligent merge or add only the missing sections
 7. **Idempotent**: running `/project-fix` twice on the same project must not cause duplications
 8. **When done**, I always suggest: "Run `/project-audit` to verify the new score"
+9. **NEVER touch `.claude/commands/`** — commands/ is a deprecated mechanism; this skill does not create, modify, or delete files under that path. Any FIX_MANIFEST action of type `fix_commands_registry` or targeting `.claude/commands/` MUST be skipped and noted in the output as 'skipped — commands/ is deprecated'.
