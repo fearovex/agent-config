@@ -284,6 +284,71 @@ For each violation: I report file, line, and the violated rule.
 
 ---
 
+### Dimension 9 — Project Skills Quality
+
+**Objective**: Audit the project's local `.claude/skills/` directory against quality criteria and the global skill catalog.
+
+**D9-1. Skip condition**
+
+Check whether `.claude/skills/` exists in the target project.
+
+If it does NOT exist:
+```
+No .claude/skills/ directory found — Dimension 9 skipped.
+```
+No score deduction. Do not add `skill_quality_actions` to FIX_MANIFEST.
+
+If it exists, proceed with D9-2 through D9-5 for each subdirectory found.
+
+**D9-2. Duplicate detection**
+
+For each subdirectory `<name>` under `.claude/skills/`:
+- Check whether `~/.claude/skills/<name>/` exists (exact directory name match)
+- If it exists → candidate disposition: `move-to-global` (if local differs from global) or `delete` (if identical)
+- If the global catalog is unreadable → emit `Global catalog unreadable — duplicate check skipped` at INFO level; assign disposition `keep`
+
+**D9-3. Structural completeness**
+
+Read each local `.claude/skills/<name>/SKILL.md`. Search for:
+- `**Triggers**` or `## Triggers` — trigger definition
+- `## Process` or `### Step` — process section
+- `## Rules` or `## Execution rules` — rules section
+
+If any section is absent:
+- Record missing sections per skill
+- Assign disposition: `update`
+- Action: `add_missing_section`
+
+If no `SKILL.md` exists in the directory:
+- Record as `SKILL.md missing`
+- Assign disposition: `update`
+- Action: `add_missing_section`
+
+**D9-4. Language compliance**
+
+Apply the D4e language-compliance heuristic (defined in Dimension 4) to the body text of each local `SKILL.md` outside fenced code blocks.
+
+If non-English prose is found:
+- Disposition: `update`
+- Action: `flag_language_violation`
+- Severity: INFO only — no score deduction
+
+**D9-5. Stack relevance**
+
+Extract technology references from the trigger line and title of each local `SKILL.md`.
+
+If a technology name is absent from BOTH `ai-context/stack.md` AND `package.json`/`pyproject.toml`:
+- Disposition: `update`
+- Action: `flag_irrelevant`
+- Severity: INFO only
+
+If neither stack source (`stack.md` nor `package.json`/`pyproject.toml`) is found:
+```
+Stack relevance check skipped — no stack source found
+```
+
+---
+
 ## Report Format
 
 The report is saved in `.claude/audit-report.md` with this exact structure:
@@ -334,6 +399,17 @@ violations:
     line: [N]
     rule: "[violated rule]"
     severity: "[critical|high|medium]"
+
+skill_quality_actions:
+  - id: "D9-<skill-name>-<action-type>"
+    skill_name: "<name>"
+    local_path: ".claude/skills/<name>/SKILL.md"
+    global_counterpart: "~/.claude/skills/<name>/SKILL.md"  # only for duplicates
+    action_type: "delete_duplicate|add_missing_section|flag_irrelevant|flag_language"
+    disposition: "delete|move-to-global|update|keep"
+    missing_sections: ["## Rules", "## Process"]  # only for add_missing_section
+    detail: "<human-readable reason>"
+    severity: "info|warning"
 ```​
 ---
 
@@ -355,6 +431,7 @@ violations:
 | Cross-references valid | [X] | 5 | ✅/⚠️/❌ |
 | Architecture compliance | [X] | 5 | ✅/⚠️/❌ |
 | Testing & Verification integrity | [X] | 5 | ✅/⚠️/❌ |
+| Project Skills Quality | N/A | N/A | ✅/ℹ️/— |
 | **TOTAL** | **[X]** | **100** | |
 
 **SDD Readiness**: [FULL / PARTIAL / NOT CONFIGURED]
@@ -487,6 +564,27 @@ violations:
 
 ---
 
+## Dimension 9 — Project Skills Quality [OK|INFO|SKIPPED]
+
+**Local skills directory**: `.claude/skills/` — [N skills found | not found — skipped]
+
+| Skill | Duplicate of global | Structural complete | Language OK | Stack relevant | Disposition |
+|-------|--------------------|--------------------|-------------|----------------|-------------|
+| [skill-name] | ⚠️ YES / ❌ NO | ✅ / ⚠️ (missing: list) | ✅ / ℹ️ violation | ✅ / ℹ️ flag / ℹ️ UNKNOWN | keep/update/delete/move-to-global |
+
+**Skills with missing structural sections:**
+[list or "none"]
+
+**Language violations (INFO — manual fix required):**
+[list or "none"]
+
+**Stack relevance issues (INFO):**
+[list or "none"]
+
+*Note: Dimension 9 does not affect the score in this iteration. Findings are informational unless action_type is `delete_duplicate`.*
+
+---
+
 ## Required Actions
 
 ### Critical (block SDD):
@@ -522,6 +620,7 @@ violations:
 | **Cross-references** | No broken references | 5 |
 | **Architecture** | No critical violations in samples | 5 |
 | **Testing & Verification** | config.yaml has testing block + archived changes have verify-report.md | 5 |
+| **Project Skills Quality** | Informational only — no score deduction in iteration 1. Flags duplicates, structural gaps, language violations, stack relevance issues. | N/A |
 
 **Interpretation:**
 - 90-100: SDD fully operational, excellent maintenance

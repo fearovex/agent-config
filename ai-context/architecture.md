@@ -64,6 +64,7 @@ Skills that need to pass state to each other use **file artifacts**:
 | `openspec/changes/*/proposal.md` | sdd-propose | sdd-spec, sdd-design | `openspec/changes/<name>/` |
 | `openspec/changes/*/tasks.md` | sdd-tasks | sdd-apply | `openspec/changes/<name>/` |
 | `ai-context/*.md` | memory-manager / project-fix | all skills | `ai-context/` in project |
+| `ai-context/onboarding.md` | (human / project-fix) | humans / new project sessions | `ai-context/` in project — canonical external project onboarding sequence |
 
 ## Key architectural decisions
 

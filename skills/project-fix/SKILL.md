@@ -60,6 +60,7 @@ I read the `FIX_MANIFEST` block from `audit-report.md`. I extract:
 - `missing_global_skills[]`
 - `orphaned_changes[]`
 - `violations[]`
+- `skill_quality_actions[]` (Dimension 9 — may be absent if D9 was skipped)
 
 I present the user a summary of what I am going to do:
 
@@ -266,6 +267,160 @@ Violations found in Dimension 7 are NOT auto-corrected — they are code changes
 ⚠️ Architecture violations (require manual review):
   - src/pages/api/payment.js:45 — Business logic in API route
   - src/components/Cart.jsx:23 — Direct service import (should use hook)
+```
+
+---
+
+#### Phase 5 — Dimension 9 Corrections (Project Skills Quality)
+
+**5.1 Parse `skill_quality_actions`**
+
+Read `skill_quality_actions[]` from FIX_MANIFEST.
+
+If the key is absent or the list is empty:
+- Skip Phase 5 silently — no output, no prompt
+
+If actions are present, present the Phase 5 checkpoint:
+```
+Phase 5 — Skill Quality Actions
+[N] actions found in Dimension 9
+
+Actions to process:
+  [N] delete_duplicate — local skills that duplicate a global skill
+  [N] add_missing_section — local skills missing structural sections
+  [N] flag_irrelevant — skills potentially irrelevant to current stack (INFO)
+  [N] flag_language — skills with non-English content (INFO — manual fix)
+  [N] move-to-global — skills recommended for promotion to global catalog (manual)
+
+Proceed with Phase 5? [Y/n]
+```
+
+If user declines, skip Phase 5 entirely.
+
+---
+
+**5.2 `delete_duplicate` handler**
+
+For each action with `action_type: delete_duplicate`:
+
+```
+⚠️ Duplicate skill found:
+  Local  : [local_path]
+  Global : [global_counterpart]
+  Detail : [detail]
+
+Delete local copy? [y/N]
+```
+
+- On `y`: delete `.claude/skills/<name>/` directory recursively. Log to `ai-context/changelog-ai.md`.
+- On `N`: mark `skipped (user declined)`. Continue to next action.
+- If directory no longer exists: mark `skipped (already deleted)`. Continue.
+
+---
+
+**5.3 `add_missing_section` handler**
+
+For each action with `action_type: add_missing_section`:
+
+1. Check if the target file exists. If not: mark `failed (file not found)` and notify user. Continue.
+2. Read current content of local `SKILL.md`.
+3. For each section in `missing_sections[]`:
+   - Check if section heading already exists (idempotency guard) — if yes: mark `skipped (section already present)`.
+   - Check for `<!-- AUDIT: stub added by project-fix` marker — if present: mark `skipped (stub already added)`.
+   - Otherwise: append the corresponding stub at the end of the file.
+
+Stub templates:
+
+For missing `## Rules`:
+```markdown
+<!-- AUDIT: stub added by project-fix [YYYY-MM-DD] — fill in before using this skill -->
+
+## Rules
+
+> TODO: define constraints and invariants for this skill.
+```
+
+For missing `## Process`:
+```markdown
+<!-- AUDIT: stub added by project-fix [YYYY-MM-DD] -->
+
+## Process
+
+> TODO: add step-by-step process instructions.
+```
+
+For missing `**Triggers**`:
+```markdown
+<!-- AUDIT: stub added by project-fix [YYYY-MM-DD] -->
+
+**Triggers**: TODO — define when this skill is invoked.
+```
+
+Log each modification to `ai-context/changelog-ai.md`.
+
+---
+
+**5.4 `flag_irrelevant` handler**
+
+For each action with `action_type: flag_irrelevant`:
+
+1. Read current content of local `SKILL.md`.
+2. Check if `<!-- AUDIT: skill may be irrelevant` is already the first line — if yes: mark `skipped (already flagged)`.
+3. Otherwise: prepend the following comment block as the first line of the file:
+```markdown
+<!-- AUDIT: skill may be irrelevant to current project stack. Review and delete if unused. Added by project-fix [YYYY-MM-DD] -->
+```
+
+Log to `ai-context/changelog-ai.md`.
+
+---
+
+**`flag_language` handler**
+
+For each action with `action_type: flag_language`:
+- Report to user:
+  ```
+  ℹ️ Language violation in: [local_path]
+  Detail: [detail]
+  Action required: translate content to English manually.
+  This file has NOT been modified.
+  ```
+- Log the finding to `ai-context/changelog-ai.md`.
+- Do NOT modify the SKILL.md file.
+
+---
+
+**`move-to-global` handler**
+
+For each action with disposition `move-to-global`:
+```
+ℹ️ Manual action required — [local_path]
+This skill may be a candidate for promotion to the global catalog.
+
+To promote manually:
+  1. Copy: cp [local_path] ~/.claude/skills/[skill_name]/SKILL.md
+  2. Register in claude-config repo: skills/[skill_name]/SKILL.md
+  3. Run install.sh to deploy
+  4. Run /skill-add [skill_name] in the original project to add a registry reference
+  5. Delete the local copy after verifying the global version works
+```
+
+No automated action taken.
+
+---
+
+**Checkpoint after Phase 5:**
+
+```
+Phase 5 complete — [N] actions processed
+
+  ✅ deleted  : [N]
+  ✅ stubs added : [N]
+  ✅ flagged irrelevant : [N]
+  ℹ️ language violations : [N] (manual fix required)
+  ℹ️ move-to-global : [N] (manual — see instructions above)
+  ⏭️ skipped : [N]
+  ❌ failed : [N]
 ```
 
 ---

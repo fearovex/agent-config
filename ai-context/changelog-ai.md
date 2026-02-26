@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-02-26 — enhance-project-audit-skill-review applied
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6
+**Files modified**:
+- `skills/project-audit/SKILL.md` — appended Dimension 9 (Project Skills Quality): 5 sub-checks (skip, duplicate detection, structural completeness, language compliance, stack relevance); D9 section in report template; `skill_quality_actions` in FIX_MANIFEST schema; D9 rows in score and Detailed Scoring tables
+- `skills/project-fix/SKILL.md` — appended Phase 5 (D9 Corrections): 4 action handlers (`delete_duplicate`, `add_missing_section`, `flag_irrelevant`, `flag_language`) + `move-to-global` informational message; `skill_quality_actions` added to Step 1 parsing
+- `ai-context/architecture.md` — added `onboarding.md` row to artifacts communication table
+**Files created**:
+- `ai-context/onboarding.md` — canonical 4-step onboarding sequence for external projects
+
+**Decisions made**:
+- D9 scoring is N/A (no deduction) in iteration 1 — purely informational
+- `skill_quality_actions` is a new top-level FIX_MANIFEST key to avoid collision with `required_actions` severity buckets
+- `flag_language` in Phase 5 reports only — does NOT auto-modify files
+- `move-to-global` has no automated handler — emits explicit manual promotion workflow
+- `onboarding.md` placed in `ai-context/` (not `docs/`, not as a skill) — read-only documentation, not a command
+
+**Motivation**: User has multiple external projects to migrate to SDD. Needed: D9 skill audit, Phase 5 fix handler, and documented onboarding workflow.
+
+---
+
 ## 2026-02-26 — add-orchestrator-skills applied
 
 **Type**: Feature
