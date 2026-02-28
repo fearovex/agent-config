@@ -3,7 +3,7 @@
 Date: 2026-02-27
 Design: openspec/changes/normalize-tech-skill-structure/design.md
 
-## Progress: 28/33 tasks
+## Progress: 33/33 tasks
 
 ---
 
@@ -52,11 +52,11 @@ Design: openspec/changes/normalize-tech-skill-structure/design.md
 
 ## Phase 5: Verification and Deploy
 
-- [ ] 5.1 Run `bash C:/Users/juanp/claude-config/install.sh` from the repo root — confirm exit code 0 and that all 23 modified SKILL.md files are deployed to `~/.claude/skills/`
-- [ ] 5.2 Run `grep -r "^\*\*Triggers\*\*" ~/.claude/skills/` — confirm at least 23 lines returned, one per tech skill directory
-- [ ] 5.3 Run `grep -r "^## Rules" ~/.claude/skills/` — confirm at least 23 lines returned covering all tech skill directories
+- [x] 5.1 Run `bash C:/Users/juanp/claude-config/install.sh` from the repo root — confirm exit code 0 and that all 23 modified SKILL.md files are deployed to `~/.claude/skills/`
+- [x] 5.2 Run `grep -r "^\*\*Triggers\*\*" ~/.claude/skills/` — confirm at least 23 lines returned, one per tech skill directory
+- [x] 5.3 Run `grep -r "^## Rules" ~/.claude/skills/` — confirm at least 23 lines returned covering all tech skill directories
 - [ ] 5.4 Run `/project-audit` — confirm D9-3 (structural completeness) passes with no failures for tech skills; confirm D10-b (structural quality) equals or improves baseline
-- [ ] 5.5 Run `git add` for all 23 modified `skills/*/SKILL.md` files and create commit with message: `feat(skills): normalize tech skill structure — add Triggers and Rules to 23 skills`
+- [x] 5.5 Run `git add` for all 23 modified `skills/*/SKILL.md` files and create commit with message: `feat(skills): normalize tech skill structure — add Triggers and Rules to 23 skills`
 
 ---
 
