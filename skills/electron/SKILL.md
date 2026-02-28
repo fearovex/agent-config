@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When building Electron apps, working with main/renderer processes, IPC communication, or native OS integrations.
+
 Load when: building Electron desktop apps, implementing IPC between main and renderer, handling native OS features, or setting up auto-updates.
 
 ## Critical Patterns — SEGURIDAD
@@ -228,3 +230,11 @@ contextBridge.exposeInMainWorld('api', {
 | Diálogos nativos | `dialog.showOpenDialog()` en main |
 | Auto-update | `electron-updater` |
 | Menú nativo | `Menu.buildFromTemplate()` |
+
+## Rules
+
+- All IPC communication must go through named channels defined in `preload.js` — never expose the full `ipcRenderer` object to the renderer process
+- `contextIsolation: true` and `nodeIntegration: false` are required security settings; do not relax them without explicit justification
+- Long-running or blocking operations (file I/O, network) belong in the main process, not the renderer
+- Auto-updater events must be handled explicitly; silent failures leave users on outdated versions
+- Native OS integrations (menus, trays, notifications) must be set up in the main process lifecycle, not in renderer components

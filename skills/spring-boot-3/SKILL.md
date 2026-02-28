@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When building Spring Boot applications, configuring beans, or implementing REST services.
+
 Load when: building Spring Boot 3.3+ apps, configuring properties, implementing services, or creating REST controllers.
 
 ## Critical Patterns
@@ -293,3 +295,11 @@ private final AppProperties appProperties;
 | Error handling | `@RestControllerAdvice` |
 | Repository | Extends `JpaRepository<Entity, Id>` |
 | Test unitario | `@ExtendWith(MockitoExtension.class)` + mocks en constructor |
+
+## Rules
+
+- Constructor injection is mandatory — `@Autowired` field injection is forbidden; it hides dependencies and prevents unit testing without a Spring context
+- Configuration must use `@ConfigurationProperties` with typed records; scattered `@Value` annotations are a maintainability anti-pattern
+- `@Transactional` belongs on service methods only — never on controller methods or repository methods that already inherit transactions
+- `@Transactional(readOnly = true)` must be used for all query-only service methods; it signals intent and enables database-level optimizations
+- Exception handling must be centralized in a `@RestControllerAdvice` class; `try/catch` in controllers for business exceptions is a duplication anti-pattern

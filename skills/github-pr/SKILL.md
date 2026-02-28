@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When creating PRs, writing PR descriptions, or using gh CLI for pull requests.
+
 - Creating a new Pull Request
 - Writing PR titles and descriptions
 - Preparing commits for review
@@ -201,3 +203,11 @@ Closes #123"
 | Link issue | `Closes #123` in body |
 | View status | `gh pr status` |
 | Merge squash | `gh pr merge --squash` |
+
+## Rules
+
+- PR titles must follow conventional commit format (`type(scope): description`); vague titles like "fix bug" or "update" are rejected
+- PR descriptions must include a Summary section and a Testing section at minimum
+- Each PR must be logically atomic — one concern per PR; split large changes into sequential PRs
+- Link related issues using `Closes #N` in the PR body to enable automatic issue closure on merge
+- Never create a PR directly to `main`/`master` without a branch; always use `gh pr create` from a feature branch

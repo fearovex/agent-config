@@ -12,6 +12,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: During code review, refactoring, or when writing Phoenix/Ecto code.
+
 Load this skill when:
 - Writing Elixir modules and functions
 - Working with Phoenix Framework (Controllers, LiveView)
@@ -250,3 +252,11 @@ end
 | Frequent queries | No index | `create index(:table, [:column])` |
 | Testing | No assertions | `assert` expected behavior |
 | Complex logic | 6+ step `with` | Group into 3 functions |
+
+## Rules
+
+- This skill is a catalog of what NOT to do — every pattern here represents a code smell or anti-pattern to avoid or eliminate during review
+- Apply this skill during code review and refactoring sessions, not as a guide for initial implementation
+- Ecto queries must not be constructed inside business logic modules — keep query logic in dedicated query modules or Ecto schemas
+- Error handling in Phoenix controllers must use pattern matching on tagged tuples (`{:ok, _}` / `{:error, _}`), not bare exceptions
+- Testing anti-patterns (e.g., testing implementation details instead of behavior) are as critical to fix as runtime anti-patterns

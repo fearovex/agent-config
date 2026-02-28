@@ -13,6 +13,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When the user says "commit", "smart commit", or /commit.
+
 - Committing staged changes in any git repository
 - When you want a well-structured conventional commit message
 - When you want automatic detection of common commit issues before pushing
@@ -158,3 +160,11 @@ Always verify `git diff --cached --stat` before generating a message.
 | Only dependency changes | `chore(deps): update X to Y.Z` |
 | Only formatting/whitespace | `style(scope): format ...` |
 | Only test additions | `test(scope): add tests for ...` |
+
+## Rules
+
+- Never commit without first presenting the generated message summary and waiting for explicit user confirmation
+- Detect and block commits that contain secrets (API keys, tokens, passwords) found by pattern matching in the diff
+- Detect and warn on `console.log`, `debugger`, `TODO`, and large binary files in the staged diff before committing
+- Commit messages must follow conventional commits format (`type(scope): description`); generated messages that cannot be classified must default to `chore:` with a descriptive subject
+- Only staged files (`git diff --cached`) are in scope — never auto-stage unstaged files or untracked files

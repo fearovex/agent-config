@@ -649,3 +649,11 @@ def batch_ocr(folder: str, output_folder: str) -> None:
 
 batch_ocr("./images", "./output")
 ```
+
+## Rules
+
+- Select the OCR engine based on the document type and accuracy requirements before writing code: Tesseract for local/offline simple documents, EasyOCR for multilingual handwriting, cloud APIs (Google Vision, AWS Textract) for production accuracy on structured documents
+- Image preprocessing (grayscale conversion, binarization, deskew) is required before Tesseract and EasyOCR for non-ideal inputs — skipping it causes significant accuracy degradation
+- OCR output must always be treated as unvalidated text — apply post-processing (regex, string normalization) before using extracted values in business logic
+- Never pass sensitive document images to cloud OCR APIs without confirming data privacy and compliance requirements with the project owner
+- Confidence scores from the OCR engine must be checked; results below the project-defined threshold must be flagged for human review rather than accepted automatically

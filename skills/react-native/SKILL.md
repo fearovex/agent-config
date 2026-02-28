@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When building mobile apps, working with React Native components, using Expo, React Navigation, or NativeWind.
+
 Load this skill when:
 - Building mobile applications with React Native
 - Working with Expo managed or bare workflow
@@ -258,3 +260,11 @@ return <Text>{data.name}</Text>;
 | Icons | `@expo/vector-icons` |
 | Animations | `react-native-reanimated` |
 | Gestures | `react-native-gesture-handler` |
+
+## Rules
+
+- Use Expo managed workflow by default for new projects; bare workflow is appropriate only when a native module unavailable in Expo is strictly required
+- Navigation must be implemented with React Navigation; never use ad-hoc conditional rendering or `useState` to simulate navigation stacks
+- NativeWind (Tailwind for React Native) styles must use `className` prop — never mix NativeWind with inline `style` objects on the same component
+- Platform-specific code must be isolated with `Platform.select()` or `.ios.tsx`/`.android.tsx` file extensions; never use `Platform.OS` checks inline in JSX
+- All async operations (permissions, storage, network) must handle loading and error states explicitly — unhandled promise rejections crash the app silently on some platforms

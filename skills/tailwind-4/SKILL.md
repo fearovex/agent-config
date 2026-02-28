@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When styling with Tailwind, using className, conditional styles, or dark mode.
+
 Load when: styling with Tailwind CSS 4, using className, implementing dark mode, or needing conditional styles.
 
 ## Critical Patterns
@@ -214,3 +216,11 @@ const CHART_COLORS = {
 | Responsive | `sm:` `md:` `lg:` `xl:` |
 | Runtime value | `style={{ width: \`${val}%\` }}` |
 | Override externo | Aceptar y aplicar `className` prop con `cn()` |
+
+## Rules
+
+- Use the `cn()` utility (clsx + tailwind-merge) for all conditional class composition; string concatenation for dynamic classes causes class conflicts that tailwind-merge resolves
+- Tailwind 4 uses CSS-first configuration (`@theme` in CSS) — never use `tailwind.config.js` theme extensions for new Tailwind 4 projects
+- Avoid `@apply` in component CSS files; Tailwind utility classes belong in the markup, not extracted into CSS rules
+- Component library classes (shadcn/ui, Radix) must not be overridden with Tailwind classes on the same element — extend via variants or wrapper elements
+- Dynamic class names must be complete strings (e.g., `'text-red-500'`), never constructed by string interpolation (e.g., `` `text-${color}-500` ``) — PurgeCSS/Tailwind cannot detect partial class names

@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When designing Java services with hexagonal architecture, clean architecture, or ports-and-adapters pattern.
+
 Load when: designing Java applications with hexagonal architecture, implementing ports and adapters, or maintaining clean separation between domain and infrastructure.
 
 ## Critical Patterns
@@ -265,3 +267,11 @@ public interface OrderRepository {
 | Implementar puerto | En `infrastructure/` |
 | Use case | Service en `application/service/` |
 | Inyección | Constructor injection en todos los servicios |
+
+## Rules
+
+- Domain entities and use cases must have zero dependencies on framework classes (no Spring annotations, no JPA annotations inside domain)
+- Ports are interfaces defined in the domain layer; adapters are implementations in the infrastructure layer — never the reverse
+- Application services (use cases) orchestrate domain logic only; they must not contain persistence or HTTP concerns
+- Each adapter must implement exactly one port; combining multiple ports in a single adapter class is a violation of the pattern
+- Tests for use cases must use test doubles (stubs/fakes) for ports, never the real adapter implementations

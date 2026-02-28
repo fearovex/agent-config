@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When writing E2E tests, using Playwright, implementing page objects, or testing UI flows.
+
 Load when: writing Playwright E2E tests, implementing Page Object Model, using Playwright MCP tools, or defining test strategies.
 
 ## Critical Patterns
@@ -228,3 +230,11 @@ await page.getByRole('button', { name: 'Login' }).click();
 | Un archivo | `npx playwright test auth/login.spec.ts` |
 | Generar report | `npx playwright show-report` |
 | Codegen | `npx playwright codegen http://localhost:3000` |
+
+## Rules
+
+- All selectors must use accessibility attributes (`getByRole`, `getByLabel`, `getByText`) or `data-testid`; CSS class selectors are fragile and forbidden
+- Every test must be isolated — no shared mutable state between tests; use `beforeEach`/`afterEach` for setup and teardown
+- Page Object Model is required for any test suite with more than 3 pages; inline selectors across multiple test files are a maintenance liability
+- Assertions must use Playwright's built-in auto-waiting matchers (`toBeVisible`, `toHaveText`); manual `waitForTimeout` calls are not acceptable
+- Test files must be co-located with the feature they test or placed in a dedicated `e2e/` directory — never mixed with unit test files

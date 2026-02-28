@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When building React components, using hooks, working with forms, or server/client components.
+
 Load when: writing React components, using hooks, handling forms, working with Server/Client components, or migrating from React 18.
 
 ## Critical Patterns
@@ -201,3 +203,11 @@ export default function Page() {
 | Formularios | onSubmit handler | Server Actions + useActionState |
 | Refs en componentes | forwardRef | ref como prop |
 | Context condicional | ❌ No posible | ✅ use() |
+
+## Rules
+
+- Do not add `useMemo` or `useCallback` when React Compiler is active — the compiler handles memoization automatically and manual wrapping is redundant
+- `'use client'` must be applied at the lowest possible component in the tree; never mark a page or layout as a Client Component
+- `forwardRef` is no longer needed — pass `ref` as a regular prop; using `forwardRef` in new React 19 code is unnecessary legacy syntax
+- The `use()` hook can be called conditionally (unlike all other hooks); this is intentional and must be used instead of conditional `useContext` workarounds
+- Server Actions must use `useActionState` for form state management; managing form submission state manually with `useState` + `useEffect` is the old pattern

@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When validating data, defining schemas, working with forms, or using Zod for type safety.
+
 Load when: validating user input, defining data schemas, working with React Hook Form + Zod, or migrating from Zod 3.
 
 ## Critical Patterns — Breaking Changes desde v3
@@ -243,3 +245,11 @@ function createUser(data: CreateUserInput) { ... }
 | Parse seguro | `Schema.safeParse(data)` |
 | Validación cross-field | `.superRefine()` |
 | Con RHF | `zodResolver(Schema)` |
+
+## Rules
+
+- This skill targets Zod v4 specifically — `z.string().email()` and other validators changed in v4; verify the installed version before applying patterns
+- Define schemas as named constants, not inline — reusing schema definitions ensures consistency between validation and TypeScript type inference
+- Use `z.infer<typeof Schema>` to derive TypeScript types from schemas; manually duplicating types alongside schemas causes drift
+- `safeParse` is required for user input validation — `parse` throws by default and must only be used when an exception is the correct error handling strategy
+- Zod schemas for form validation must be defined outside the component to avoid recreation on every render

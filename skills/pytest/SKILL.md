@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When writing Python tests, using pytest, mocking dependencies, or testing async code.
+
 Load when: writing Python tests with pytest, setting up fixtures, mocking external dependencies, or testing async functions.
 
 ## Critical Patterns
@@ -268,3 +270,11 @@ def test_get_user(make_user):
 | Exception esperada | `pytest.raises(ValueError, match="pattern")` |
 | Async test | `@pytest.mark.asyncio` |
 | Scope fixture | `scope="function|class|module|session"` |
+
+## Rules
+
+- Fixtures are the required mechanism for test setup and dependency injection — never use `setUp`/`tearDown` class methods (that is unittest style)
+- Use `@pytest.mark.parametrize` for data-driven tests; copy-pasted test functions that differ only in input values are a duplication anti-pattern
+- Mock external dependencies (HTTP, DB, filesystem) at the boundary using `pytest-mock` or `unittest.mock.patch`; never let tests hit real external services
+- Async tests require `@pytest.mark.asyncio`; forgetting the marker causes the test to pass without actually executing the coroutine
+- Scope fixtures correctly (`function`, `module`, `session`) — wide-scope fixtures that mutate shared state cause test order dependencies

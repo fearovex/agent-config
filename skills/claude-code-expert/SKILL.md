@@ -505,3 +505,11 @@ WAIT for approval before writing code.
 - Verify environment variables
 - Run command manually to see errors
 - Check configuration in `.mcp.json`
+
+## Rules
+
+- This skill is authoritative for Claude Code configuration only — it does not govern project-level code architecture or language-specific patterns
+- CLAUDE.md at the user level (`~/.claude/CLAUDE.md`) applies globally to all sessions; project-level CLAUDE.md overrides or extends it for a specific project
+- Skills must be directories with a single `SKILL.md` entry point — never use flat `.md` files directly in the skills directory
+- Hooks in `settings.json` must be idempotent — hooks that fail loudly on every run (e.g., lint errors) will interrupt normal Claude Code operation
+- MCP server tokens and secrets must be stored as environment variables referenced by `${VAR_NAME}` in `.mcp.json`; never hardcode credentials

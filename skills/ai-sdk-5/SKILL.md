@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When building AI chat interfaces, using Vercel AI SDK, streaming LLM responses, or integrating tools.
+
 Load when: building AI chat with Vercel AI SDK 5, streaming responses, integrating tools/function calling, or migrating from AI SDK 4.
 
 ## Critical Breaking Changes desde v4
@@ -239,3 +241,11 @@ const { messages, sendMessage, error } = useChat({
 | Tool calling | `tool({ description, parameters: z.object(...), execute })` |
 | Texto simple | `useCompletion({ api: '/api/...' })` |
 | Server route | `streamText(...).toDataStreamResponse()` |
+
+## Rules
+
+- This skill targets AI SDK v5 only — patterns are breaking changes from v4 (`useChat` import path, `message.parts`, `sendMessage`); do NOT mix v4 syntax
+- Always use `message.parts` array iteration to render message content; never access `message.content` as a string
+- Tool definitions require a Zod schema for `parameters`; untyped tool calls are not supported in v5
+- Server routes must return `result.toDataStreamResponse()` for streaming to work with `useChat` transport
+- Handle `error` state from `useChat` explicitly in the UI; never silently swallow streaming errors

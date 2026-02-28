@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When writing Java 21 code, using records, sealed interfaces, or virtual threads for I/O.
+
 Load when: writing Java 21 code, designing immutable value objects, modeling class hierarchies, or implementing concurrent I/O with virtual threads.
 
 ## Critical Patterns
@@ -230,3 +232,11 @@ try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
 | Thread virtual | `Thread.ofVirtual().start(() -> ...)` |
 | Null check | `Objects.requireNonNull(x, "msg")` |
 | Multi-línea string | Text block `""" ... """` |
+
+## Rules
+
+- Use `record` for all immutable data carriers (DTOs, value objects); mutable data classes with getters/setters are unnecessary in Java 21+
+- Compact constructors in records are the required location for validation — never validate after construction
+- Virtual threads are for I/O-bound concurrency only; CPU-bound tasks should still use platform thread pools
+- `sealed interface` + `permits` is required for closed class hierarchies; open inheritance hierarchies with `instanceof` chains are an anti-pattern
+- Pattern matching `switch` expressions must be exhaustive — rely on compiler enforcement rather than adding a catch-all `default`

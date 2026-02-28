@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When writing TypeScript, defining types/interfaces, or using utility types.
+
 Load when: writing TypeScript code, defining data structures, working with generics, or needing type safety patterns.
 
 ## Critical Patterns
@@ -227,3 +229,11 @@ console.log(user.name);
 | Type-only import | `import type { T }` |
 | Readonly | `Readonly<T>` or `as const` |
 | Generic constraint | `<T extends object>` |
+
+## Rules
+
+- `any` is forbidden — use `unknown` with type guards or generics; `@ts-ignore` is only acceptable as a last resort with an explanatory comment
+- Use `import type` for type-only imports to ensure they are erased at compile time and do not affect the runtime bundle
+- Prefer `const` objects with `as const` over plain union types for enums and string literals — this preserves runtime values alongside the type
+- Non-null assertions (`!`) require an immediately preceding null check; bare `value!` without a guard is a runtime crash waiting to happen
+- Interfaces should be flat and composable — deeply nested inline type definitions inside other types are a readability and reusability anti-pattern

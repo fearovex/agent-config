@@ -9,6 +9,8 @@ metadata:
   version: "1.0"
 ---
 
+**Triggers**: When building REST APIs with Django - ViewSets, Serializers, Filters.
+
 ## ViewSet Pattern
 
 ```python
@@ -181,3 +183,11 @@ python manage.py migrate
 python manage.py createsuperuser
 python manage.py shell
 ```
+
+## Rules
+
+- Use separate serializer classes for read, create, and update operations — never a single serializer with branching `to_representation`
+- All ViewSets must declare `permission_classes` explicitly; never rely on global defaults for security-sensitive endpoints
+- Filters belong in a dedicated `FilterSet` class — never add filter logic directly inside view methods
+- Pagination must be configured globally in `settings.py`; per-view pagination overrides are acceptable only when requirements differ
+- Test ViewSets with `APIClient` and `force_authenticate`; never bypass authentication in tests with `permission_classes = []` on the ViewSet

@@ -419,3 +419,11 @@ async function createMultiSheet(outputPath: string) {
 - **Cell types**: check `cell.type` (`ExcelJS.ValueType`) before casting — can be `Number`, `String`, `Date`, `Formula`, `Null`
 - **Column width**: ExcelJS uses character units, not pixels
 - **Passwords / protection**: `sheet.protect('password', { selectLockedCells: true })`
+
+## Rules
+
+- Choose the library based on the use case before writing code: ExcelJS for full formatting control, SheetJS for fast read/write with minimal dependencies, pandas/openpyxl for Python data analysis pipelines
+- Always close workbook streams after reading or writing; unclosed file handles cause process-level resource leaks in long-running Node.js or Python services
+- Column indices in ExcelJS are 1-based, not 0-based — off-by-one errors are the most common bug when building dynamic column layouts
+- Never build Excel files by string-concatenating XML — always use the library's API; raw XML manipulation bypasses format validation and corrupts files
+- Validate input data types before writing to cells; writing a JavaScript object reference where a string is expected produces `[object Object]` silently in the output file

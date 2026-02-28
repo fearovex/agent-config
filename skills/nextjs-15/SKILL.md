@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When building Next.js apps, working with app router, server/client components, or API routes.
+
 Load when: building Next.js 15 apps, using app router, implementing server actions, fetching data, or setting up middleware.
 
 ## Critical Patterns
@@ -232,3 +234,11 @@ export default function Layout({ children }) {
 | Search params | `searchParams.get('key')` en Server Component |
 | Proteger rutas | `middleware.ts` en raíz |
 | Evitar bundle client | `import 'server-only'` |
+
+## Rules
+
+- Server Components are the default; add `'use client'` only when the component requires browser APIs, event handlers, or React state
+- Never add `'use client'` to layout or page files — this forces the entire subtree client-side and defeats Server Component benefits
+- Server Actions (`'use server'`) must be the mechanism for mutations from forms; avoid client-side fetch for form submissions
+- `revalidatePath` or `revalidateTag` must be called after mutations that change cached data; stale caches are a correctness bug
+- `import 'server-only'` must be added to any module that accesses secrets, databases, or server-only APIs to prevent accidental client bundling

@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When managing global state in React, using Zustand, or implementing state slices.
+
 Load when: managing global or shared state in React, implementing persistence, using Zustand stores, or needing out-of-component state access.
 
 ## Critical Patterns
@@ -237,3 +239,11 @@ fetchData: async () => {
 | DevTools | `create()(devtools(..., { name: 'Name' }))` |
 | Acceso externo | `useStore.getState()` |
 | Suscripción | `useStore.subscribe(selector, callback)` |
+
+## Rules
+
+- Stores must be split by domain concern (auth store, cart store, UI store) — a single global store that grows without bound is a maintenance anti-pattern
+- Always use selectors to subscribe to specific state slices (`useStore(s => s.count)`) — subscribing to the full store object causes unnecessary re-renders on any state change
+- Persist middleware (`zustand/middleware`) must be applied only to stores that genuinely need persistence; over-persisting creates stale-state bugs after schema changes
+- Store actions must be defined inside the `create` callback, not as external functions that receive the store as a parameter
+- Zustand 5 uses `useShallow` for object selectors to prevent re-renders when returned object references change — wrap object selectors with `useShallow`

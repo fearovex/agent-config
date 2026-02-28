@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When creating Jira tickets, tasks, or issues for features, bugs, or enhancements.
+
 Load when: creating Jira tickets, structuring work items, splitting tasks by component, or using the Jira MCP.
 
 ## Critical Patterns
@@ -212,4 +214,12 @@ h2. Testing
 
 ✅ With paths:
 * Modify {{src/services/auth.service.ts}} — add refreshToken() method
+
+## Rules
+
+- Every task must have a clear Definition of Done — acceptance criteria stated as verifiable conditions, not vague descriptions
+- Tasks that require front-end AND back-end changes must be split into separate component tasks linked under the same epic or story
+- Use Jira Wiki markup for all task descriptions; plain text without formatting is not acceptable for structured tasks
+- Task estimates must be included when the team uses story points or time tracking; estimateless tasks block sprint planning
+- Bug tasks must include: steps to reproduce, expected behavior, and actual behavior — missing any of these is an incomplete bug report
 ```

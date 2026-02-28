@@ -11,6 +11,8 @@ metadata:
 
 ## When to Use
 
+**Triggers**: When creating Jira epics, planning large features, or structuring work spanning multiple components.
+
 Load when: creating Jira epics for large features, planning work that spans multiple sprints or components, or decomposing epics into tasks.
 
 ## When to create an Epic vs a Task
@@ -201,4 +203,12 @@ No "Out of Scope" → inevitable scope creep
 ```
 ❌ "The auth system works"
 ✅ "User can log in with email/password and receives a JWT with 24h expiration"
+
+## Rules
+
+- Epics must include a high-level overview, acceptance criteria, and a task decomposition section — an epic with only a title is incomplete
+- Technical diagrams (architecture, flow, component) are required for epics that span multiple system components
+- Each epic must be decomposable into independently deliverable Jira tasks before it is considered ready for development
+- Epic scope must be bounded — if the description spans more than one business domain, split into separate epics
+- Use Jira Wiki markup syntax when formatting epic descriptions to ensure correct rendering in Jira
 ```
