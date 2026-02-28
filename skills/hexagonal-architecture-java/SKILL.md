@@ -17,28 +17,28 @@ Load when: designing Java applications with hexagonal architecture, implementing
 
 ## Critical Patterns
 
-### Regla fundamental: El dominio no tiene dependencias externas
+### Fundamental Rule: The domain has no external dependencies
 
 ```
-Domain → no imports de Spring, JPA, HTTP, ni ningún framework
-Application → define puertos (interfaces), orquesta el dominio
-Infrastructure → implementa los puertos (JPA, REST, Kafka, etc.)
+Domain → no imports from Spring, JPA, HTTP, or any framework
+Application → defines ports (interfaces), orchestrates the domain
+Infrastructure → implements the ports (JPA, REST, Kafka, etc.)
 
-Flujo de dependencias (siempre hacia adentro):
+Dependency flow (always inward):
 Infrastructure → Application → Domain
 ```
 
-### Pattern 1: Domain puro (sin frameworks)
+### Pattern 1: Pure Domain (no frameworks)
 
 ```java
-// ✅ Domain entity — sin anotaciones de framework
+// ✅ Domain entity — no framework annotations
 public class Order {
     private final OrderId id;
     private final CustomerId customerId;
     private final List<OrderItem> items;
     private OrderStatus status;
 
-    // Constructor, métodos de negocio
+    // Constructor, business methods
     public void confirm() {
         if (this.status != OrderStatus.PENDING) {
             throw new IllegalStateException("Only pending orders can be confirmed");
@@ -53,41 +53,41 @@ public class Order {
     }
 }
 
-// ❌ Domain con anotaciones de JPA — viola la pureza
+// ❌ Domain with JPA annotations — violates purity
 @Entity
 @Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue
-    private Long id;          // Tipo de DB, no de negocio
+    private Long id;          // DB type, not business type
 
     @Column
-    private String status;    // String en vez de enum del dominio
+    private String status;    // String instead of domain enum
 }
 ```
 
-### Pattern 2: Application Layer — define puertos
+### Pattern 2: Application Layer — defines ports
 
 ```java
-// Puerto de entrada (Use Case)
+// Input port (Use Case)
 public interface CreateOrderUseCase {
     OrderId execute(CreateOrderCommand command);
 }
 
-// Puerto de salida (Repository — definido en application, implementado en infra)
+// Output port (Repository — defined in application, implemented in infra)
 public interface OrderRepository {
     void save(Order order);
     Optional<Order> findById(OrderId id);
     List<Order> findByCustomer(CustomerId customerId);
 }
 
-// Puerto de salida (notificaciones)
+// Output port (notifications)
 public interface NotificationPort {
     void notifyOrderConfirmed(Order order);
 }
 
-// Servicio de aplicación — implementa el use case, usa los puertos
-@Service // ✅ Spring aquí está bien — es la capa de aplicación
+// Application service — implements the use case, uses the ports
+@Service // ✅ Spring here is fine — this is the application layer
 public class CreateOrderService implements CreateOrderUseCase {
 
     private final OrderRepository orderRepository;
@@ -112,10 +112,10 @@ public class CreateOrderService implements CreateOrderUseCase {
 }
 ```
 
-### Pattern 3: Infrastructure — implementa los puertos
+### Pattern 3: Infrastructure — implements the ports
 
 ```java
-// Adaptador de persistencia (implementa el puerto de dominio)
+// Persistence adapter (implements the domain port)
 @Repository
 public class JpaOrderRepository implements OrderRepository {
 
@@ -134,7 +134,7 @@ public class JpaOrderRepository implements OrderRepository {
     }
 }
 
-// Adaptador REST de entrada
+// Input REST adapter
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -155,7 +155,7 @@ public class OrderController {
 
 ## Code Examples
 
-### Estructura de paquetes
+### Package Structure
 
 ```
 com.myapp/
@@ -164,35 +164,35 @@ com.myapp/
 │   │   ├── Order.java
 │   │   ├── OrderId.java        # Value Object
 │   │   └── Money.java          # Value Object
-│   └── service/                # Domain services (lógica que no cabe en entity)
+│   └── service/                # Domain services (logic that doesn't fit in an entity)
 │       └── PricingService.java
 ├── application/
 │   ├── port/
-│   │   ├── in/                 # Use cases (puertos de entrada)
+│   │   ├── in/                 # Use cases (input ports)
 │   │   │   └── CreateOrderUseCase.java
-│   │   └── out/                # Puertos de salida
+│   │   └── out/                # Output ports
 │   │       ├── OrderRepository.java
 │   │       └── NotificationPort.java
-│   ├── service/                # Implementaciones de use cases
+│   ├── service/                # Use case implementations
 │   │   └── CreateOrderService.java
-│   └── dto/                    # Commands y Queries
+│   └── dto/                    # Commands and Queries
 │       └── CreateOrderCommand.java
 └── infrastructure/
     ├── persistence/
-    │   ├── JpaOrderRepository.java   # Implementa OrderRepository
-    │   ├── OrderEntity.java          # Entidad JPA
+    │   ├── JpaOrderRepository.java   # Implements OrderRepository
+    │   ├── OrderEntity.java          # JPA Entity
     │   └── OrderMapper.java          # Domain ↔ Entity
     ├── web/
     │   ├── OrderController.java      # REST adapter
     │   └── OrderRequest.java         # DTOs HTTP
     └── notification/
-        └── EmailNotificationAdapter.java # Implementa NotificationPort
+        └── EmailNotificationAdapter.java # Implements NotificationPort
 ```
 
 ### Value Objects
 
 ```java
-// ✅ Value Object — inmutable, validado, sin @Entity
+// ✅ Value Object — immutable, validated, no @Entity
 public record OrderId(UUID value) {
     public OrderId {
         Objects.requireNonNull(value, "OrderId cannot be null");
@@ -221,31 +221,31 @@ public record Money(BigDecimal amount, Currency currency) {
 
 ## Anti-Patterns
 
-### ❌ JPA en el dominio
+### ❌ JPA in the Domain
 
 ```java
-// ❌ Acoplamiento con JPA en el dominio
+// ❌ Coupling with JPA in the domain
 @Entity
 public class Order {
     @OneToMany(cascade = CascadeType.ALL)
-    private List<OrderItemEntity> items;  // Tipo de infraestructura en dominio
+    private List<OrderItemEntity> items;  // Infrastructure type in domain
 }
 
-// ✅ Dominio usa sus propios tipos
+// ✅ Domain uses its own types
 public class Order {
-    private final List<OrderItem> items;  // Tipo del dominio
+    private final List<OrderItem> items;  // Domain type
 }
 ```
 
-### ❌ Repositorio de Spring en application layer
+### ❌ Spring Repository in application layer
 
 ```java
-// ❌ Application depende de infraestructura
-import org.springframework.data.repository.CrudRepository; // Spring en application
+// ❌ Application depends on infrastructure
+import org.springframework.data.repository.CrudRepository; // Spring in application
 
 public interface OrderRepository extends CrudRepository<OrderEntity, Long> {}
 
-// ✅ Puerto definido en application, sin imports de framework
+// ✅ Port defined in application, no framework imports
 public interface OrderRepository {
     void save(Order order);
     Optional<Order> findById(OrderId id);
@@ -254,19 +254,19 @@ public interface OrderRepository {
 
 ## Quick Reference
 
-| Capa | Contiene | No contiene |
-|------|----------|-------------|
+| Layer | Contains | Does not contain |
+|-------|----------|------------------|
 | Domain | Entities, VOs, Domain Services | Spring, JPA, HTTP |
 | Application | Use Cases, Ports (interfaces), Commands | JPA entities, HTTP |
 | Infrastructure | Controllers, JPA Adapters, External APIs | Domain logic |
 
-| Task | Patrón |
-|------|--------|
-| Puerto de entrada | Interface en `application/port/in/` |
-| Puerto de salida | Interface en `application/port/out/` |
-| Implementar puerto | En `infrastructure/` |
-| Use case | Service en `application/service/` |
-| Inyección | Constructor injection en todos los servicios |
+| Task | Pattern |
+|------|---------|
+| Input port | Interface in `application/port/in/` |
+| Output port | Interface in `application/port/out/` |
+| Implement port | In `infrastructure/` |
+| Use case | Service in `application/service/` |
+| Injection | Constructor injection in all services |
 
 ## Rules
 

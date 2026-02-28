@@ -17,16 +17,16 @@ Load when: writing Java 21 code, designing immutable value objects, modeling cla
 
 ## Critical Patterns
 
-### Pattern 1: Records para datos inmutables
+### Pattern 1: Records for immutable data
 
 ```java
-// ✅ Record con validación en compact constructor
+// ✅ Record with validation in compact constructor
 public record UserDto(
     String id,
     String name,
     String email
 ) {
-    // Compact constructor — validación automática
+    // Compact constructor — automatic validation
     public UserDto {
         Objects.requireNonNull(id, "id must not be null");
         if (name == null || name.isBlank()) {
@@ -35,22 +35,22 @@ public record UserDto(
         if (!email.contains("@")) {
             throw new IllegalArgumentException("invalid email: " + email);
         }
-        // Los campos se asignan automáticamente
+        // Fields are assigned automatically
     }
 }
 
-// ❌ Evitar: clase mutable como data carrier
+// ❌ Avoid: mutable class as data carrier
 public class UserDto {
     private String id;
     private String name;
-    // getters/setters/equals/hashCode — verboso e innecesario
+    // getters/setters/equals/hashCode — verbose and unnecessary
 }
 ```
 
-### Pattern 2: Sealed types con pattern matching
+### Pattern 2: Sealed types with pattern matching
 
 ```java
-// ✅ Sealed interface — jerarquía cerrada y exhaustiva
+// ✅ Sealed interface — closed and exhaustive hierarchy
 public sealed interface Shape
     permits Circle, Rectangle, Triangle {}
 
@@ -58,25 +58,25 @@ public record Circle(double radius) implements Shape {}
 public record Rectangle(double width, double height) implements Shape {}
 public record Triangle(double base, double height) implements Shape {}
 
-// Pattern matching en switch — exhaustivo
+// Pattern matching in switch — exhaustive
 public double area(Shape shape) {
     return switch (shape) {
         case Circle c -> Math.PI * c.radius() * c.radius();
         case Rectangle r -> r.width() * r.height();
         case Triangle t -> 0.5 * t.base() * t.height();
-        // No necesita default — el compilador verifica exhaustividad
+        // No default needed — the compiler verifies exhaustiveness
     };
 }
 
-// ❌ Evitar: instanceof encadenado
+// ❌ Avoid: chained instanceof
 if (shape instanceof Circle) { ... }
 else if (shape instanceof Rectangle) { ... }
 ```
 
-### Pattern 3: Virtual Threads para I/O
+### Pattern 3: Virtual Threads for I/O
 
 ```java
-// ✅ Virtual threads — escala sin thread pools grandes
+// ✅ Virtual threads — scales without large thread pools
 try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
     List<Future<String>> futures = urls.stream()
         .map(url -> executor.submit(() -> fetchUrl(url))) // Blocking OK
@@ -87,23 +87,23 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
     }
 }
 
-// ✅ Thread.ofVirtual() directo
+// ✅ Thread.ofVirtual() directly
 Thread.ofVirtual()
     .name("task-", 0)
     .start(() -> processData(data));
 
-// ❌ Evitar: plataforma thread por request — no escala
-new Thread(() -> handleRequest(req)).start(); // Platform thread, costoso
+// ❌ Avoid: platform thread per request — does not scale
+new Thread(() -> handleRequest(req)).start(); // Platform thread, expensive
 ```
 
 ## Code Examples
 
-### Record con wither (copia con cambios)
+### Record with wither (copy with changes)
 
 ```java
 public record User(String id, String name, String email, boolean active) {
 
-    // Wither manual — inmutabilidad con cambios convenientes
+    // Manual wither — immutability with convenient changes
     public User withName(String newName) {
         return new User(id, newName, email, active);
     }
@@ -118,12 +118,12 @@ public record User(String id, String name, String email, boolean active) {
     }
 }
 
-// Uso
+// Usage
 User user = User.create("Juan", "juan@example.com");
 User updated = user.withName("Juan Pablo").withActive(false);
 ```
 
-### Pattern matching avanzado
+### Advanced pattern matching
 
 ```java
 // Deconstruction patterns
@@ -139,7 +139,7 @@ public String describe(Object obj) {
     };
 }
 
-// Con records
+// With records
 public double process(Shape shape) {
     return switch (shape) {
         case Circle c when c.radius() > 100 -> handleLargeCircle(c);
@@ -150,7 +150,7 @@ public double process(Shape shape) {
 }
 ```
 
-### Structured Concurrency (Preview en Java 21)
+### Structured Concurrency (Preview in Java 21)
 
 ```java
 import java.util.concurrent.StructuredTaskScope;
@@ -169,10 +169,10 @@ public UserData fetchUserData(String userId) throws Exception {
 }
 ```
 
-### Text Blocks y String Templates
+### Text Blocks and String Templates
 
 ```java
-// ✅ Text blocks para JSON, SQL, HTML
+// ✅ Text blocks for JSON, SQL, HTML
 String json = """
     {
         "name": "%s",
@@ -194,7 +194,7 @@ String sql = """
 ### ❌ Mutable data carrier
 
 ```java
-// ❌ Innecesariamente mutable
+// ❌ Unnecessarily mutable
 public class UserDto {
     private String name;
     public void setName(String name) { this.name = name; }
@@ -202,19 +202,19 @@ public class UserDto {
     // + equals, hashCode, toString...
 }
 
-// ✅ Record — inmutable, compacto, auto-genera todo
+// ✅ Record — immutable, compact, auto-generates everything
 public record UserDto(String name, String email) {}
 ```
 
-### ❌ Platform thread por request
+### ❌ Platform thread per request
 
 ```java
-// ❌ No escala — cada thread consume ~1MB de stack
+// ❌ Does not scale — each thread consumes ~1MB of stack
 for (String url : urls) {
     new Thread(() -> process(url)).start();
 }
 
-// ✅ Virtual threads — ligeros, escalan a millones
+// ✅ Virtual threads — lightweight, scales to millions
 try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
     urls.forEach(url -> exec.submit(() -> process(url)));
 }
@@ -224,14 +224,14 @@ try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
 
 | Task | Java 21 |
 |------|---------|
-| DTO inmutable | `record Dto(String a, int b) {}` |
-| Validación en record | Compact constructor |
-| Jerarquía cerrada | `sealed interface` + `permits` |
-| Switch exhaustivo | `switch` con pattern matching |
-| I/O concurrente | `Executors.newVirtualThreadPerTaskExecutor()` |
-| Thread virtual | `Thread.ofVirtual().start(() -> ...)` |
+| Immutable DTO | `record Dto(String a, int b) {}` |
+| Record validation | Compact constructor |
+| Closed hierarchy | `sealed interface` + `permits` |
+| Exhaustive switch | `switch` with pattern matching |
+| Concurrent I/O | `Executors.newVirtualThreadPerTaskExecutor()` |
+| Virtual thread | `Thread.ofVirtual().start(() -> ...)` |
 | Null check | `Objects.requireNonNull(x, "msg")` |
-| Multi-línea string | Text block `""" ... """` |
+| Multi-line string | Text block `""" ... """` |
 
 ## Rules
 

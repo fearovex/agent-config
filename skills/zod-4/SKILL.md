@@ -15,7 +15,7 @@ metadata:
 
 Load when: validating user input, defining data schemas, working with React Hook Form + Zod, or migrating from Zod 3.
 
-## Critical Patterns — Breaking Changes desde v3
+## Critical Patterns — Breaking Changes from v3
 
 ```typescript
 // ✅ Zod 4 — top-level validators
@@ -23,16 +23,16 @@ const emailSchema = z.email();
 const urlSchema = z.url();
 const uuidSchema = z.uuid();
 
-// ❌ Zod 3 (ya no funciona igual)
+// ❌ Zod 3 (no longer works the same way)
 const emailSchema = z.string().email();
 
-// ✅ Zod 4 — min(1) en lugar de nonempty()
+// ✅ Zod 4 — min(1) instead of nonempty()
 const nameSchema = z.string().min(1);
 
 // ❌ Zod 3
 const nameSchema = z.string().nonempty();
 
-// ✅ Zod 4 — error unificado
+// ✅ Zod 4 — unified error
 const schema = z.object({
   name: z.string({ error: 'Name is required' }),
 });
@@ -45,23 +45,23 @@ const schema = z.object({
 
 ## Code Examples
 
-### Schemas básicos
+### Basic schemas
 
 ```typescript
 import { z } from 'zod';
 
-// Primitivos
+// Primitives
 const nameSchema = z.string().min(1).max(100);
 const ageSchema = z.number().int().min(0).max(150);
 const activeSchema = z.boolean();
 const dateSchema = z.date();
 
-// Especiales Zod 4
+// Zod 4 specials
 const emailSchema = z.email();
 const urlSchema = z.url();
 const uuidSchema = z.uuid();
 
-// Object con inferencia de tipo
+// Object with type inference
 const UserSchema = z.object({
   id: z.uuid(),
   name: z.string().min(1),
@@ -77,20 +77,20 @@ type User = z.infer<typeof UserSchema>;
 ### Parse vs SafeParse
 
 ```typescript
-// parse() — lanza ZodError si falla
+// parse() — throws ZodError on failure
 try {
   const user = UserSchema.parse(data);
-  // user está tipado como User
+  // user is typed as User
 } catch (error) {
   if (error instanceof z.ZodError) {
     console.log(error.errors);
   }
 }
 
-// safeParse() — devuelve result sin lanzar
+// safeParse() — returns result without throwing
 const result = UserSchema.safeParse(data);
 if (result.success) {
-  const user = result.data; // tipado como User
+  const user = result.data; // typed as User
 } else {
   const errors = result.error.errors;
   errors.forEach(e => console.log(e.path, e.message));
@@ -116,13 +116,13 @@ const EventSchema = z.discriminatedUnion('type', [
 ]);
 ```
 
-### Transformaciones y Refinements
+### Transformations and Refinements
 
 ```typescript
-// Transform — parsear y transformar
+// Transform — parse and transform
 const DateStringSchema = z.string().transform((val) => new Date(val));
 
-// Refine — validación custom
+// Refine — custom validation
 const PasswordSchema = z.string()
   .min(8)
   .refine(
@@ -134,7 +134,7 @@ const PasswordSchema = z.string()
     { message: 'Must contain a number' }
   );
 
-// superRefine — validación cross-field
+// superRefine — cross-field validation
 const PasswordMatchSchema = z.object({
   password: z.string().min(8),
   confirmPassword: z.string(),
@@ -149,7 +149,7 @@ const PasswordMatchSchema = z.object({
 });
 ```
 
-### Integración con React Hook Form
+### Integration with React Hook Form
 
 ```typescript
 import { useForm } from 'react-hook-form';
@@ -168,7 +168,7 @@ function LoginForm() {
   });
 
   const onSubmit = (data: LoginForm) => {
-    console.log(data); // Tipado y validado
+    console.log(data); // Typed and validated
   };
 
   return (
@@ -185,17 +185,17 @@ function LoginForm() {
 }
 ```
 
-### Schemas para API (input/output)
+### Schemas for API (input/output)
 
 ```typescript
-// Schema para validar request body
+// Schema to validate request body
 const CreateUserInput = z.object({
   name: z.string().min(1).max(100),
   email: z.email(),
   role: z.enum(['admin', 'user']).default('user'),
 });
 
-// Schema para respuesta (omite campos sensibles)
+// Schema for response (omits sensitive fields)
 const UserResponse = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -210,18 +210,18 @@ type UserResponse = z.infer<typeof UserResponse>;
 
 ## Anti-Patterns
 
-### ❌ Parse sin manejo de errores
+### ❌ Parse without error handling
 
 ```typescript
-// ❌ Crash si falla
+// ❌ Crashes on failure
 const user = UserSchema.parse(untrustedData);
 
-// ✅ Safe parse o try/catch
+// ✅ Safe parse or try/catch
 const result = UserSchema.safeParse(untrustedData);
 if (!result.success) handleErrors(result.error);
 ```
 
-### ❌ Usar any en vez de inferir
+### ❌ Using any instead of inferring
 
 ```typescript
 // ❌
@@ -234,17 +234,17 @@ function createUser(data: CreateUserInput) { ... }
 
 ## Quick Reference
 
-| Task | Patrón Zod 4 |
-|------|-------------|
+| Task | Zod 4 Pattern |
+|------|---------------|
 | Email | `z.email()` |
 | URL | `z.url()` |
 | UUID | `z.uuid()` |
-| String no vacía | `z.string().min(1)` |
-| Error custom | `z.string({ error: 'msg' })` |
-| Inferir tipo | `z.infer<typeof Schema>` |
-| Parse seguro | `Schema.safeParse(data)` |
-| Validación cross-field | `.superRefine()` |
-| Con RHF | `zodResolver(Schema)` |
+| Non-empty string | `z.string().min(1)` |
+| Custom error | `z.string({ error: 'msg' })` |
+| Infer type | `z.infer<typeof Schema>` |
+| Safe parse | `Schema.safeParse(data)` |
+| Cross-field validation | `.superRefine()` |
+| With RHF | `zodResolver(Schema)` |
 
 ## Rules
 

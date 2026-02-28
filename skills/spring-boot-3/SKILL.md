@@ -17,10 +17,10 @@ Load when: building Spring Boot 3.3+ apps, configuring properties, implementing 
 
 ## Critical Patterns
 
-### Pattern 1: Constructor Injection SIEMPRE
+### Pattern 1: ALWAYS use Constructor Injection
 
 ```java
-// ✅ Constructor injection — testeable, explícito, inmutable
+// ✅ Constructor injection — testable, explicit, immutable
 @Service
 public class UserService {
 
@@ -28,7 +28,7 @@ public class UserService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
-    // Sin @Autowired en constructor — Spring lo detecta automáticamente
+    // No @Autowired on constructor — Spring detects it automatically
     public UserService(
         UserRepository userRepository,
         EmailService emailService,
@@ -40,18 +40,18 @@ public class UserService {
     }
 }
 
-// ❌ Field injection — no testeable, oculta dependencias
+// ❌ Field injection — not testable, hides dependencies
 @Service
 public class UserService {
-    @Autowired private UserRepository userRepository; // Evitar
-    @Autowired private EmailService emailService;     // Evitar
+    @Autowired private UserRepository userRepository; // Avoid
+    @Autowired private EmailService emailService;     // Avoid
 }
 ```
 
-### Pattern 2: @ConfigurationProperties (no @Value disperso)
+### Pattern 2: @ConfigurationProperties (not scattered @Value)
 
 ```java
-// ✅ Configuración tipada con validación
+// ✅ Typed configuration with validation
 @ConfigurationProperties(prefix = "app")
 @Validated
 public record AppProperties(
@@ -82,18 +82,18 @@ public record AppProperties(
 //     jwt-secret: "${JWT_SECRET}"
 //     jwt-expiration-ms: 86400000
 
-// Registro en @SpringBootApplication o config class
+// Register in @SpringBootApplication or config class
 @EnableConfigurationProperties(AppProperties.class)
 
-// ❌ @Value disperso — difícil de mantener y testear
+// ❌ Scattered @Value — hard to maintain and test
 @Value("${app.api.base-url}") private String apiBaseUrl;
 @Value("${app.api.timeout}") private int timeout;
 ```
 
-### Pattern 3: @Transactional en servicios, NO en controllers
+### Pattern 3: @Transactional on services, NOT on controllers
 
 ```java
-// ✅ Transaction en service layer
+// ✅ Transaction on the service layer
 @Service
 public class OrderService {
 
@@ -101,20 +101,20 @@ public class OrderService {
     public Order createOrder(CreateOrderRequest request) {
         var order = Order.from(request);
         orderRepository.save(order);
-        inventoryService.reserve(order.items()); // En misma transacción
+        inventoryService.reserve(order.items()); // In the same transaction
         return order;
     }
 
-    @Transactional(readOnly = true) // Optimización para lecturas
+    @Transactional(readOnly = true) // Optimization for reads
     public List<Order> findByCustomer(Long customerId) {
         return orderRepository.findByCustomerId(customerId);
     }
 }
 
-// ❌ Transaction en controller — boundary incorrecto
+// ❌ Transaction on controller — incorrect boundary
 @RestController
 public class OrderController {
-    @Transactional // Evitar — pertenece al service
+    @Transactional // Avoid — belongs in the service
     @PostMapping("/orders")
     public ResponseEntity<Order> create(...) { ... }
 }
@@ -122,7 +122,7 @@ public class OrderController {
 
 ## Code Examples
 
-### REST Controller con DTOs como records
+### REST Controller with DTOs as records
 
 ```java
 @RestController
@@ -158,7 +158,7 @@ public class UserController {
     }
 }
 
-// DTOs como records (Java 21+)
+// DTOs as records (Java 21+)
 public record CreateUserRequest(
     @NotBlank String name,
     @Email @NotBlank String email,
@@ -173,7 +173,7 @@ public record UserResponse(
 ) {}
 ```
 
-### Service completo
+### Complete service
 
 ```java
 @Service
@@ -214,7 +214,7 @@ public class UserService {
 }
 ```
 
-### Exception Handling global
+### Global exception handling
 
 ```java
 @RestControllerAdvice
@@ -239,7 +239,7 @@ public class GlobalExceptionHandler {
 }
 ```
 
-### Repository con Spring Data JPA
+### Repository with Spring Data JPA
 
 ```java
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -251,7 +251,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.active = true AND u.role = :role")
     List<User> findActiveByRole(@Param("role") UserRole role);
 
-    // Paginación
+    // Pagination
     Page<User> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }
 ```
@@ -261,7 +261,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ### ❌ Field injection
 
 ```java
-// ❌ No testeable sin Spring context
+// ❌ Not testable without Spring context
 @Autowired private UserRepository userRepository;
 
 // ✅ Constructor injection
@@ -270,14 +270,14 @@ public UserService(UserRepository userRepository) {
 }
 ```
 
-### ❌ @Value disperso por toda la app
+### ❌ Scattered @Value across the app
 
 ```java
-// ❌ Difícil de mantener, sin validación
+// ❌ Hard to maintain, no validation
 @Value("${app.timeout}") private int timeout;
 @Value("${app.url}") private String url;
 
-// ✅ Configuración centralizada y validada
+// ✅ Centralized and validated configuration
 private final AppProperties appProperties;
 // appProperties.api().timeout()
 // appProperties.api().baseUrl()
@@ -285,16 +285,16 @@ private final AppProperties appProperties;
 
 ## Quick Reference
 
-| Task | Patrón |
-|------|--------|
-| Inyección | Constructor (sin @Autowired) |
-| Config tipada | `@ConfigurationProperties(prefix="app")` + record |
-| Validación config | `@Validated` + anotaciones Jakarta |
-| Transacciones | `@Transactional` en service, `readOnly=true` para lecturas |
-| DTO request | Record con `@Valid` anotaciones |
+| Task | Pattern |
+|------|---------|
+| Injection | Constructor (without @Autowired) |
+| Typed config | `@ConfigurationProperties(prefix="app")` + record |
+| Config validation | `@Validated` + Jakarta annotations |
+| Transactions | `@Transactional` on service, `readOnly=true` for reads |
+| Request DTO | Record with `@Valid` annotations |
 | Error handling | `@RestControllerAdvice` |
 | Repository | Extends `JpaRepository<Entity, Id>` |
-| Test unitario | `@ExtendWith(MockitoExtension.class)` + mocks en constructor |
+| Unit test | `@ExtendWith(MockitoExtension.class)` + mocks in constructor |
 
 ## Rules
 

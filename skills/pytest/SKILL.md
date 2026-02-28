@@ -17,7 +17,7 @@ Load when: writing Python tests with pytest, setting up fixtures, mocking extern
 
 ## Critical Patterns
 
-### Pattern 1: Clases de test organizadas
+### Pattern 1: Organized test classes
 
 ```python
 import pytest
@@ -37,19 +37,19 @@ class TestUserService:
             user_service.get("nonexistent-id")
 ```
 
-### Pattern 2: Fixtures con scope y yield
+### Pattern 2: Fixtures with scope and yield
 
 ```python
 import pytest
 from myapp.db import Database
 
-@pytest.fixture(scope="module")  # Compartido en todo el módulo
+@pytest.fixture(scope="module")  # Shared across the entire module
 def db():
     database = Database.create_test_db()
     yield database  # Setup
     database.cleanup()  # Teardown automático
 
-@pytest.fixture(scope="function")  # Nuevo por cada test (default)
+@pytest.fixture(scope="function")  # New for each test (default)
 def user_service(db):
     return UserService(db)
 
@@ -58,10 +58,10 @@ def valid_user_data():
     return {"name": "Juan", "email": "juan@example.com"}
 ```
 
-### Pattern 3: conftest.py para fixtures compartidas
+### Pattern 3: conftest.py for shared fixtures
 
 ```python
-# tests/conftest.py — accesible en todos los tests
+# tests/conftest.py — accessible in all tests
 import pytest
 from myapp import create_app
 from myapp.db import db as _db
@@ -85,7 +85,7 @@ def client(app):
 
 ## Code Examples
 
-### Mocking con unittest.mock
+### Mocking with unittest.mock
 
 ```python
 from unittest.mock import MagicMock, patch
@@ -133,7 +133,7 @@ def test_delete_permission(role, can_delete, make_user):
     assert user.can_delete_posts() == can_delete
 ```
 
-### Markers y ejecución selectiva
+### Markers and selective execution
 
 ```python
 import pytest
@@ -162,7 +162,7 @@ def test_unix_only():
 ```
 
 ```ini
-# pytest.ini o pyproject.toml
+# pytest.ini or pyproject.toml
 [pytest]
 markers =
     slow: marks tests as slow
@@ -170,14 +170,14 @@ markers =
 ```
 
 ```bash
-# Correr solo tests rápidos (excluir slow)
+# Run only fast tests (exclude slow)
 pytest -m "not slow"
 
-# Correr solo integration
+# Run only integration
 pytest -m integration
 ```
 
-### Tests asíncronos
+### Async tests
 
 ```python
 import pytest
@@ -196,12 +196,12 @@ async def async_db():
     await db.close()
 ```
 
-### Fixtures de factory
+### Factory fixtures
 
 ```python
 @pytest.fixture
 def make_user(db):
-    """Factory fixture para crear usuarios con valores custom."""
+    """Factory fixture to create users with custom values."""
     created = []
 
     def _make_user(**kwargs):
@@ -223,33 +223,33 @@ def make_user(db):
 
 ## Anti-Patterns
 
-### ❌ Tests sin assertions
+### ❌ Tests without assertions
 
 ```python
-# ❌ ¿Qué se está verificando?
+# ❌ What is being verified?
 def test_create_user():
     user_service.create({"name": "Juan"})
 
-# ✅ Assertion clara
+# ✅ Clear assertion
 def test_create_user():
     user = user_service.create({"name": "Juan"})
     assert user.id is not None
     assert user.name == "Juan"
 ```
 
-### ❌ Tests interdependientes
+### ❌ Interdependent tests
 
 ```python
-# ❌ Test 2 depende del estado de Test 1
+# ❌ Test 2 depends on the state of Test 1
 def test_1_create():
     global created_id
     user = service.create(data)
     created_id = user.id
 
 def test_2_get():
-    user = service.get(created_id)  # Falla si test_1 no corrió
+    user = service.get(created_id)  # Fails if test_1 didn't run
 
-# ✅ Cada test es independiente con fixtures
+# ✅ Each test is independent with fixtures
 def test_get_user(make_user):
     user = make_user()
     found = service.get(user.id)
@@ -258,18 +258,18 @@ def test_get_user(make_user):
 
 ## Quick Reference
 
-| Task | Comando / Patrón |
-|------|-----------------|
-| Correr todos | `pytest -v` |
-| Por nombre | `pytest -k "user"` |
-| Con coverage | `pytest --cov=src --cov-report=html` |
-| Paralelo | `pytest -n auto` |
-| Solo fallos | `pytest --lf` |
-| Detener al primer fallo | `pytest -x` |
-| Marker custom | `@pytest.mark.nombre` |
-| Exception esperada | `pytest.raises(ValueError, match="pattern")` |
+| Task | Command / Pattern |
+|------|-------------------|
+| Run all | `pytest -v` |
+| By name | `pytest -k "user"` |
+| With coverage | `pytest --cov=src --cov-report=html` |
+| Parallel | `pytest -n auto` |
+| Only failures | `pytest --lf` |
+| Stop at first failure | `pytest -x` |
+| Custom marker | `@pytest.mark.name` |
+| Expected exception | `pytest.raises(ValueError, match="pattern")` |
 | Async test | `@pytest.mark.asyncio` |
-| Scope fixture | `scope="function|class|module|session"` |
+| Fixture scope | `scope="function|class|module|session"` |
 
 ## Rules
 

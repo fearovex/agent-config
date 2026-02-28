@@ -800,7 +800,7 @@ Drift entries: (when drift is present)
 
 ---
 
-## Execution Rules
+## Rules
 
 1. **I always read real files** — I never assume the content of a file
 2. **I run in a subagent** with read tools — never in main context

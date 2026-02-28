@@ -15,28 +15,28 @@ metadata:
 
 Load when: building AI chat with Vercel AI SDK 5, streaming responses, integrating tools/function calling, or migrating from AI SDK 4.
 
-## Critical Breaking Changes desde v4
+## Critical Breaking Changes from v4
 
 ```typescript
-// ✅ v5 — import desde @ai-sdk/react
+// ✅ v5 — import from @ai-sdk/react
 import { useChat } from '@ai-sdk/react';
 
-// ❌ v4 (ya no válido como antes)
+// ❌ v4 (no longer valid as before)
 import { useChat } from 'ai/react';
 
 // ✅ v5 — Transport-based architecture
 import { DefaultChatTransport } from '@ai-sdk/react';
 
-// ✅ v5 — message.parts (array) en vez de message.content (string)
-message.parts // array de partes: text, image, tool interactions
+// ✅ v5 — message.parts (array) instead of message.content (string)
+message.parts // array of parts: text, image, tool interactions
 
-// ✅ v5 — sendMessage() en vez de handleSubmit()
+// ✅ v5 — sendMessage() instead of handleSubmit()
 const { sendMessage } = useChat(...);
 ```
 
 ## Code Examples
 
-### Chat básico con useChat
+### Basic chat with useChat
 
 ```typescript
 'use client';
@@ -82,7 +82,7 @@ export function ChatInterface() {
 }
 ```
 
-### Server Route con streaming
+### Server Route with streaming
 
 ```typescript
 // app/api/chat/route.ts
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 }
 ```
 
-### Tool Integration con Zod
+### Tool Integration with Zod
 
 ```typescript
 import { streamText, tool } from 'ai';
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
           unit: z.enum(['celsius', 'fahrenheit']).default('celsius'),
         }),
         execute: async ({ location, unit }) => {
-          // Llamada real a API de weather
+          // Actual call to weather API
           const weather = await fetchWeather(location, unit);
           return { temperature: weather.temp, condition: weather.condition };
         },
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
 }
 ```
 
-### Renderizar partes del mensaje (texto + tools)
+### Render message parts (text + tools)
 
 ```typescript
 function MessageRenderer({ message }: { message: Message }) {
@@ -165,7 +165,7 @@ function MessageRenderer({ message }: { message: Message }) {
 }
 ```
 
-### useCompletion para texto simple
+### useCompletion for simple text
 
 ```typescript
 'use client';
@@ -201,25 +201,25 @@ const { messages, sendMessage, error } = useChat({
   },
 });
 
-// En el render
+// In the render
 {error && <div className="error">{error.message}</div>}
 ```
 
 ## Anti-Patterns
 
-### ❌ Acceder a message.content (v4 pattern)
+### ❌ Access message.content (v4 pattern)
 
 ```typescript
-// ❌ v4 — ya no es string directo
+// ❌ v4 — no longer a direct string
 <p>{message.content}</p>
 
-// ✅ v5 — iterar sobre parts
+// ✅ v5 — iterate over parts
 {message.parts.map((part, i) => (
   part.type === 'text' ? <p key={i}>{part.text}</p> : null
 ))}
 ```
 
-### ❌ handleSubmit sin sendMessage
+### ❌ handleSubmit without sendMessage
 
 ```typescript
 // ❌ v4 pattern
@@ -231,15 +231,15 @@ const { messages, sendMessage, error } = useChat({
 
 ## Quick Reference
 
-| Task | Patrón v5 |
+| Task | v5 Pattern |
 |------|-----------|
 | Import useChat | `from '@ai-sdk/react'` |
-| Configurar transport | `new DefaultChatTransport({ api: '/api/chat' })` |
-| Enviar mensaje | `sendMessage({ text: input })` |
-| Leer texto | `message.parts.filter(p => p.type === 'text')` |
-| Estado streaming | `status === 'streaming'` |
+| Configure transport | `new DefaultChatTransport({ api: '/api/chat' })` |
+| Send message | `sendMessage({ text: input })` |
+| Read text | `message.parts.filter(p => p.type === 'text')` |
+| Streaming state | `status === 'streaming'` |
 | Tool calling | `tool({ description, parameters: z.object(...), execute })` |
-| Texto simple | `useCompletion({ api: '/api/...' })` |
+| Simple text | `useCompletion({ api: '/api/...' })` |
 | Server route | `streamText(...).toDataStreamResponse()` |
 
 ## Rules

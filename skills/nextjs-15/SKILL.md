@@ -17,16 +17,16 @@ Load when: building Next.js 15 apps, using app router, implementing server actio
 
 ## Critical Patterns
 
-### Pattern 1: Server Components por defecto
+### Pattern 1: Server Components by default
 
 ```typescript
-// ✅ Server Component — async por defecto, sin directiva
+// ✅ Server Component — async by default, no directive needed
 async function UserProfile({ userId }: { userId: string }) {
-  const user = await db.users.findById(userId); // DB directo
+  const user = await db.users.findById(userId); // Direct DB access
   return <ProfileCard user={user} />;
 }
 
-// ✅ Client Component — solo cuando necesitas interactividad
+// ✅ Client Component — only when you need interactivity
 'use client';
 function LikeButton({ postId }: { postId: string }) {
   const [liked, setLiked] = useState(false);
@@ -50,7 +50,7 @@ async function createUser(formData: FormData) {
   redirect('/users');
 }
 
-// Uso directo en form
+// Direct usage in form
 export default function CreateUserPage() {
   return (
     <form action={createUser}>
@@ -62,11 +62,11 @@ export default function CreateUserPage() {
 }
 ```
 
-### Pattern 3: Prevenir acceso client-side con server-only
+### Pattern 3: Prevent client-side access with server-only
 
 ```typescript
 // lib/db.ts
-import 'server-only'; // Error en build si se importa en client
+import 'server-only'; // Build error if imported in client
 
 export async function getSecretData() {
   return db.secrets.findAll();
@@ -75,10 +75,10 @@ export async function getSecretData() {
 
 ## Code Examples
 
-### Data Fetching — Parallel y Streaming
+### Data Fetching — Parallel and Streaming
 
 ```typescript
-// ✅ Fetching paralelo en Server Component
+// ✅ Parallel fetching in Server Component
 async function Dashboard() {
   const [user, posts, stats] = await Promise.all([
     getUser(),
@@ -88,22 +88,22 @@ async function Dashboard() {
   return <DashboardView user={user} posts={posts} stats={stats} />;
 }
 
-// ✅ Streaming con Suspense
+// ✅ Streaming with Suspense
 import { Suspense } from 'react';
 
 export default function Page() {
   return (
     <div>
-      <Header /> {/* Inmediato */}
+      <Header /> {/* Immediate */}
       <Suspense fallback={<PostsSkeleton />}>
-        <Posts /> {/* Streaming cuando esté listo */}
+        <Posts /> {/* Streams when ready */}
       </Suspense>
     </div>
   );
 }
 
 async function Posts() {
-  const posts = await getPosts(); // Se espera aquí
+  const posts = await getPosts(); // Waits here
   return <PostList posts={posts} />;
 }
 ```
@@ -151,7 +151,7 @@ export const config = {
 };
 ```
 
-### Metadata — Static y Dynamic
+### Metadata — Static and Dynamic
 
 ```typescript
 // Static
@@ -171,28 +171,28 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 }
 ```
 
-### Route Groups y Layouts
+### Route Groups and Layouts
 
 ```
 app/
-├── (auth)/              # Group sin impacto en URL
-│   ├── layout.tsx       # Layout solo para auth pages
+├── (auth)/              # Group with no URL impact
+│   ├── layout.tsx       # Layout only for auth pages
 │   ├── login/page.tsx   # /login
 │   └── register/page.tsx # /register
 ├── (dashboard)/
-│   ├── layout.tsx       # Layout del dashboard
+│   ├── layout.tsx       # Dashboard layout
 │   └── overview/page.tsx # /overview
-├── _components/         # Carpeta privada (no es ruta)
-├── layout.tsx           # Root layout (requerido)
+├── _components/         # Private folder (not a route)
+├── layout.tsx           # Root layout (required)
 └── page.tsx             # /
 ```
 
 ## Anti-Patterns
 
-### ❌ Fetch en Client Component cuando podría ser Server
+### ❌ Fetch in Client Component when it could be Server
 
 ```typescript
-// ❌ Innecesario
+// ❌ Unnecessary
 'use client';
 function UserList() {
   const [users, setUsers] = useState([]);
@@ -202,38 +202,38 @@ function UserList() {
   return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
 }
 
-// ✅ Server Component directo
+// ✅ Direct Server Component
 async function UserList() {
   const users = await db.users.findMany();
   return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
 }
 ```
 
-### ❌ 'use client' en layout o page
+### ❌ 'use client' in layout or page
 
 ```typescript
-// ❌ Hace todo el árbol client-side
+// ❌ Makes the entire tree client-side
 'use client';
 export default function Layout({ children }) { /* ... */ }
 
-// ✅ Aisla el client component
+// ✅ Isolate the client component
 export default function Layout({ children }) {
-  return <div><NavBar />{children}</div>; // NavBar puede ser 'use client'
+  return <div><NavBar />{children}</div>; // NavBar can be 'use client'
 }
 ```
 
 ## Quick Reference
 
-| Task | Patrón |
-|------|--------|
-| DB en componente | Server Component + async/await |
-| Formulario | `<form action={serverAction}>` |
-| Invalidar caché | `revalidatePath('/ruta')` |
-| Redirigir | `redirect('/ruta')` (server-only import) |
-| Params de URL | `{ params }: { params: { id: string } }` |
-| Search params | `searchParams.get('key')` en Server Component |
-| Proteger rutas | `middleware.ts` en raíz |
-| Evitar bundle client | `import 'server-only'` |
+| Task | Pattern |
+|------|---------|
+| DB in component | Server Component + async/await |
+| Form | `<form action={serverAction}>` |
+| Invalidate cache | `revalidatePath('/path')` |
+| Redirect | `redirect('/path')` (server-only import) |
+| URL params | `{ params }: { params: { id: string } }` |
+| Search params | `searchParams.get('key')` in Server Component |
+| Protect routes | `middleware.ts` at root |
+| Prevent client bundle | `import 'server-only'` |
 
 ## Rules
 

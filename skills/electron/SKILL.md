@@ -15,36 +15,36 @@ metadata:
 
 Load when: building Electron desktop apps, implementing IPC between main and renderer, handling native OS features, or setting up auto-updates.
 
-## Critical Patterns — SEGURIDAD
+## Critical Patterns — SECURITY
 
 ```typescript
-// ✅ SIEMPRE: contextIsolation + NO nodeIntegration
+// ✅ ALWAYS: contextIsolation + NO nodeIntegration
 new BrowserWindow({
   webPreferences: {
-    contextIsolation: true,      // OBLIGATORIO
-    nodeIntegration: false,      // NUNCA habilitar
+    contextIsolation: true,      // MANDATORY
+    nodeIntegration: false,      // NEVER enable
     preload: path.join(__dirname, 'preload.js'),
-    sandbox: true,               // Recomendado
+    sandbox: true,               // Recommended
   }
 });
 
-// ❌ NUNCA: nodeIntegration habilitado
+// ❌ NEVER: nodeIntegration enabled
 new BrowserWindow({
   webPreferences: {
-    nodeIntegration: true,  // VULNERABILIDAD de seguridad
+    nodeIntegration: true,  // Security VULNERABILITY
   }
 });
 
-// ❌ NUNCA: usar remote module (deprecado)
+// ❌ NEVER: use remote module (deprecated)
 const { remote } = require('electron');
 
-// ❌ NUNCA: exponer ipcRenderer completo
-contextBridge.exposeInMainWorld('api', { ipcRenderer }); // PELIGROSO
+// ❌ NEVER: expose full ipcRenderer
+contextBridge.exposeInMainWorld('api', { ipcRenderer }); // DANGEROUS
 ```
 
 ## Code Examples
 
-### Main Process — Inicialización segura
+### Main Process — Secure initialization
 
 ```typescript
 // main/index.ts
@@ -75,17 +75,17 @@ app.on('window-all-closed', () => {
 });
 ```
 
-### Preload — Context Bridge seguro
+### Preload — Secure Context Bridge
 
 ```typescript
 // preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
 
-// Define channels tipados
+// Define typed channels
 type Channels = 'read-file' | 'write-file' | 'open-dialog';
 
 contextBridge.exposeInMainWorld('api', {
-  // Solo expone funciones específicas, no ipcRenderer completo
+  // Only expose specific functions, not the full ipcRenderer
   readFile: (filePath: string) =>
     ipcRenderer.invoke('read-file', filePath),
 
@@ -102,7 +102,7 @@ contextBridge.exposeInMainWorld('api', {
 });
 ```
 
-### IPC Handlers en Main
+### IPC Handlers in Main
 
 ```typescript
 // main/handlers.ts
@@ -129,7 +129,7 @@ ipcMain.handle('open-dialog', async (_, options) => {
 });
 ```
 
-### React Hook para IPC
+### React Hook for IPC
 
 ```typescript
 // hooks/useFileSystem.ts
@@ -199,20 +199,20 @@ export function setupAutoUpdater(win: BrowserWindow) {
 ### ❌ nodeIntegration: true
 
 ```typescript
-// ❌ Permite al renderer acceder a Node.js — VULNERABILIDAD
+// ❌ Allows the renderer to access Node.js — VULNERABILITY
 webPreferences: { nodeIntegration: true }
 
-// ✅ Usa contextBridge + preload
+// ✅ Use contextBridge + preload
 webPreferences: { contextIsolation: true, preload: '...' }
 ```
 
-### ❌ Exponer ipcRenderer completo
+### ❌ Expose full ipcRenderer
 
 ```typescript
-// ❌ El renderer puede escuchar/enviar cualquier canal
+// ❌ The renderer can listen/send on any channel
 contextBridge.exposeInMainWorld('electron', { ipcRenderer });
 
-// ✅ Solo exponer funciones específicas y tipadas
+// ✅ Only expose specific, typed functions
 contextBridge.exposeInMainWorld('api', {
   readFile: (path: string) => ipcRenderer.invoke('read-file', path),
 });
@@ -220,16 +220,16 @@ contextBridge.exposeInMainWorld('api', {
 
 ## Quick Reference
 
-| Task | Patrón |
-|------|--------|
-| Window segura | `contextIsolation: true, nodeIntegration: false` |
-| Exponer API | `contextBridge.exposeInMainWorld('api', {...})` |
-| IPC bidireccional | `ipcMain.handle()` + `ipcRenderer.invoke()` |
-| IPC unidireccional | `ipcRenderer.send()` + `ipcMain.on()` |
-| Eventos main→renderer | `win.webContents.send()` + `ipcRenderer.on()` |
-| Diálogos nativos | `dialog.showOpenDialog()` en main |
+| Task | Pattern |
+|------|---------|
+| Secure window | `contextIsolation: true, nodeIntegration: false` |
+| Expose API | `contextBridge.exposeInMainWorld('api', {...})` |
+| Bidirectional IPC | `ipcMain.handle()` + `ipcRenderer.invoke()` |
+| Unidirectional IPC | `ipcRenderer.send()` + `ipcMain.on()` |
+| Main→renderer events | `win.webContents.send()` + `ipcRenderer.on()` |
+| Native dialogs | `dialog.showOpenDialog()` in main |
 | Auto-update | `electron-updater` |
-| Menú nativo | `Menu.buildFromTemplate()` |
+| Native menu | `Menu.buildFromTemplate()` |
 
 ## Rules
 

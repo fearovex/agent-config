@@ -17,33 +17,33 @@ Load when: writing Playwright E2E tests, implementing Page Object Model, using P
 
 ## Critical Patterns
 
-### Pattern 1: MCP Workflow PRIMERO
+### Pattern 1: MCP Workflow FIRST
 
-**Antes de escribir cualquier test**, usa Playwright MCP tools para:
-1. Navegar a la página
-2. Tomar snapshot del DOM
-3. Interactuar con elementos
-4. Verificar los selectores reales
+**Before writing any test**, use Playwright MCP tools to:
+1. Navigate to the page
+2. Take a DOM snapshot
+3. Interact with elements
+4. Verify the actual selectors
 
 ```
-# MCP flow antes de codificar:
-1. playwright_navigate → ir a la página
-2. playwright_snapshot → ver estructura real del DOM
-3. playwright_click / playwright_fill → probar interacciones
-4. Luego escribir el test con selectores verificados
+# MCP flow before coding:
+1. playwright_navigate → go to the page
+2. playwright_snapshot → see the actual DOM structure
+3. playwright_click / playwright_fill → test interactions
+4. Then write the test with verified selectors
 ```
 
-### Pattern 2: Jerarquía de Selectores
+### Pattern 2: Selector Hierarchy
 
 ```typescript
-// ✅ Prioridad (de mayor a menor)
+// ✅ Priority (from highest to lowest)
 page.getByRole('button', { name: 'Submit' })   // 1. Accesibilidad
 page.getByLabel('Email address')                // 2. Label
 page.getByText('Welcome back')                  // 3. Texto visible
 page.getByPlaceholder('Enter email')            // 4. Placeholder
-page.getByTestId('submit-button')               // 5. Último recurso
+page.getByTestId('submit-button')               // 5. Last resort
 
-// ❌ Evitar selectores frágiles
+// ❌ Avoid fragile selectors
 page.locator('#submit-btn')
 page.locator('.btn-primary > span')
 page.locator('div:nth-child(3)')
@@ -91,7 +91,7 @@ export class LoginPage extends BasePage {
 
 ## Code Examples
 
-### Test básico con Page Object
+### Basic Test with Page Object
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -120,25 +120,25 @@ test.describe('Authentication', () => {
 });
 ```
 
-### Estructura de carpetas
+### Folder Structure
 
 ```
 tests/
-├── base-page.ts                    # Base class para todos los page objects
+├── base-page.ts                    # Base class for all page objects
 ├── helpers.ts                      # Test data, API helpers
 ├── auth/
 │   ├── login-page.ts               # Page Object
 │   ├── login.spec.ts               # Tests
-│   └── login.md                    # Documentación de casos
+│   └── login.md                    # Test case documentation
 ├── dashboard/
 │   ├── dashboard-page.ts
 │   ├── dashboard.spec.ts
 │   └── dashboard.md
 └── fixtures/
-    └── auth.fixture.ts             # Fixtures compartidos
+    └── auth.fixture.ts             # Shared fixtures
 ```
 
-### Fixtures reutilizables
+### Reusable Fixtures
 
 ```typescript
 // fixtures/auth.fixture.ts
@@ -165,31 +165,31 @@ export const test = base.extend<AuthFixtures>({
 });
 ```
 
-### Documentación de test (formato)
+### Test Documentation (format)
 
 ```markdown
 <!-- tests/auth/login.md -->
 # Login Tests
 
-## TC-001: Login exitoso
+## TC-001: Successful login
 - **Priority**: High
-- **Precondition**: Usuario registrado con email válido
-- **Steps**: Navegar a /login → ingresar credenciales → submit
-- **Assertions**: Redirige a /dashboard, muestra mensaje de bienvenida
+- **Precondition**: Registered user with valid email
+- **Steps**: Navigate to /login → enter credentials → submit
+- **Assertions**: Redirects to /dashboard, shows welcome message
 
-## TC-002: Login fallido — contraseña incorrecta
+## TC-002: Failed login — incorrect password
 - **Priority**: High
-- **Precondition**: Usuario registrado
-- **Steps**: Navegar a /login → ingresar contraseña incorrecta → submit
-- **Assertions**: Muestra error "Invalid credentials", permanece en /login
+- **Precondition**: Registered user
+- **Steps**: Navigate to /login → enter incorrect password → submit
+- **Assertions**: Shows error "Invalid credentials", stays on /login
 ```
 
 ## Anti-Patterns
 
-### ❌ Selectores CSS frágiles
+### ❌ Fragile CSS Selectors
 
 ```typescript
-// ❌ Se rompe si cambia el CSS
+// ❌ Breaks if CSS changes
 await page.click('.auth-form .btn.btn-primary')
 await page.fill('input[type="email"]:nth-of-type(1)', email)
 
@@ -198,37 +198,37 @@ await page.getByRole('button', { name: 'Sign in' }).click()
 await page.getByLabel('Email').fill(email)
 ```
 
-### ❌ Duplicar Page Objects
+### ❌ Duplicating Page Objects
 
 ```typescript
-// ❌ Definir el mismo locator en múltiples tests
-const submitBtn = page.locator('#submit'); // en test1.spec.ts
-const submitBtn = page.locator('#submit'); // en test2.spec.ts
+// ❌ Defining the same locator in multiple tests
+const submitBtn = page.locator('#submit'); // in test1.spec.ts
+const submitBtn = page.locator('#submit'); // in test2.spec.ts
 
-// ✅ Un solo Page Object, todos los tests lo importan
+// ✅ A single Page Object, all tests import it
 import { LoginPage } from './login-page';
 ```
 
-### ❌ Escribir tests sin explorar primero con MCP
+### ❌ Writing tests without exploring first with MCP
 
 ```typescript
-// ❌ Asumes la estructura sin verificar
+// ❌ Assuming the structure without verifying
 await page.getByRole('button', { name: 'Login' }).click();
 
-// ✅ Primero usa playwright_snapshot para ver el DOM real,
-// luego escribe con los selectores correctos
+// ✅ First use playwright_snapshot to see the actual DOM,
+// then write with the correct selectors
 ```
 
 ## Quick Reference
 
-| Task | Comando |
+| Task | Command |
 |------|---------|
-| Correr todos | `npx playwright test` |
-| Por nombre | `npx playwright test --grep "login"` |
+| Run all | `npx playwright test` |
+| By name | `npx playwright test --grep "login"` |
 | UI mode | `npx playwright test --ui` |
 | Debug mode | `npx playwright test --debug` |
-| Un archivo | `npx playwright test auth/login.spec.ts` |
-| Generar report | `npx playwright show-report` |
+| Single file | `npx playwright test auth/login.spec.ts` |
+| Generate report | `npx playwright show-report` |
 | Codegen | `npx playwright codegen http://localhost:3000` |
 
 ## Rules

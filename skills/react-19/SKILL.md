@@ -1,7 +1,7 @@
 ---
 name: react-19
 description: >
-  React 19 patterns with React Compiler. Optimización automática, Server Components, use() hook.
+  React 19 patterns with React Compiler. Automatic optimization, Server Components, use() hook.
   Trigger: When building React components, using hooks, working with forms, or server/client components.
 license: Apache-2.0
 metadata:
@@ -17,16 +17,16 @@ Load when: writing React components, using hooks, handling forms, working with S
 
 ## Critical Patterns
 
-### Pattern 1: React Compiler — Sin memoización manual
+### Pattern 1: React Compiler — No manual memoization
 
 ```typescript
-// ✅ React Compiler lo optimiza automáticamente
+// ✅ React Compiler optimizes this automatically
 function ExpensiveComponent({ data }: { data: number[] }) {
-  const result = data.reduce((acc, n) => acc + n, 0); // Compiler lo memoiza
+  const result = data.reduce((acc, n) => acc + n, 0); // Compiler memoizes it
   return <div>{result}</div>;
 }
 
-// ❌ Innecesario en React 19 con Compiler activado
+// ❌ Unnecessary in React 19 with Compiler enabled
 function ExpensiveComponent({ data }: { data: number[] }) {
   const result = useMemo(() => data.reduce((acc, n) => acc + n, 0), [data]);
   return <div>{result}</div>;
@@ -45,7 +45,7 @@ import React from 'react';
 import * as React from 'react';
 ```
 
-### Pattern 3: Server Components por defecto
+### Pattern 3: Server Components by default
 
 ```typescript
 // ✅ Server Component (default — no directive needed)
@@ -54,7 +54,7 @@ async function UserProfile({ userId }: { userId: string }) {
   return <div>{user.name}</div>;
 }
 
-// ✅ Client Component — solo cuando necesitas interactividad
+// ✅ Client Component — only when you need interactivity
 'use client';
 function Counter() {
   const [count, setCount] = useState(0);
@@ -64,19 +64,19 @@ function Counter() {
 
 ## Code Examples
 
-### use() hook — Promises y Context condicional
+### use() hook — Promises and conditional Context
 
 ```typescript
 'use client';
 import { use, Suspense } from 'react';
 
-// Leer promise en render
+// Read promise in render
 function UserData({ promise }: { promise: Promise<User> }) {
-  const user = use(promise); // Suspende hasta que se resuelve
+  const user = use(promise); // Suspends until resolved
   return <div>{user.name}</div>;
 }
 
-// Uso con Suspense
+// Usage with Suspense
 function App() {
   const userPromise = fetchUser(userId);
   return (
@@ -86,15 +86,15 @@ function App() {
   );
 }
 
-// Context condicional (imposible con useContext)
+// Conditional context (impossible with useContext)
 function ConditionalTheme({ show }: { show: boolean }) {
   if (!show) return null;
-  const theme = use(ThemeContext); // ✅ uso condicional OK
+  const theme = use(ThemeContext); // ✅ conditional usage OK
   return <div style={{ color: theme.primary }}>themed</div>;
 }
 ```
 
-### Server Actions con useActionState
+### Server Actions with useActionState
 
 ```typescript
 'use server';
@@ -124,26 +124,26 @@ function CreateUserForm() {
 }
 ```
 
-### ref como prop (sin forwardRef)
+### ref as prop (without forwardRef)
 
 ```typescript
-// ✅ React 19 — ref es prop estándar
+// ✅ React 19 — ref is a standard prop
 function Input({ ref, ...props }: React.InputHTMLAttributes<HTMLInputElement> & {
   ref?: React.Ref<HTMLInputElement>
 }) {
   return <input ref={ref} {...props} />;
 }
 
-// ❌ Ya no necesario
+// ❌ No longer needed
 const Input = forwardRef<HTMLInputElement, Props>((props, ref) => (
   <input ref={ref} {...props} />
 ));
 ```
 
-### Data Fetching paralelo
+### Parallel Data Fetching
 
 ```typescript
-// ✅ Server Component con fetching paralelo
+// ✅ Server Component with parallel fetching
 async function Dashboard() {
   const [user, posts, stats] = await Promise.all([
     fetchUser(),
@@ -163,32 +163,32 @@ async function Dashboard() {
 
 ## Anti-Patterns
 
-### ❌ useMemo/useCallback innecesario (con Compiler)
+### ❌ Unnecessary useMemo/useCallback (with Compiler)
 
 ```typescript
-// ❌ Redundante con React Compiler
+// ❌ Redundant with React Compiler
 const value = useMemo(() => compute(data), [data]);
 const handler = useCallback(() => doThing(id), [id]);
 
-// ✅ Simple y directo
+// ✅ Simple and direct
 const value = compute(data);
 const handler = () => doThing(id);
 ```
 
-### ❌ 'use client' en exceso
+### ❌ Excessive 'use client'
 
 ```typescript
-// ❌ Hace todo el árbol client-side
+// ❌ Makes the entire tree client-side
 'use client';
 export default function Page() { /* ... */ }
 
-// ✅ Solo el componente interactivo
+// ✅ Only the interactive component
 // page.tsx (Server Component)
 export default function Page() {
   return (
     <div>
       <StaticContent />
-      <InteractiveWidget /> {/* 'use client' solo aquí */}
+      <InteractiveWidget /> {/* 'use client' only here */}
     </div>
   );
 }
@@ -198,11 +198,11 @@ export default function Page() {
 
 | Feature | React 18 | React 19 |
 |---------|----------|----------|
-| Memoización | Manual useMemo/useCallback | Automática (Compiler) |
-| Promesas | useEffect + useState | use() hook |
-| Formularios | onSubmit handler | Server Actions + useActionState |
-| Refs en componentes | forwardRef | ref como prop |
-| Context condicional | ❌ No posible | ✅ use() |
+| Memoization | Manual useMemo/useCallback | Automatic (Compiler) |
+| Promises | useEffect + useState | use() hook |
+| Forms | onSubmit handler | Server Actions + useActionState |
+| Refs in components | forwardRef | ref as prop |
+| Conditional context | ❌ Not possible | ✅ use() |
 
 ## Rules
 

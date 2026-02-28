@@ -17,7 +17,7 @@ Load when: managing global or shared state in React, implementing persistence, u
 
 ## Critical Patterns
 
-### Pattern 1: Store básico tipado
+### Pattern 1: Basic typed store
 
 ```typescript
 import { create } from 'zustand';
@@ -37,17 +37,17 @@ export const useCounterStore = create<CounterState>()((set) => ({
 }));
 ```
 
-### Pattern 2: Selectores para evitar re-renders innecesarios
+### Pattern 2: Selectors to avoid unnecessary re-renders
 
 ```typescript
-// ❌ Selecciona todo el store — re-render en CUALQUIER cambio
+// ❌ Selects the entire store — re-renders on ANY change
 const store = useCounterStore();
 
-// ✅ Selecciona solo lo necesario
+// ✅ Select only what you need
 const count = useCounterStore((state) => state.count);
 const increment = useCounterStore((state) => state.increment);
 
-// ✅ Múltiples valores con useShallow
+// ✅ Multiple values with useShallow
 import { useShallow } from 'zustand/react/shallow';
 
 const { count, increment } = useCounterStore(
@@ -55,7 +55,7 @@ const { count, increment } = useCounterStore(
 );
 ```
 
-### Pattern 3: Persistencia
+### Pattern 3: Persistence
 
 ```typescript
 import { create } from 'zustand';
@@ -83,7 +83,7 @@ export const useSettingsStore = create<SettingsState>()(
 
 ## Code Examples
 
-### Store con async y loading/error states
+### Store with async and loading/error states
 
 ```typescript
 interface UserState {
@@ -152,14 +152,14 @@ const createCartSlice = (set: any): CartSlice => ({
   })),
 });
 
-// store.ts — combina slices
+// store.ts — combine slices
 export const useStore = create<UserSlice & CartSlice>()((...args) => ({
   ...createUserSlice(...args),
   ...createCartSlice(...args),
 }));
 ```
 
-### Immer para mutaciones directas
+### Immer for direct mutations
 
 ```typescript
 import { create } from 'zustand';
@@ -175,13 +175,13 @@ export const useTodoStore = create<TodoState>()(
     todos: [],
     toggleTodo: (id) => set((state) => {
       const todo = state.todos.find((t) => t.id === id);
-      if (todo) todo.done = !todo.done; // Mutación directa OK con Immer
+      if (todo) todo.done = !todo.done; // Direct mutation OK with Immer
     }),
   }))
 );
 ```
 
-### DevTools + acceso externo
+### DevTools + external access
 
 ```typescript
 import { create } from 'zustand';
@@ -190,11 +190,11 @@ import { devtools } from 'zustand/middleware';
 export const useAppStore = create<AppState>()(
   devtools(
     (set) => ({ /* ... */ }),
-    { name: 'AppStore' } // Nombre en Redux DevTools
+    { name: 'AppStore' } // Name in Redux DevTools
   )
 );
 
-// Acceso fuera de componentes
+// Access outside of components
 const state = useAppStore.getState();
 const unsubscribe = useAppStore.subscribe(
   (state) => state.user,
@@ -204,23 +204,23 @@ const unsubscribe = useAppStore.subscribe(
 
 ## Anti-Patterns
 
-### ❌ Seleccionar el store completo
+### ❌ Selecting the entire store
 
 ```typescript
-// ❌ Re-render en cualquier cambio del store
+// ❌ Re-renders on any store change
 const { count, user, settings, items } = useStore();
 
-// ✅ Selecciona solo lo que necesitas
+// ✅ Select only what you need
 const count = useStore((s) => s.count);
 ```
 
-### ❌ Lógica async directa en set
+### ❌ Async logic directly in set
 
 ```typescript
-// ❌ No pongas async dentro de set
+// ❌ Don't put async inside set
 set(async (state) => { /* ... */ });
 
-// ✅ Usa get() o define el async en el action
+// ✅ Use get() or define the async in the action
 fetchData: async () => {
   const data = await api.get();
   set({ data });
@@ -229,16 +229,16 @@ fetchData: async () => {
 
 ## Quick Reference
 
-| Task | Patrón |
-|------|--------|
-| Store básico | `create<State>()((set) => ...)` |
-| Selector simple | `useStore((s) => s.field)` |
-| Múltiples campos | `useStore(useShallow((s) => ({a: s.a, b: s.b})))` |
-| Persistencia | `create()(persist(..., { name: 'key' }))` |
-| Mutaciones | `create()(immer(...))` |
+| Task | Pattern |
+|------|---------|
+| Basic store | `create<State>()((set) => ...)` |
+| Simple selector | `useStore((s) => s.field)` |
+| Multiple fields | `useStore(useShallow((s) => ({a: s.a, b: s.b})))` |
+| Persistence | `create()(persist(..., { name: 'key' }))` |
+| Mutations | `create()(immer(...))` |
 | DevTools | `create()(devtools(..., { name: 'Name' }))` |
-| Acceso externo | `useStore.getState()` |
-| Suscripción | `useStore.subscribe(selector, callback)` |
+| External access | `useStore.getState()` |
+| Subscription | `useStore.subscribe(selector, callback)` |
 
 ## Rules
 

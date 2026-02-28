@@ -17,31 +17,31 @@ Load when: styling with Tailwind CSS 4, using className, implementing dark mode,
 
 ## Critical Patterns
 
-### Pattern 1: Clases semánticas — nunca var() en className
+### Pattern 1: Semantic classes — never var() in className
 
 ```typescript
-// ✅ Usa clases semánticas
+// ✅ Use semantic classes
 <div className="bg-primary text-white" />
 <div className="border-border" />
 <div className="text-foreground bg-background" />
 
-// ❌ Nunca var() en className
+// ❌ Never var() in className
 <div className="bg-[var(--color-primary)]" />
 <div className="text-[var(--foreground)]" />
 ```
 
-### Pattern 2: Valores literales sobre hex
+### Pattern 2: Literal values over hex
 
 ```typescript
-// ✅ Semántico
+// ✅ Semantic
 <p className="text-white bg-slate-900" />
 <p className="text-gray-500" />
 
-// ❌ Evitar hex en className cuando hay equivalente
+// ❌ Avoid hex in className when an equivalent exists
 <p className="text-[#ffffff] bg-[#0f172a]" />
 ```
 
-### Pattern 3: cn() para estilos condicionales
+### Pattern 3: cn() for conditional styles
 
 ```typescript
 import { clsx } from 'clsx';
@@ -51,24 +51,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// ✅ Usa cn() para condicionales y conflictos
+// ✅ Use cn() for conditionals and conflicts
 <button
   className={cn(
     'px-4 py-2 rounded-md font-medium',
     variant === 'primary' && 'bg-primary text-white',
     variant === 'ghost' && 'bg-transparent hover:bg-accent',
     disabled && 'opacity-50 cursor-not-allowed',
-    className // permite override externo
+    className // allows external override
   )}
 />
 
-// ✅ Clases estáticas — sin cn()
+// ✅ Static classes — no cn() needed
 <div className="flex items-center gap-4 p-6" />
 ```
 
 ## Code Examples
 
-### Variantes con cva (class-variance-authority)
+### Variants with cva (class-variance-authority)
 
 ```typescript
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -114,7 +114,7 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
 ### Dark Mode
 
 ```typescript
-// ✅ Dark mode con clases Tailwind
+// ✅ Dark mode with Tailwind classes
 <div className="bg-white dark:bg-gray-900">
   <p className="text-gray-900 dark:text-gray-100">Content</p>
   <button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400">
@@ -124,7 +124,7 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
 
 // CSS config (tailwind.config.ts)
 export default {
-  darkMode: 'class', // o 'media'
+  darkMode: 'class', // or 'media'
   // ...
 }
 ```
@@ -132,11 +132,11 @@ export default {
 ### Responsive Design
 
 ```typescript
-// Mobile-first con breakpoints
+// Mobile-first with breakpoints
 <div className="
-  flex flex-col          // mobile: columna
-  md:flex-row            // tablet: fila
-  lg:grid lg:grid-cols-3 // desktop: grid 3 cols
+  flex flex-col          // mobile: column
+  md:flex-row            // tablet: row
+  lg:grid lg:grid-cols-3 // desktop: 3-col grid
   gap-4
 ">
   <Card />
@@ -145,10 +145,10 @@ export default {
 </div>
 ```
 
-### Excepción para Librerías (Recharts, etc.)
+### Exception for Libraries (Recharts, etc.)
 
 ```typescript
-// ✅ Para librerías que no soportan className, usa constantes CSS vars
+// ✅ For libraries that don't support className, use CSS var constants
 const CHART_COLORS = {
   primary: 'var(--color-primary)',
   secondary: 'var(--color-secondary)',
@@ -160,13 +160,13 @@ const CHART_COLORS = {
 </LineChart>
 ```
 
-### Valores dinámicos en runtime
+### Dynamic values at runtime
 
 ```typescript
-// ✅ style prop para cálculos en runtime
+// ✅ style prop for runtime calculations
 <div style={{ width: `${percentage}%` }} className="bg-primary h-2 rounded" />
 
-// ✅ CSS custom properties para theming
+// ✅ CSS custom properties for theming
 <div
   style={{ '--card-cols': columns } as React.CSSProperties}
   className="grid grid-cols-[repeat(var(--card-cols),1fr)]"
@@ -175,30 +175,30 @@ const CHART_COLORS = {
 
 ## Anti-Patterns
 
-### ❌ var() en className
+### ❌ var() in className
 
 ```typescript
-// ❌ Rompe Tailwind's optimizer
+// ❌ Breaks Tailwind's optimizer
 <div className="bg-[var(--primary)] text-[var(--fg)]" />
 
 // ✅
 <div className="bg-primary text-foreground" />
 ```
 
-### ❌ Concatenación de strings para condicionales
+### ❌ String concatenation for conditionals
 
 ```typescript
-// ❌ Puede generar clases inválidas
+// ❌ Can generate invalid classes
 <div className={'text-sm ' + (active ? 'text-blue-600' : 'text-gray-500')} />
 
 // ✅
 <div className={cn('text-sm', active ? 'text-blue-600' : 'text-gray-500')} />
 ```
 
-### ❌ cn() para clases puramente estáticas
+### ❌ cn() for purely static classes
 
 ```typescript
-// ❌ Innecesario
+// ❌ Unnecessary
 <div className={cn('flex items-center gap-4')} />
 
 // ✅
@@ -207,15 +207,15 @@ const CHART_COLORS = {
 
 ## Quick Reference
 
-| Task | Patrón |
-|------|--------|
-| Color semántico | `bg-primary`, `text-foreground` |
-| Condicional | `cn('base', condition && 'variant')` |
-| Variantes | `cva('base', { variants: ... })` |
+| Task | Pattern |
+|------|---------|
+| Semantic color | `bg-primary`, `text-foreground` |
+| Conditional | `cn('base', condition && 'variant')` |
+| Variants | `cva('base', { variants: ... })` |
 | Dark mode | `dark:bg-slate-900` |
 | Responsive | `sm:` `md:` `lg:` `xl:` |
 | Runtime value | `style={{ width: \`${val}%\` }}` |
-| Override externo | Aceptar y aplicar `className` prop con `cn()` |
+| External override | Accept and apply `className` prop with `cn()` |
 
 ## Rules
 
