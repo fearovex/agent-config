@@ -208,7 +208,7 @@ I review the context of the current session:
 |---------------------|----------|
 | Dependencies were added/removed | `stack.md` |
 | Architecture decisions were made | `architecture.md` |
-| Conventions were defined/changed | `conventions.md` |
+| Coding patterns, naming conventions, or import styles changed | `conventions.md` |
 | Bugs were found/resolved | `known-issues.md` |
 | Any significant change was made | `changelog-ai.md` |
 
@@ -227,6 +227,13 @@ If new decisions were made, I add them to the decisions table:
 ```
 
 If the folder structure changed, I update the tree.
+
+### Step 4b — Update conventions.md (if applicable)
+
+If naming patterns, import styles, or code patterns changed during the session, I update `ai-context/conventions.md`:
+- New or changed naming convention: update the relevant entry under `## Naming`
+- New import style or file organization pattern: update `## File Organization` or `## Detected Code Patterns`
+- If the file contains `[auto-updated]` sections written by `/project-analyze`, I write new entries **outside** the marker boundaries (`<!-- [auto-updated] -->` ... `<!-- [/auto-updated] -->`) and leave marker content intact
 
 ### Step 5 — Update known-issues.md (if applicable)
 

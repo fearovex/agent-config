@@ -276,6 +276,17 @@ Each project has its memory layer in `ai-context/`:
 | `known-issues.md` | Known bugs, gotchas, current limitations |
 | `changelog-ai.md` | Log of changes made by AI |
 
+### Skill Overlap — When to Use Which
+
+| Command | Purpose | When to use |
+|---------|---------|-------------|
+| `/memory-init` | Creates all 5 ai-context/ files from scratch | First-time setup — run before `/project-analyze` on projects with no `ai-context/` |
+| `/project-analyze` | Full codebase re-scan; updates `[auto-updated]` sections in ai-context/ | After significant codebase changes or when analysis-report.md is stale |
+| `/memory-update` | Records session-specific decisions and changes into ai-context/ | End of a work session — captures what happened, not what the codebase looks like |
+| `/project-update` | Syncs CLAUDE.md and stack.md with global catalog and project deps | After adding/removing skills or updating the global config |
+
+> `/project-analyze` complements `/memory-update` but does not replace it. Analyze observes the codebase; memory-update records session decisions.
+
 **At the start of each session** in a project with this structure: I read the relevant ai-context/ files.
 **After completing significant work**: I update the corresponding files or notify the user with `/memory-update`.
 

@@ -153,13 +153,13 @@ After analysis, `project-analyze` MUST update `stack.md`, `architecture.md`, and
 - **THEN** that section is unchanged in content and formatting
 - **AND** no content from that section is removed or replaced
 
-#### Scenario: First run creates `[auto-updated]` sections when `ai-context/` files are absent
+#### Scenario: project-analyze skips ai-context/ updates when directory is absent
 
-- **GIVEN** the target project has no `ai-context/` directory (or has empty files)
+- **GIVEN** the target project has no `ai-context/` directory
 - **WHEN** `/project-analyze` runs
-- **THEN** it creates `ai-context/stack.md`, `ai-context/architecture.md`, and `ai-context/conventions.md` if they do not exist
-- **AND** all content it writes is wrapped in `[auto-updated]` section markers
-- **AND** a `Last analyzed:` date is written at the top of each file
+- **THEN** it does NOT create `ai-context/stack.md`, `ai-context/architecture.md`, or `ai-context/conventions.md`
+- **AND** it produces only `analysis-report.md` at the project root
+- **AND** it emits a message instructing the user to run `/memory-init` first to create the `ai-context/` directory
 
 #### Scenario: `known-issues.md` and `changelog-ai.md` are not modified
 
@@ -230,9 +230,10 @@ Sections in `ai-context/` files that were written by `project-analyze` MUST be c
 
 - **GIVEN** `project-analyze` has written to `ai-context/stack.md`
 - **WHEN** the file is read
-- **THEN** each auto-updated section begins with a line containing `<!-- [auto-updated] start: <section-name> -->`
-- **AND** ends with a line containing `<!-- [auto-updated] end: <section-name> -->`
-- **AND** the section name is a stable identifier (e.g., `detected-stack`, `observed-structure`) that does not change between runs
+- **THEN** each auto-updated section begins with a line matching the format: `<!-- [auto-updated]: <section-id> -- last run: YYYY-MM-DD -->`
+- **AND** ends with a line matching the format: `<!-- [/auto-updated] -->`
+- **AND** the section-id is a stable identifier (e.g., `stack-detection`, `structure-mapping`, `drift-summary`, `observed-conventions`) that does not change between runs
+- **AND** the `last run` date reflects the date of the current analysis run
 
 #### Scenario: Content outside `[auto-updated]` markers is never modified
 
@@ -364,7 +365,7 @@ The following behaviors are explicitly NOT covered by this spec and MUST NOT be 
 5. **Changes to `memory-manager`** — `memory-init` and `memory-update` are unchanged. `project-analyze` complements `memory-manager` but does not replace it.
 6. **SDD sub-agent context injection** — Adding explicit `ai-context/` reading instructions to the sub-agent launch pattern is deferred to a follow-on change.
 7. **D9 (local skill quality) and D10 (feature docs coverage) extraction** — These remain embedded in `project-audit` for this cycle.
-8. **`project-analyze` replacing `memory-init`** — On a project with no `ai-context/` at all, `memory-init` remains the recommended first-time initializer. `project-analyze` is designed for re-analysis of established projects, though it will create files if they are absent.
+8. **`project-analyze` replacing `memory-init`** — On a project with no `ai-context/` at all, `memory-init` remains the recommended first-time initializer. `project-analyze` is designed for re-analysis of established projects and defers to `/memory-init` for first-time creation of `ai-context/` files.
 
 ---
 
