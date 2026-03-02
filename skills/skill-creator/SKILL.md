@@ -3,6 +3,7 @@ name: skill-creator
 description: >
   Creates new skills, either generic for the global catalog or specific to the current project.
   Trigger: /skill-create <name>, create skill, new skill, generate skill, add skill to project.
+format: procedural
 ---
 
 # skill-creator
@@ -29,12 +30,35 @@ Adds an **existing skill from the global catalog** to the current project. Copie
 
 ### Step 1 — Gather information
 
-Ask the necessary questions to create a useful skill:
+**Context detection (run before presenting the placement prompt):**
 
 ```
+is_claude_config = (
+  file_exists("install.sh")
+  AND (
+    openspec/config.yaml declares project.name == "claude-config"
+    OR basename(cwd) == "claude-config"
+  )
+)
+
+has_project_context = (
+  dir_exists("openspec") OR dir_exists(".claude")
+)
+
+if has_project_context AND NOT is_claude_config:
+  default_placement = "project-local"   → option 1
+else:
+  default_placement = "global"          → option 2
+```
+
+Ask the necessary questions to create a useful skill.
+The placement prompt MUST reflect the detected default using the `[DEFAULT]` marker:
+
+**When `default_placement = "project-local"`:**
+```
 Is this skill for this specific project or for all your projects?
-  1. This project only → .claude/skills/
-  2. Global catalog → ~/.claude/skills/
+  1. This project only → .claude/skills/  [DEFAULT]
+  2. Global catalog    → ~/.claude/skills/
 
 What does this skill do? (one-sentence description)
 
@@ -43,6 +67,33 @@ When should it activate? (what situations trigger its use?)
 Are there specific code patterns, commands, or processes it should know about?
 ```
 
+**When `default_placement = "global"`:**
+```
+Is this skill for this specific project or for all your projects?
+  1. This project only → .claude/skills/
+  2. Global catalog    → ~/.claude/skills/  [DEFAULT]
+
+What does this skill do? (one-sentence description)
+
+When should it activate? (what situations trigger its use?)
+
+Are there specific code patterns, commands, or processes it should know about?
+```
+
+**When context is ambiguous (neither `has_project_context` nor `is_claude_config` matches):**
+```
+Is this skill for this specific project or for all your projects?
+  1. This project only → .claude/skills/
+  2. Global catalog    → ~/.claude/skills/
+
+What does this skill do? (one-sentence description)
+
+When should it activate? (what situations trigger its use?)
+
+Are there specific code patterns, commands, or processes it should know about?
+```
+
+The user can accept the default by pressing Enter or selecting the numbered option.
 If the user has already provided enough context in the command, skip obvious questions.
 
 ### Step 1b — Select format type
@@ -261,23 +312,10 @@ Do you want to create a new one with /skill-create <name>?
 ### Verify the project has `.claude/skills/`
 If it does not exist, create it.
 
-### Addition strategy
-
-**Option A — Conceptual symbolic reference:**
-Add the skill to the project `CLAUDE.md` in the active skills section, indicating it is in the global catalog.
-
-```markdown
-## Active Skills
-- `~/.claude/skills/typescript/SKILL.md` — TypeScript patterns
-- `~/.claude/skills/nextjs-15/SKILL.md` — Next.js 15 patterns
-```
-
-**Option B — Local copy** (if the user wants to customize):
-Copy the file to `.claude/skills/<name>/SKILL.md` and add an origin note.
-
 ### Update project CLAUDE.md
 
-Add the skill to the project registry so it is visible.
+The addition strategy (local copy vs. global reference) is fully owned by `skill-add/SKILL.md`.
+`skill-creator` delegates to that skill for all copy-vs-reference decisions and registry updates.
 
 ---
 

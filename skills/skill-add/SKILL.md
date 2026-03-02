@@ -100,9 +100,11 @@ Stop here.
 
 ### Step 5 — Check for duplicate
 
-Scan the `## Skills Registry` section (if present) for any existing entry referencing `~/.claude/skills/<name>/SKILL.md`.
+Scan the `## Skills Registry` section (if present) for any existing entry referencing either:
+- `~/.claude/skills/<name>/` (global reference), or
+- `.claude/skills/<name>/` (local copy)
 
-If the entry already exists:
+If either entry already exists:
 ```
 Skill "[name]" is already registered in this project's CLAUDE.md.
 No changes made.
@@ -122,47 +124,85 @@ Add skill to project registry:
   Source  : ~/.claude/skills/[name]/SKILL.md
   Desc    : [one-line description]
 
-  Entry to add in CLAUDE.md → Skills Registry:
-    - `~/.claude/skills/[name]/SKILL.md` — [description]
+  Action  : copy to .claude/skills/[name]/SKILL.md  [DEFAULT]
+  Option A: reference ~/.claude/skills/[name]/SKILL.md only (not committed to repo)
 
 [If Skills Registry section is absent]
   Note: A "## Skills Registry" section will be created at the end of CLAUDE.md.
 
-Confirm? (Y/N)
+Confirm? (Y / A for Option A / N)
 ```
 
 Wait for user confirmation before writing anything.
 
 ---
 
-### Step 7 — Update project CLAUDE.md
+### Step 7a — Default: copy skill file to project (Y)
 
-**If `## Skills Registry` section exists**: append the new entry under an appropriate subsection (or at the end of the registry).
+1. Create the directory `.claude/skills/<name>/` if it does not exist.
+2. Copy `~/.claude/skills/<name>/SKILL.md` to `.claude/skills/<name>/SKILL.md`.
+3. Prepend the following origin comment to the copied file, BEFORE the YAML frontmatter block (or before the first `#` heading if no frontmatter exists):
+   ```
+   <!-- skill-add: copied from ~/.claude/skills/[name]/SKILL.md on YYYY-MM-DD -->
+   ```
+   (Replace `YYYY-MM-DD` with today's date.)
+4. Add a registry entry to the `## Skills Registry` section of CLAUDE.md using the local path:
+   - **If `## Skills Registry` section exists**: append under an appropriate subsection (or at the end of the registry).
+   - **If `## Skills Registry` section does NOT exist**: append this block at the end of CLAUDE.md:
+     ```markdown
+     ## Skills Registry
 
-**If `## Skills Registry` section does NOT exist**: append this block at the end of CLAUDE.md:
+     ### Project Skills
+     - `.claude/skills/[name]/SKILL.md` — [description]
+     ```
 
-```markdown
-## Skills Registry
+---
 
-### Project Skills
-- `~/.claude/skills/[name]/SKILL.md` — [description]
+### Step 7b — Option A: registry reference only (A)
+
+Add a registry entry to the `## Skills Registry` section of CLAUDE.md using the global path:
+
+- **If `## Skills Registry` section exists**: append under an appropriate subsection (or at the end of the registry).
+- **If `## Skills Registry` section does NOT exist**: append this block at the end of CLAUDE.md:
+  ```markdown
+  ## Skills Registry
+
+  ### Project Skills
+  - `~/.claude/skills/[name]/SKILL.md` — [description]
+  ```
+
+Display a notice to the user:
+```
+ℹ️  Option A selected: registry reference only.
+   The skill file is NOT copied into this repository.
+   Collaborators who clone this project will not have access to this skill
+   unless they have installed the global catalog (~/.claude/skills/) on their machine.
 ```
 
 ---
 
 ### Step 8 — Confirm to user
 
+**After Step 7a (default — local copy):**
 ```
 ✅ Skill "[name]" added to project registry.
 
-Entry added to CLAUDE.md:
-  - `~/.claude/skills/[name]/SKILL.md` — [description]
+  Copied to : .claude/skills/[name]/SKILL.md
+  Registry  : .claude/skills/[name]/SKILL.md — [description]
+
+  The skill file is versioned in this repository and will be available to all collaborators.
+  Commit .claude/skills/[name]/SKILL.md to include it in the project history.
 
 To use: /[name] (or as documented in the skill's trigger definition)
+```
 
-Want a local copy to customize?
-  Run: /skill-add [name] --copy
-  (Creates a local copy at .claude/skills/[name]/SKILL.md for project-specific modification)
+**After Step 7b (Option A — registry reference):**
+```
+✅ Skill "[name]" added to project registry (global reference).
+
+  Registry  : ~/.claude/skills/[name]/SKILL.md — [description]
+
+To use: /[name] (or as documented in the skill's trigger definition)
 ```
 
 ---
@@ -171,9 +211,10 @@ Want a local copy to customize?
 
 - Only adds skills that already exist at `~/.claude/skills/<name>/SKILL.md` — never creates new skills
 - Always shows a preview and waits for confirmation before any write operation
-- Detects and refuses to add duplicates
+- Detects and refuses to add duplicates — scans for both `~/.claude/skills/<name>/` and `.claude/skills/<name>/` entries in the registry
 - Creates `## Skills Registry` section if absent — never fails due to missing section
-- Option A (registry reference, default) is used unless user passes `--copy` flag
-- `--copy` (Option B) creates a local copy at `.claude/skills/<name>/` — documented but implementation may vary by project
+- The default strategy is a **local copy** (Step 7a): the skill file is copied to `.claude/skills/<name>/SKILL.md` and the registry entry uses the local path; this makes the skill versioned and available to all collaborators without any additional setup
+- Option A (global registry reference, `~/.claude/skills/<name>/SKILL.md`) is an explicit secondary choice; select it by entering `A` at the confirm prompt; the `--copy` flag is no longer needed — copy is the default
+- A local copy receives an origin comment (`<!-- skill-add: copied from ... -->`) prepended to the file recording the source path and copy date
 - Never touches `~/.claude/CLAUDE.md` — only the project-level CLAUDE.md
 - Does not invoke `install.sh` or `sync.sh` — those are user-managed workflows

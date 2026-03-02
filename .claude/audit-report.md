@@ -1,5 +1,5 @@
 # Audit Report — claude-config
-Generated: 2026-03-01 00:00
+Generated: 2026-03-02 00:00
 Score: 97/100
 SDD Ready: YES
 Project Type: global-config (install.sh + sync.sh at root)
@@ -11,7 +11,7 @@ Project Type: global-config (install.sh + sync.sh at root)
 ```yaml
 score: 97
 sdd_ready: true
-generated_at: "2026-03-01 00:00"
+generated_at: "2026-03-02 00:00"
 project_root: "C:/Users/juanp/claude-config"
 
 required_actions:
@@ -33,16 +33,15 @@ violations:
     line: 0
     rule: "D7-architecture-drift-minor"
     severity: "medium"
-    detail: "Architecture drift is minor (2 informational entries): skill count 43->44 (natural growth); .claude/ local dir at repo root (expected runtime artifact, not committed)."
+    detail: "Architecture drift is minor (2 informational entries): skill count 43->44 (natural growth); .claude/ local dir at repo root (expected runtime artifact, not committed to VCS)."
 
 skill_quality_actions: []
 ```
-
 ---
 
 ## Executive Summary
 
-`claude-config` is in excellent operational condition. The SDD meta-system is fully configured with all 8 phase skills present, 44 skills in the catalog (matching the registry exactly), robust memory documentation, and complete artifact infrastructure. This verification run confirms that the `/project-fix` action from earlier today (ADR Status heading normalization) was applied correctly — all 6 ADRs now have proper `## Status` headings and D12 reports clean with zero findings. The score improves from 93/100 to 97/100 (+4 points). The only active finding is a known structural false-positive (stack.md version count) which is non-actionable for a Markdown/YAML/Bash meta-system with no versioned packages.
+`claude-config` remains in excellent operational condition after the `skill-scope-global-vs-project` change. The SDD meta-system is fully configured: all 8 phase skills present, 44 skills on disk matching the registry exactly, complete memory documentation, and operational artifact infrastructure. The change added ADR 008 (skill scope convention), updated `skill-add/SKILL.md`, `skill-creator/SKILL.md`, `project-fix/SKILL.md`, and `CLAUDE.md` (two-tier comment in Skills Registry). All additions pass format and structural checks. Score is 97/100 — matching the prior run (2026-03-01). No regressions introduced.
 
 ---
 
@@ -77,7 +76,7 @@ skill_quality_actions: []
 | Check | Status | Detail |
 |-------|--------|--------|
 | Exists root `CLAUDE.md` (global-config exception) | ✅ | `CLAUDE.md` at project root — global-config repo accepted |
-| Has >50 lines | ✅ | 370 lines |
+| Has >50 lines | ✅ | 378 lines |
 | Stack documented | ✅ | `## Tech Stack` table present |
 | Stack vs package.json | ✅ | No package.json — Markdown/YAML/Bash meta-system; declared stack matches openspec/config.yaml |
 | Has Architecture section | ✅ | `## Architecture` section present |
@@ -93,7 +92,7 @@ skill_quality_actions: []
 |--------------|--------|
 | `docs/templates/prd-template.md` | ✅ |
 
-No other `docs/templates/*.md` paths referenced in CLAUDE.md Documentation Conventions section.
+No `docs/templates/adr-template.md` path referenced in CLAUDE.md Documentation Conventions section (only `docs/adr/README.md` is referenced). Check skipped for adr-template.
 
 ---
 
@@ -102,17 +101,17 @@ No other `docs/templates/*.md` paths referenced in CLAUDE.md Documentation Conve
 | File | Exists | Lines | Content | Coherence |
 |------|--------|-------|---------|-----------|
 | `stack.md` | ✅ | 97 | ✅ | ✅ |
-| `architecture.md` | ✅ | 126 | ✅ | ✅ |
-| `conventions.md` | ✅ | 162 | ✅ | ✅ |
-| `known-issues.md` | ✅ | 111 | ✅ | ✅ |
-| `changelog-ai.md` | ✅ | 410 | ✅ | N/A |
+| `architecture.md` | ✅ | 152 | ✅ | ✅ |
+| `conventions.md` | ✅ | 205 | ✅ | ✅ |
+| `known-issues.md` | ✅ | 110 | ✅ | ✅ |
+| `changelog-ai.md` | ✅ | 455 | ✅ | N/A |
 
-All files well above minimum line thresholds. All three auto-updated by `/project-analyze` on 2026-03-01.
+All files well above minimum line thresholds. Memory layer fully populated.
 
 **Coherence issues detected:** None. All directories documented in `architecture.md` exist on disk.
 
 **Placeholder phrase detection:**
-No genuine unfilled placeholders detected. `changelog-ai.md` line 45 contains the word `TODO` in backtick-quoted code within a feature description — this is a literal string reference, not an actionable placeholder.
+No genuine unfilled placeholders detected. `changelog-ai.md` line 91 contains the word `TODO` in backtick-quoted inline code within a D2 feature description — this is a literal documentation string referencing the rule's behavior, not an actionable unfilled placeholder. Consistent with 2026-03-01 audit finding (non-actionable false positive).
 
 **stack.md technology version count**: 0 version entries detected (minimum threshold: 3) — ⚠️ MEDIUM
 Known structural false-positive for this Markdown/YAML/Bash meta-system. Technologies (Markdown, YAML, Bash, Claude Code SDD meta-system) have no conventional version strings. No standard package manifests exist. Finding retained in FIX_MANIFEST as NOTE_ONLY.
@@ -120,8 +119,8 @@ Known structural false-positive for this Markdown/YAML/Bash meta-system. Technol
 **User docs freshness:**
 | File | Last verified | Days ago | Status |
 |------|--------------|----------|--------|
-| `ai-context/scenarios.md` | 2026-02-26 | 3 days | ✅ (within 90-day threshold) |
-| `ai-context/quick-reference.md` | 2026-02-26 | 3 days | ✅ (within 90-day threshold) |
+| `ai-context/scenarios.md` | 2026-02-26 | 4 days | ✅ (within 90-day threshold) |
+| `ai-context/quick-reference.md` | 2026-02-26 | 4 days | ✅ (within 90-day threshold) |
 
 ---
 
@@ -151,13 +150,13 @@ Known structural false-positive for this Markdown/YAML/Bash meta-system. Technol
 
 **CLAUDE.md mentions SDD:** ✅
 
-**Orphaned changes:** None. All 20 changes are archived. No active change directories.
+**Orphaned changes:** None. Active change `skill-scope-global-vs-project` was last modified 2026-03-02 (today — well within 14-day window). 22 changes archived.
 
 **Hook script existence:**
 No `hooks` key found in `settings.json` or `settings.local.json` — check skipped.
 
 **Active changes — file conflict detection:**
-No active changes with `design.md` — check skipped.
+Only 1 active change (`skill-scope-global-vs-project`) with `design.md` — fewer than 2 active changes → check skipped.
 
 ---
 
@@ -173,7 +172,10 @@ Skills on disk: `ai-sdk-5`, `claude-code-expert`, `django-drf`, `electron`, `eli
 
 **Skills with insufficient content (<30 lines):** None.
 
-**Recommended global tech skills not installed:** N/A — this IS the global catalog. Global tech skills coverage: 10/10.
+**Format-aware structural check (D4b):**
+All 44 skills pass. Procedural skills (sdd-*, project-*, memory-*, skill-*, smart-commit, playwright, pytest) have `### Step N` sequences or `## Process` sections. Reference skills use variant-pattern headings (`## Critical Patterns`, `## Code Examples`, `## ViewSet Pattern`, `## Serializer Patterns`, etc.) which satisfy the structural intent of the `## Patterns`/`## Examples` contract. Anti-pattern skill (`elixir-antipatterns`) has `## Anti-Patterns` (capital P — case-insensitive match passes). All skills have `**Triggers**` and `## Rules`.
+
+**Recommended global tech skills not installed:** N/A — this IS the global catalog. Global tech skills coverage: 10/10 (auto-full-credit for global-config repo).
 
 ---
 
@@ -184,7 +186,7 @@ Skills on disk: `ai-sdk-5`, `claude-code-expert`, `django-drf`, `electron`, `eli
 All verified:
 - `docs/templates/prd-template.md` referenced in CLAUDE.md → EXISTS ✅
 - `docs/adr/README.md` referenced in CLAUDE.md → EXISTS ✅
-- All 5 `ai-context/*.md` files referenced in CLAUDE.md → ALL EXIST ✅
+- All 5 core `ai-context/*.md` files → ALL EXIST ✅
 - `openspec/config.yaml` → EXISTS ✅
 - All 44 skill paths in routing table → ALL EXIST ✅
 - All directories documented in `architecture.md` → ALL EXIST ✅
@@ -194,10 +196,10 @@ All verified:
 ## Dimension 7 — Architecture Compliance [WARNING]
 
 Analysis report found: YES
-Last analyzed: 2026-03-01 00:00
-Report age: 0 days
+Last analyzed: 2026-03-01
+Report age: 1 day
 Architecture drift status: minor
-Staleness penalty: none (report is 0 days old — within 30-day threshold)
+Staleness penalty: none (report is 1 day old — within 30-day threshold)
 Score: 3/5
 
 Drift entries (minor — 2 informational):
@@ -223,11 +225,13 @@ Both entries are informational. No structural mismatches. No action required.
 | `verify_report_requirements` list | ✅ |
 | `test_project` strategy documented (Audiio V3) | ✅ |
 
-**Archived changes without verify-report.md:** None (20/20 have verify-report.md).
+**Archived changes without verify-report.md:** None (22/22 have verify-report.md).
 
 **Archived changes with empty verify-report.md (no [x]):** None (all have at least one checked criterion).
 
-**Verify rules are executable:** ✅ Rules reference `/project:audit` (stale colon notation — functionally equivalent to `/project-audit`) and concrete artifact checks. Objectively verifiable.
+Active change `skill-scope-global-vs-project` has no verify-report.md yet — this is expected for an in-progress change.
+
+**Verify rules are executable:** ✅ Rules reference `/project:audit` and concrete artifact checks. Objectively verifiable.
 
 ---
 
@@ -245,107 +249,138 @@ Global-config circular detection: All 44 skills are the source of truth deployed
 
 ## Dimension 10 — Feature Docs Coverage [OK]
 
-**Detection method**: Heuristic fallback (no `feature_docs:` key in config.yaml).
+**Detection method**: Heuristic fallback (no active `feature_docs:` key in config.yaml — block is commented out).
 
-23 non-SDD/meta skills detected as features. All have SKILL.md entries, all in registry. No coverage gaps.
+23 non-SDD/meta skills detected as features. All have SKILL.md entries and all are in the registry.
 
-| Feature | Doc | Structure | In Registry | Status |
-|---------|-----|-----------|-------------|--------|
-| ai-sdk-5 | ✅ | ✅ | ✅ | ✅ |
-| claude-code-expert | ✅ | ✅ | ✅ | ✅ |
-| django-drf | ✅ | ✅ | ✅ | ✅ |
-| electron | ✅ | ✅ | ✅ | ✅ |
-| elixir-antipatterns | ✅ | ✅ | ✅ | ✅ |
-| excel-expert | ✅ | ✅ | ✅ | ✅ |
-| github-pr | ✅ | ✅ | ✅ | ✅ |
-| hexagonal-architecture-java | ✅ | ✅ | ✅ | ✅ |
-| image-ocr | ✅ | ✅ | ✅ | ✅ |
-| java-21 | ✅ | ✅ | ✅ | ✅ |
-| jira-epic | ✅ | ✅ | ✅ | ✅ |
-| jira-task | ✅ | ✅ | ✅ | ✅ |
-| nextjs-15 | ✅ | ✅ | ✅ | ✅ |
-| playwright | ✅ | ✅ | ✅ | ✅ |
-| pytest | ✅ | ✅ | ✅ | ✅ |
-| react-19 | ✅ | ✅ | ✅ | ✅ |
-| react-native | ✅ | ✅ | ✅ | ✅ |
-| smart-commit | ✅ | ✅ | ✅ | ✅ |
-| spring-boot-3 | ✅ | ✅ | ✅ | ✅ |
-| tailwind-4 | ✅ | ✅ | ✅ | ✅ |
-| typescript | ✅ | ✅ | ✅ | ✅ |
-| zod-4 | ✅ | ✅ | ✅ | ✅ |
-| zustand-5 | ✅ | ✅ | ✅ | ✅ |
+| Feature | Doc found | Structure OK | Fresh | In Registry | Status |
+|---------|-----------|--------------|-------|-------------|--------|
+| ai-sdk-5 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| claude-code-expert | ✅ | ✅ | ✅ | ✅ | ✅ |
+| django-drf | ✅ | ✅ | ✅ | ✅ | ✅ |
+| electron | ✅ | ✅ | ✅ | ✅ | ✅ |
+| elixir-antipatterns | ✅ | ✅ | ✅ | ✅ | ✅ |
+| excel-expert | ✅ | ✅ | ✅ | ✅ | ✅ |
+| github-pr | ✅ | ✅ | ✅ | ✅ | ✅ |
+| hexagonal-architecture-java | ✅ | ✅ | ✅ | ✅ | ✅ |
+| image-ocr | ✅ | ✅ | ✅ | ✅ | ✅ |
+| java-21 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| jira-epic | ✅ | ✅ | ✅ | ✅ | ✅ |
+| jira-task | ✅ | ✅ | ✅ | ✅ | ✅ |
+| nextjs-15 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| playwright | ✅ | ✅ | ✅ | ✅ | ✅ |
+| pytest | ✅ | ✅ | ✅ | ✅ | ✅ |
+| react-19 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| react-native | ✅ | ✅ | ✅ | ✅ | ✅ |
+| smart-commit | ✅ | ✅ | ✅ | ✅ | ✅ |
+| spring-boot-3 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| tailwind-4 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| typescript | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zod-4 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zustand-5 | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+*D10 findings are informational only — they do not affect the score and are not auto-fixed by /project-fix.*
 
 ---
 
 ## Dimension 11 — Internal Coherence [OK]
 
-**Count consistency:**
-- CLAUDE.md mentions "10 dimensions" in /project-audit description. project-audit SKILL.md now has D1–D13 (13 dimensions). Informational lag — the audit skill was extended to 13 dimensions in the `audit-improvements` cycle (2026-03-01) and CLAUDE.md description was not updated. INFO only, no score impact.
+**Skills scanned**: 44 from `skills/`
 
-**Section numbering continuity:** No gaps or duplicates detected in sampled SKILL.md files.
+**Count consistency:**
+- `project-audit/SKILL.md` heading "## Audit Process — 10 Dimensions" claims 10 dimensions but 12 dimension headings are present (D1–D13, with D5 absent). This is a known informational lag — the skill was extended to 13 dimensions across multiple cycles, and the introductory heading was not updated. INFO only, no score impact.
+- `sdd-ff/SKILL.md`: 5 `## Step N` headings — continuous 1–5, no gaps. ✅
+- `sdd-new/SKILL.md`: 6 `## Step N` headings — continuous 1–6, no gaps. ✅
+
+**Section numbering continuity:** No gaps or duplicates detected in `### Step N` sequences across sampled procedural skills.
+
 **Frontmatter-body alignment:** No significant mismatches detected.
+
+**Inconsistencies found**: 1 (project-audit count claim: "10 Dimensions" vs actual 12 dimension headings) — INFO only.
+
+*D11 findings are informational only — they do not affect the score and are not auto-fixed by /project-fix.*
 
 ---
 
 ## Dimension 12 — ADR Coverage [OK]
 
-**Activation**: `docs/adr/` found in CLAUDE.md — dimension active.
+**Condition**: CLAUDE.md references `docs/adr/` — YES
+**ADR README exists**: ✅
+**ADRs scanned**: 8
 
-**D12-1. README existence:**
-`docs/adr/README.md` EXISTS ✅
+| ADR | Status field found | Status value | Finding |
+|-----|-------------------|--------------|---------|
+| `001-skills-as-directories.md` | ✅ | Accepted (retroactive) | clean |
+| `002-artifacts-over-memory.md` | ✅ | Accepted (retroactive) | clean |
+| `003-orchestrator-delegates-everything.md` | ✅ | Accepted (retroactive) | clean |
+| `004-install-sh-repo-authoritative.md` | ✅ | Accepted (retroactive) | clean |
+| `005-skill-md-entry-point-convention.md` | ✅ | Accepted (retroactive) | clean |
+| `006-audit-improvements-convention.md` | ✅ | Proposed | clean |
+| `007-skill-format-types-convention.md` | ✅ | Proposed | clean |
+| `008-skill-scope-local-copy-default.md` | ✅ | Proposed | clean |
 
-**D12-2. Per-ADR Status field scan:**
+**Result: 8/8 ADRs clean. Zero findings.** ADRs 007 and 008 are new since the last audit — both have valid `## Status` sections.
 
-| ADR File | Has `## Status` | Status value |
-|----------|----------------|--------------|
-| `001-skills-as-directories.md` | ✅ | Accepted (retroactive) |
-| `002-artifacts-over-memory.md` | ✅ | Accepted (retroactive) |
-| `003-orchestrator-delegates-everything.md` | ✅ | Accepted (retroactive) |
-| `004-install-sh-repo-authoritative.md` | ✅ | Accepted (retroactive) |
-| `005-skill-md-entry-point-convention.md` | ✅ | Accepted (retroactive) |
-| `006-audit-improvements-convention.md` | ✅ | Proposed |
-
-**Result: 6/6 ADRs clean. Zero findings.**
-
-This dimension is fully resolved. The `/project-fix` run earlier today (2026-03-01) normalized ADRs 001–005 from `**Status:**` bold inline to `## Status` headings. Previous audit (93/100) had 5 MEDIUM findings here. This audit: 0 findings.
+*D12 findings are informational only — no score impact.*
 
 ---
 
 ## Dimension 13 — Spec Coverage [OK]
 
-**Activation**: `openspec/specs/` exists and is non-empty — active.
+**Condition**: `openspec/specs/` exists and is non-empty — YES (17 domains)
+**Domains detected**: adr-system, audit-dimensions, audit-execution, audit-scoring, config-schema, fix-setup-behavior, global-permissions, openspec-config-documentation, prd-system, project-analysis, sdd-apply-execution, sdd-archive-execution, sdd-design-adr-integration, sdd-propose-prd-integration, sdd-verify-execution, skill-creation, skill-format-types
 
-**D13-1. Per-domain spec.md existence:**
-15 domain directories found. All 15 have `spec.md`. Zero missing files.
+| Domain | spec.md found | Stale paths | Status |
+|--------|---------------|-------------|--------|
+| adr-system | ✅ | 0 | ✅ |
+| audit-dimensions | ✅ | 0 | ✅ |
+| audit-execution | ✅ | 0 | ✅ |
+| audit-scoring | ✅ | 0 | ✅ |
+| config-schema | ✅ | 0 | ✅ |
+| fix-setup-behavior | ✅ | 0 | ✅ |
+| global-permissions | ✅ | 0 | ✅ |
+| openspec-config-documentation | ✅ | 0 | ✅ |
+| prd-system | ✅ | 0 | ✅ |
+| project-analysis | ✅ | 0 | ✅ |
+| sdd-apply-execution | ✅ | 0 | ✅ |
+| sdd-archive-execution | ✅ | 0 | ✅ |
+| sdd-design-adr-integration | ✅ | 0 | ✅ |
+| sdd-propose-prd-integration | ✅ | 0 | ✅ |
+| sdd-verify-execution | ✅ | 0 | ✅ |
+| skill-creation | ✅ | 0 | ✅ |
+| skill-format-types | ✅ | 0 | ✅ |
 
-| Domain | spec.md |
-|--------|---------|
-| `adr-system` | ✅ |
-| `audit-dimensions` | ✅ |
-| `audit-execution` | ✅ |
-| `audit-scoring` | ✅ |
-| `config-schema` | ✅ |
-| `fix-setup-behavior` | ✅ |
-| `global-permissions` | ✅ |
-| `openspec-config-documentation` | ✅ |
-| `prd-system` | ✅ |
-| `project-analysis` | ✅ |
-| `sdd-apply-execution` | ✅ |
-| `sdd-archive-execution` | ✅ |
-| `sdd-design-adr-integration` | ✅ |
-| `sdd-propose-prd-integration` | ✅ |
-| `sdd-verify-execution` | ✅ |
+All 17 domains have spec.md. `skill-creation` and `skill-format-types` are new since the last audit. Zero stale paths detected.
 
-**D13-2. Stale path references:** No stale path violations detected.
+*D13 findings are informational only — no score impact.*
+
+---
+
+## Required Actions
+
+### Critical (block SDD):
+None.
+
+### High (degrade quality):
+None.
+
+### Medium:
+1. **stack.md version count** (known false-positive) — `ai-context/stack.md` has 0 version entries; minimum is 3. Non-actionable for this meta-system: Markdown/YAML/Bash has no versioned package manifests. No real action needed.
+
+### Low (optional improvements):
+None.
 
 ---
 
 ## Score Delta Summary
 
-| Run | Score | Key change |
-|-----|-------|------------|
-| Previous run (2026-03-01, pre-fix) | 93/100 | D12: 5 MEDIUM findings (ADRs 001–005 missing `## Status`) |
-| This run (2026-03-01, post-fix) | 97/100 | D12: 0 findings (all 6 ADRs clean) |
-| **Delta** | **+4 pts** | D12 MEDIUM findings resolved |
+| Run | Score | Key changes |
+|-----|-------|-------------|
+| Previous run (2026-03-01) | 97/100 | Baseline after ADR Status fix cycle |
+| This run (2026-03-02) | 97/100 | skill-scope-global-vs-project change verified |
+| **Delta** | **±0 pts** | No regressions. New ADRs 007 and 008 both clean. New spec domains (skill-creation, skill-format-types) both have spec.md. Active change in progress — no verify-report yet (expected). |
 
-Note: D12 is informational (N/A max points, no score deduction). The score improvement of +4 points reflects that the previous report had incorrectly counted D12 MEDIUM findings as score deductions from D1/D2. Under the correct scoring model where D12 is informational-only, the 93 score was itself understated. The current 97/100 is the correct score reflecting only the one genuine MEDIUM finding (D2 stack.md version count, known false-positive).
+---
+
+*To implement any corrections: run `/project-fix`*
+*This report was generated by `/project-audit` — do not modify the FIX_MANIFEST block manually*

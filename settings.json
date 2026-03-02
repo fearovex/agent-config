@@ -2,6 +2,9 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium",
   "model": "sonnet",
+  "env": {
+    "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "true"
+  },
   "permissions": {
     "allow": [
       "Read",

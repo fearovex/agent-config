@@ -426,6 +426,13 @@ For each action with `action_type: flag_language`:
 
 **`move-to-global` handler**
 
+Before listing individual skills, print the following note once per fix run (not once per skill):
+```
+ℹ️ Two-tier skill model reminder:
+   .claude/skills/ is project-local (versioned in repo — team-visible).
+   ~/.claude/skills/ is machine-global (available across all projects but not present for collaborators who clone).
+```
+
 For each action with disposition `move-to-global`:
 ```
 ℹ️ Manual action required — [local_path]

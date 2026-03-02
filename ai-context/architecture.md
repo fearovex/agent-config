@@ -112,6 +112,7 @@ Skills that need to pass state to each other use **file artifacts**:
 3. **Artifacts over in-memory state** — skills communicate via files, never via conversation context alone
 4. **Orchestrator delegates everything** — the global CLAUDE.md never executes work itself, always spawns subagents via Task tool
 5. **install.sh is repo-authoritative** — all directories flow repo → ~/.claude/. The only reverse direction is `sync.sh`, which captures `memory/` only. Every other directory (skills/, CLAUDE.md, hooks/, openspec/, ai-context/) must always be edited in the repo — never in ~/.claude/ directly.
+6. **Two-tier skill placement model** (added 2026-03-02, change: skill-scope-global-vs-project) — Skills have two placement tiers: global (`~/.claude/skills/`) and project-local (`.claude/skills/`). When `/skill-add` or `/skill-creator` is used inside a project (not `claude-config`), the default placement is project-local — the skill file is copied into the repo and versioned alongside project source code. Global placement remains available as an explicit override. `project-fix` treats `move-to-global` as informational only (no automated file moves). Project-local skills MUST be committed to the repo; no `.gitignore` rule should exclude `.claude/skills/`. The CLAUDE.md Skills Registry uses `.claude/skills/<name>/SKILL.md` for local copies and `~/.claude/skills/<name>/SKILL.md` for global references — both formats can coexist.
 
 <!-- [auto-updated]: structure-mapping — last run: 2026-03-01 -->
 ## Observed Structure (auto-detected)

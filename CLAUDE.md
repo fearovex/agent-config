@@ -309,6 +309,10 @@ Each project has its memory layer in `ai-context/`:
 
 ## Skills Registry
 
+<!-- Skills Registry: paths starting with .claude/skills/ are local copies (versioned in this repo).
+     Paths starting with ~/.claude/skills/ are global references (machine-local, not in this repo).
+     .claude/skills/ MUST NOT be excluded by .gitignore — local copies must be committed. -->
+
 ### SDD Orchestrator Skills
 - `~/.claude/skills/sdd-ff/SKILL.md` — fast-forward: propose → spec+design (parallel) → tasks, then asks before apply
 - `~/.claude/skills/sdd-new/SKILL.md` — full SDD cycle with optional explore and user confirmation gates

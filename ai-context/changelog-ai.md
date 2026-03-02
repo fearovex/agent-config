@@ -4,6 +4,49 @@
 
 ---
 
+## [2026-03-02] — skill-scope-global-vs-project archived
+
+**Type**: Archive
+**Agent**: Claude Sonnet 4.6
+**What was done**: SDD cycle for skill-scope-global-vs-project closed. Verification PASS (14/14 tasks, 17/17 spec scenarios compliant, 0 critical, 0 warnings). Delta specs merged to master specs: skill-placement (new domain created), skill-creation (requirement added), project-fix-behavior (new domain created). Change moved to archive.
+**Modified files**:
+- `openspec/specs/skill-placement/spec.md` — created (new master spec domain)
+- `openspec/specs/skill-creation/spec.md` — appended new requirement: skill-creator defaults to project-local placement inside a project context (4 scenarios + 1 rule)
+- `openspec/specs/project-fix-behavior/spec.md` — created (new master spec domain)
+- `openspec/changes/archive/2026-03-02-skill-scope-global-vs-project/` — change archived
+- `openspec/changes/archive/2026-03-02-skill-scope-global-vs-project/CLOSURE.md` — created
+- `ai-context/architecture.md` — two-tier skill placement model added to Key architectural decisions (decision #6)
+**Decisions made**:
+- Local copy is the canonical default for project-local skill placement — this is now a permanent architectural decision recorded in architecture.md
+**Notes**: The SDD cycle covered the full phase DAG: explore → propose → spec+design (parallel) → tasks → apply → verify → archive. No unresolved issues.
+
+---
+
+## [2026-03-02] — skill-scope-global-vs-project
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6
+**Modified files**:
+- `skills/skill-add/SKILL.md` — Steps 5, 6, 7, 8, Rules: local copy is now the default strategy; Option A (global reference) is an explicit override; origin comment prepended on copy; collaborator notice added for Option A
+- `skills/skill-creator/SKILL.md` — Step 1: context-detection block added; placement prompt shows [DEFAULT] marker; /skill-add section: addition strategy subsection removed (delegated to skill-add); format: procedural added to frontmatter
+- `skills/project-fix/SKILL.md` — move-to-global handler: two-tier model explanation note added; confirmed as informational-only (no automation)
+- `CLAUDE.md` — ## Skills Registry: two-tier comment block added explaining local vs global path distinction and .gitignore guidance
+- `settings.json` — CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION: "true" added to env block
+- `openspec/changes/skill-scope-global-vs-project/` — full SDD artifact set created (exploration, proposal, prd, specs x3, design, tasks)
+- `docs/adr/008-skill-scope-local-copy-default.md` — ADR created
+- `docs/adr/README.md` — ADR index updated
+
+**Decisions made**:
+- Approach D (hybrid) selected: local copy by default + explicit global override, no new commands
+- skill-add Option B (local copy) promoted to default; Option A (global reference) requires explicit "A" at confirm prompt
+- skill-creator context-detection uses install.sh presence + basename/config.yaml to identify claude-config repo
+- project-fix move-to-global: already informational; two-tier explanation note added for clarity
+- CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION enabled explicitly in settings.json
+
+**Notes**: Skills created or added within a project now land in .claude/skills/ (versioned in repo) by default, making them available to all collaborators who clone. The ~/.claude/skills/ global catalog remains the source but is no longer the default placement target for project-specific work.
+
+---
+
 ## 2026-03-01 — skill-format-types applied
 
 **Change**: Formalized multiple SKILL.md format types to eliminate false-positive audit findings.
