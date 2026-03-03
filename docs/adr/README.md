@@ -62,3 +62,7 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [008](008-skill-scope-local-copy-default.md) | Local copy as the default placement for project-added skills | Proposed |
 | [009](009-claude-folder-audit-pattern.md) | Claude Folder Audit Pattern — standalone procedural skill for ~/.claude/ runtime auditing | Proposed |
 | [010](010-claude-folder-audit-project-mode-pattern.md) | Claude Folder Audit Project Mode Pattern — third execution mode for auditing project-local .claude/ configuration | Proposed |
+| [011](011-config-export-pattern.md) | Config Export Pattern — procedural SKILL.md skill for exporting Claude config to Copilot, Gemini, and Cursor formats | Proposed |
+| [012](012-smart-commit-functional-split-convention.md) | Smart Commit Functional Split Convention — priority-ordered grouping heuristic for staging files by functional area | Proposed |
+| [013](013-smart-commit-unstaged-detection-pattern.md) | Smart Commit Unstaged Detection Pattern — reuse grouping heuristic and build-artifact filter to surface related unstaged files before committing | Proposed |
+| [014](014-smart-commit-auto-stage-replaces.md) | Smart Commit Auto-Stage — Replaces Staged-Only Guard with Full Working-Tree Detection | Proposed |
