@@ -376,3 +376,6 @@ Each project has its memory layer in `ai-context/`:
 - `~/.claude/skills/claude-code-expert/SKILL.md` — CLAUDE.md configuration, custom skills, hooks, MCP servers, and advanced Claude Code workflows
 - `~/.claude/skills/excel-expert/SKILL.md` — creating, reading, and analyzing Excel files with ExcelJS, SheetJS (JS/TS) and openpyxl, pandas (Python)
 - `~/.claude/skills/image-ocr/SKILL.md` — extracting text from images using OCR (Tesseract, EasyOCR, PaddleOCR, Google Vision, AWS Textract, Claude Vision)
+
+### System Audits
+- `~/.claude/skills/claude-folder-audit/SKILL.md` — audits the ~/.claude/ runtime folder for installation drift, skill deployment gaps, orphaned artifacts, and scope tier compliance

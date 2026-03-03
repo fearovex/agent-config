@@ -213,6 +213,18 @@ the proposal before proceeding. See ai-context/quick-reference.md for the /sdd-f
 
 ---
 
+### Check 7 — Runtime sync hint (non-blocking, global-config mode only)
+
+If `install.sh` AND `skills/` exist at the project root (i.e., the cwd is the `claude-config` meta-repo), append the following line to the `Warnings:` section of the case diagnosis output — regardless of which case was assigned:
+
+```
+- Run /claude-folder-audit to verify ~/.claude/ is in sync with this repo (installation drift check).
+```
+
+This check MUST NOT change the case assignment, alter the Recommended Command Sequence, or interrupt the existing 6-check waterfall. It is a hint only.
+
+---
+
 ## Stale docs warning logic
 
 After determining the primary case, check `ai-context/onboarding.md`, `ai-context/scenarios.md`, and `ai-context/quick-reference.md` for the `> Last verified:` field. If any file's date is more than 90 days from today, append to the Warnings section:

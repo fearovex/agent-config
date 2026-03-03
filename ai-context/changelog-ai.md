@@ -4,6 +4,43 @@
 
 ---
 
+## [2026-03-03] — claude-folder-audit SDD cycle archived
+
+**Type**: Archive
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**What was done**: SDD cycle for `claude-folder-audit` completed and archived. Delta specs promoted to master specs in `openspec/specs/` (2 new domains: `folder-audit-execution`, `folder-audit-reporting`). CLOSURE.md created. Change folder moved to `openspec/changes/archive/2026-03-03-claude-folder-audit/`.
+**Modified files**:
+- `openspec/specs/folder-audit-execution/spec.md` — created (new master spec)
+- `openspec/specs/folder-audit-reporting/spec.md` — created (new master spec)
+- `openspec/changes/archive/2026-03-03-claude-folder-audit/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry + archive note
+**Decisions made**:
+- N/A (no new decisions at archive step)
+**Notes**: Verify report: PASS (37/37 scenarios compliant). 2 non-blocking warnings documented in CLOSURE.md.
+
+---
+
+## [2026-03-03] — claude-folder-audit skill added
+
+**Type**: New skill
+**Agent**: Claude Sonnet 4.6
+**What was done**: Full SDD cycle (explore → propose → spec + design → tasks → apply → verify) for the `claude-folder-audit` skill. The skill audits the `~/.claude/` runtime folder for installation drift, missing skill deployments, orphaned artifacts, and scope tier compliance. Read-only — produces `~/.claude/claude-folder-audit-report.md`.
+**Modified files**:
+- `skills/claude-folder-audit/SKILL.md` — created (new skill, format: procedural, 5 audit checks)
+- `CLAUDE.md` — added `### System Audits` section to Skills Registry with entry for `claude-folder-audit`
+- `skills/project-onboard/SKILL.md` — added non-blocking Check 7 (global-config mode only): drift hint to run `/claude-folder-audit`
+- `docs/adr/009-claude-folder-audit-pattern.md` — created (architectural decision: standalone skill vs. D11 extension of project-audit)
+- `docs/adr/README.md` — ADR-009 row appended
+- `openspec/changes/claude-folder-audit/` — full SDD artifact set (exploration, proposal, prd, specs, design, tasks)
+**Decisions made**:
+- Standalone skill pattern chosen over extending project-audit with D11 (single-responsibility; independently invocable)
+- Report location: `~/.claude/` (runtime artifact, not committed to repo)
+- Drift detection uses mtime proxy (no `.installed-at` file yet — noted as future improvement)
+- V1 is read-only; auto-fix companion (`claude-folder-fix`) deferred to a future cycle
+- Check 4 (orphaned artifacts) generates MEDIUM noise from Claude Code internal files; known limitation — allowlist improvement deferred to V2
+
+---
+
 ## [2026-03-02] — skill-scope-global-vs-project archived
 
 **Type**: Archive

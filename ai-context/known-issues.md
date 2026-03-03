@@ -96,6 +96,20 @@ Skills have no automated tests. The only validation is running `/project-audit` 
 
 ---
 
+## claude-folder-audit Check 4 generates false-positive MEDIUM findings on standard Claude Code installs
+
+`claude-folder-audit` Check 4 (orphaned artifact detection) flags Claude Code internal runtime files (cache/, telemetry/, projects/, history.jsonl, statsig/, ide/, plans/, plugins/, tasks/, todos/, backups/, debug/, etc.) as MEDIUM findings — "Unexpected item in ~/.claude/".
+
+**Root cause**: The expected-item allowlist in `skills/claude-folder-audit/SKILL.md` does not include Claude Code's own operational directories that accumulate in `~/.claude/` over time. The allowlist was designed for the claude-config source content, not for Claude Code's runtime footprint.
+
+**Impact**: Up to 17 MEDIUM findings may appear on any normal Claude Code installation. All are false positives. The report itself notes this and marks remediation as "Review manually."
+
+**Workaround**: Ignore these findings — they do not indicate a real problem. The report's "Recommended Next Steps" section correctly identifies install.sh as the first action only for genuine HIGH findings.
+
+**Planned fix (V2)**: Add Claude Code internal directories to the expected-set allowlist in Check 4. Referenced in verify-report.md suggestions and CLOSURE.md.
+
+---
+
 ## ai-context/ marker-awareness gap between skills
 
 `/project-analyze` writes `[auto-updated]` markers (`<!-- [auto-updated]: <id> -- last run: YYYY-MM-DD -->` ... `<!-- [/auto-updated] -->`) in `ai-context/stack.md`, `ai-context/architecture.md`, and `ai-context/conventions.md`. However, `/memory-update` and `/project-update` are not aware of these markers — they perform incremental full-file updates and could theoretically write content that overlaps with or corrupts marker boundaries.

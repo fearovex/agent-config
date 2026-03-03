@@ -31,31 +31,42 @@ _win_home_to_unix() {
   fi
 }
 
+_is_wsl() {
+  grep -qi microsoft /proc/version 2>/dev/null
+}
+
 detect_claude_dir() {
   local win_home=""
 
-  # Priority 1 — PowerShell (reliable on any Windows bash: MINGW64 + WSL)
-  if command -v powershell.exe &>/dev/null; then
+  # Priority 1 — WSL: Windows env vars are already inherited from the host shell.
+  # Skip powershell.exe entirely — calling it from WSL interop can hang.
+  if _is_wsl; then
+    if [ -n "$USERPROFILE" ]; then
+      win_home="$USERPROFILE"
+    elif [ -n "$HOMEDRIVE" ] && [ -n "$HOMEPATH" ]; then
+      win_home="${HOMEDRIVE}${HOMEPATH}"
+    else
+      local win_user
+      win_user=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r' || true)
+      [ -n "$win_user" ] && [ -d "/mnt/c/Users/$win_user" ] && \
+        win_home="C:\\Users\\$win_user"
+    fi
+  fi
+
+  # Priority 2 — Git Bash (MINGW64): use PowerShell for reliable resolution
+  if [ -z "$win_home" ] && command -v powershell.exe &>/dev/null; then
     win_home=$(powershell.exe -NoProfile -Command \
       "[Environment]::GetFolderPath('UserProfile')" 2>/dev/null | tr -d '\r\n')
   fi
 
-  # Priority 2 — HOMEDRIVE + HOMEPATH (Git Bash when USERPROFILE is empty)
+  # Priority 3 — HOMEDRIVE + HOMEPATH (Git Bash fallback)
   if [ -z "$win_home" ] && [ -n "$HOMEDRIVE" ] && [ -n "$HOMEPATH" ]; then
     win_home="${HOMEDRIVE}${HOMEPATH}"
   fi
 
-  # Priority 3 — USERPROFILE (sometimes set in Git Bash)
+  # Priority 4 — USERPROFILE (Git Bash fallback)
   if [ -z "$win_home" ] && [ -n "$USERPROFILE" ]; then
     win_home="$USERPROFILE"
-  fi
-
-  # Priority 4 — WSL interop: read Windows username via cmd.exe
-  if [ -z "$win_home" ] && grep -qi microsoft /proc/version 2>/dev/null; then
-    local win_user
-    win_user=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r' || true)
-    [ -n "$win_user" ] && [ -d "/mnt/c/Users/$win_user" ] && \
-      win_home="C:\\Users\\$win_user"
   fi
 
   if [ -n "$win_home" ]; then
@@ -107,9 +118,17 @@ _find_claude_cmd() {
     return
   fi
 
-  # Windows environments (MINGW64 + WSL): resolve home and check ~/.local/bin
+  # Resolve unix_home without calling powershell.exe in WSL (it can hang).
   local unix_home=""
-  if command -v powershell.exe &>/dev/null; then
+  if _is_wsl; then
+    # WSL: Windows env vars are inherited from the host shell
+    if [ -n "$USERPROFILE" ]; then
+      unix_home="$(_win_home_to_unix "$USERPROFILE")"
+    elif [ -n "$HOMEDRIVE" ] && [ -n "$HOMEPATH" ]; then
+      unix_home="$(_win_home_to_unix "${HOMEDRIVE}${HOMEPATH}")"
+    fi
+  elif command -v powershell.exe &>/dev/null; then
+    # Git Bash (MINGW64): PowerShell is safe to call
     local win_home
     win_home=$(powershell.exe -NoProfile -Command \
       "[Environment]::GetFolderPath('UserProfile')" 2>/dev/null | tr -d '\r\n')
@@ -118,10 +137,6 @@ _find_claude_cmd() {
     unix_home="$(_win_home_to_unix "${HOMEDRIVE}${HOMEPATH}")"
   elif [ -n "$USERPROFILE" ]; then
     unix_home="$(_win_home_to_unix "$USERPROFILE")"
-  elif grep -qi microsoft /proc/version 2>/dev/null; then
-    local win_user
-    win_user=$(cmd.exe /C "echo %USERNAME%" 2>/dev/null | tr -d '\r' || true)
-    [ -n "$win_user" ] && unix_home="/mnt/c/Users/$win_user"
   fi
 
   if [ -n "$unix_home" ] && [ -f "$unix_home/.local/bin/claude" ]; then
@@ -146,10 +161,13 @@ echo "Registering MCP servers at user level..."
 
 CLAUDE_CMD="$(_find_claude_cmd)"
 
-# Detect whether we need Windows cmd wrapper for npx
-# WINDIR is set in Git Bash and WSL-with-Windows-interop; absent on Linux/macOS
-if [ -n "$WINDIR" ] || grep -qi microsoft /proc/version 2>/dev/null; then
-  NPX_RUNNER="cmd /c npx -y"
+# Detect the correct npx command for the current environment.
+# On Windows (Git Bash / MINGW64), `npx` resolves to npx.cmd via PATH — no
+# `cmd /c` wrapper needed (and `cmd /c` causes path mangling in Git Bash where
+# `/c` is rewritten to the C:\ root, producing an invalid command).
+# On WSL, use plain `npx`.  On Linux/macOS, use plain `npx`.
+if command -v npx.cmd &>/dev/null; then
+  NPX_RUNNER="npx.cmd -y"
 else
   NPX_RUNNER="npx -y"
 fi
