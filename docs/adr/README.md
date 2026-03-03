@@ -61,3 +61,4 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [007](007-skill-format-types-convention.md) | Skill format types convention — `format:` frontmatter field distinguishes procedural, reference, and anti-pattern skills | Proposed |
 | [008](008-skill-scope-local-copy-default.md) | Local copy as the default placement for project-added skills | Proposed |
 | [009](009-claude-folder-audit-pattern.md) | Claude Folder Audit Pattern — standalone procedural skill for ~/.claude/ runtime auditing | Proposed |
+| [010](010-claude-folder-audit-project-mode-pattern.md) | Claude Folder Audit Project Mode Pattern — third execution mode for auditing project-local .claude/ configuration | Proposed |

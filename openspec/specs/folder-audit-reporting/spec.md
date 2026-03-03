@@ -14,38 +14,59 @@ requirement.
 
 ## Requirements
 
-### Requirement: report MUST be written to a fixed, predictable location
+### Requirement: report MUST be written to a mode-specific, predictable location
 
-The skill MUST always write its output to `~/.claude/claude-folder-audit-report.md`
-(tilde expanded at runtime). This path MUST be the same on every invocation and on
-every OS. The report MUST NOT be written to the project directory, to `openspec/`, or
-to any other location.
+*(Modified in: 2026-03-03 by change "claude-folder-audit-project-mode")*
 
-#### Scenario: report is written to the runtime root on completion
+In `global-config` and `global` modes the report path MUST remain
+`~/.claude/claude-folder-audit-report.md` (tilde expanded at runtime). In `project` mode
+the report MUST be written to `.claude/claude-folder-audit-report.md` relative to CWD
+(i.e., inside the project's own `.claude/` directory). The report MUST NOT be written to
+`~/.claude/` when in `project` mode.
 
-- **GIVEN** the skill completes all 5 checks (with or without findings)
+#### Scenario: global-config and global modes — report path unchanged
+
+- **GIVEN** execution mode is `global-config` or `global`
 - **WHEN** the skill writes its output
 - **THEN** the file `~/.claude/claude-folder-audit-report.md` is created or overwritten
-- **AND** no other report file is created at any other path
+- **AND** no report file is written to any project `.claude/` directory
+
+#### Scenario: project mode — report written to .claude/ inside the project
+
+- **GIVEN** execution mode is `project`
+- **AND** the project root is `<cwd>`
+- **WHEN** the skill writes its output
+- **THEN** the file `<cwd>/.claude/claude-folder-audit-report.md` is created or overwritten
+- **AND** no report file is written to `~/.claude/`
+- **AND** the skill emits a message: "Report written to: <cwd>/.claude/claude-folder-audit-report.md"
+
+#### Scenario: project mode — .claude/ directory exists (guaranteed by mode detection)
+
+- **GIVEN** execution mode is `project`
+- **AND** mode detection already confirmed `.claude/` exists at CWD
+- **WHEN** the skill writes the report
+- **THEN** the write succeeds without needing to create the `.claude/` directory
+- **AND** a pre-existing `claude-folder-audit-report.md` from a previous run is overwritten
 
 #### Scenario: report path is displayed to the user at the end of execution
 
 - **GIVEN** the skill has finished writing the report
 - **WHEN** skill execution concludes
 - **THEN** the skill emits a message to the user that includes the full expanded path
-  to the report: e.g., "Report written to: C:/Users/juanp/.claude/claude-folder-audit-report.md"
+  to the report (mode-appropriate path)
 
 ---
 
 ### Requirement: report MUST contain a structured header with metadata
 
-The report MUST begin with a header block containing: run date, execution mode, runtime
-root path, source root path (if detected), and a one-line summary of finding counts by
-severity.
+The report MUST begin with a header block containing: run date, execution mode, relevant
+path fields for the active mode, and a one-line summary of finding counts by severity.
 
-#### Scenario: header block is present and complete on a successful run
+*(Modified in: 2026-03-03 by change "claude-folder-audit-project-mode")*
 
-- **GIVEN** the skill completes execution without aborting
+#### Scenario: header block is present and complete on a successful run — global-config/global modes
+
+- **GIVEN** execution mode is `global-config` or `global`
 - **WHEN** the report is read
 - **THEN** the report begins with a section containing:
   - `Run date:` in ISO 8601 format (YYYY-MM-DD HH:MM UTC or local)
@@ -53,6 +74,25 @@ severity.
   - `Runtime root:` — expanded path to `~/.claude/`
   - `Source root:` — expanded path to the source repo root, or "Not detected" if in global mode
   - `Summary:` — e.g., "2 HIGH, 1 MEDIUM, 3 LOW, 2 INFO"
+
+#### Scenario: project mode header block is present and complete
+
+- **GIVEN** execution mode is `project`
+- **AND** the skill completes all 5 project checks (P1–P5) without aborting
+- **WHEN** the report is read
+- **THEN** the report begins with a header block containing:
+  - `Run date:` in ISO 8601 format
+  - `Mode: project`
+  - `Project root:` — the expanded absolute path to CWD
+  - `CLAUDE.md:` — the expanded absolute path to `<cwd>/.claude/CLAUDE.md`
+  - `Summary:` — e.g., "1 HIGH, 2 MEDIUM, 0 LOW, 3 INFO"
+
+#### Scenario: project mode header does not include Source root field
+
+- **GIVEN** execution mode is `project`
+- **WHEN** the report header is read
+- **THEN** the header does NOT contain a `Source root:` field
+- **AND** the header DOES contain `Project root:` and `CLAUDE.md:` fields instead
 
 ---
 
@@ -189,6 +229,99 @@ non-blocking — it MUST NOT interrupt the standard onboarding flow.
 
 ---
 
+---
+
+### Requirement: project mode report MUST use project-specific check section labels
+
+*(Added in: 2026-03-03 by change "claude-folder-audit-project-mode")*
+
+The per-check sections in the report MUST use project-mode labels (P1–P5) to distinguish
+them from the global-mode check labels (Check 1–Check 5).
+
+#### Scenario: project mode report uses P1–P5 section headers
+
+- **GIVEN** execution mode is `project`
+- **AND** the skill has completed all checks
+- **WHEN** the report is read
+- **THEN** the per-check sections are labeled:
+  - `## Check P1 — CLAUDE.md Presence and Skills Registry`
+  - `## Check P2 — Global Skill Registrations Reachability`
+  - `## Check P3 — Local Skill Registrations Reachability`
+  - `## Check P4 — Orphaned Local Skills`
+  - `## Check P5 — Scope Tier Overlap`
+- **AND** no section uses the global-mode labels `Check 1` through `Check 5`
+
+#### Scenario: each project-mode check section appears even when it has no findings
+
+- **GIVEN** execution mode is `project`
+- **AND** Check Pn produces zero findings of any severity
+- **WHEN** the report is written
+- **THEN** the section for Check Pn still appears with the text "No findings"
+
+---
+
+### Requirement: project mode Findings Summary table MUST reference project-specific remediation actions
+
+*(Added in: 2026-03-03 by change "claude-folder-audit-project-mode")*
+
+In `project` mode, the Findings Summary table MUST be present and MUST reference
+project-specific remediation actions rather than global `install.sh` instructions.
+
+#### Scenario: Findings Summary table uses project-appropriate remediation hints
+
+- **GIVEN** execution mode is `project`
+- **AND** one or more HIGH or MEDIUM findings are present
+- **WHEN** the report's "## Findings Summary" table is read
+- **THEN** remediation hints in the table reference project-local actions for P3 and P4 findings
+- **AND** for P2 findings (global skill not deployed), the hint "Run install.sh from the claude-config repo" IS appropriate and MUST appear
+
+---
+
+### Requirement: project mode Recommended Next Steps MUST be project-context-aware
+
+*(Added in: 2026-03-03 by change "claude-folder-audit-project-mode")*
+
+In `project` mode, the "## Recommended Next Steps" section MUST provide actions
+relevant to fixing the project's Claude configuration, not the global runtime.
+
+#### Scenario: P1 HIGH finding — first recommended step is to fix .claude/CLAUDE.md
+
+- **GIVEN** execution mode is `project`
+- **AND** Check P1 produced a HIGH finding
+- **WHEN** the report's "## Recommended Next Steps" section is read
+- **THEN** the first item references: "Create or update .claude/CLAUDE.md — ensure it contains a ## Skills Registry section"
+
+#### Scenario: no HIGH or MEDIUM findings in project mode — healthy state confirmed
+
+- **GIVEN** execution mode is `project`
+- **AND** the report contains zero HIGH findings and zero MEDIUM findings
+- **WHEN** the report's "## Recommended Next Steps" section is read
+- **THEN** the section contains: "Project Claude configuration appears healthy — no required actions detected"
+
+---
+
+### Requirement: project mode report MUST NOT be committed to the project repository
+
+*(Added in: 2026-03-03 by change "claude-folder-audit-project-mode")*
+
+The report file `.claude/claude-folder-audit-report.md` is a runtime audit artifact.
+The skill MUST note in the report footer that this file should be excluded from git.
+
+#### Scenario: report footer includes a git-exclusion reminder
+
+- **GIVEN** execution mode is `project`
+- **AND** the report has been written to `.claude/claude-folder-audit-report.md`
+- **WHEN** the report's footer is read
+- **THEN** it includes a note: "This file is a runtime artifact. Add .claude/claude-folder-audit-report.md to .gitignore to prevent accidental commits."
+
+#### Scenario: skill does not modify .gitignore itself
+
+- **GIVEN** execution mode is `project`
+- **WHEN** the skill completes execution
+- **THEN** the skill does NOT modify `.gitignore` — it remains strictly read-only except for the report output
+
+---
+
 ## Rules
 
 - The report file MUST be overwritten (not appended) on every run
@@ -200,3 +333,6 @@ non-blocking — it MUST NOT interrupt the standard onboarding flow.
   because `claude-folder-audit` is a meta-system skill (deployed from `claude-config` itself, not a project)
 - The "System Audits" section header MUST be added to CLAUDE.md only if it does not already exist;
   if it exists, the new entry MUST be appended under it
+- In `project` mode, the report MUST be written to `<cwd>/.claude/claude-folder-audit-report.md` — never to `~/.claude/`
+- The report file path MUST always be shown to the user at the end of execution (expanded absolute path)
+- The `.claude/` directory is guaranteed to exist when project mode is active (mode detection precondition); the skill MUST NOT attempt to create it

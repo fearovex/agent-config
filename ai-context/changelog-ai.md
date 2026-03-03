@@ -4,6 +4,28 @@
 
 ---
 
+## [2026-03-03] — claude-folder-audit-project-mode archived
+
+**Type**: Archive
+**Agent**: Claude Sonnet 4.6 (sdd-verify + sdd-archive)
+**What was done**: SDD cycle for `claude-folder-audit-project-mode` completed and archived. Verification PASS WITH WARNINGS (0 critical, 1 warning — no automated tests, acknowledged constraint of this repo). Delta specs merged into two existing master specs: `folder-audit-execution` and `folder-audit-reporting`. CLOSURE.md created. Change folder moved to `openspec/changes/archive/2026-03-03-claude-folder-audit-project-mode/`.
+**Modified files**:
+- `skills/claude-folder-audit/SKILL.md` — extended with `project` execution mode: 3-branch mode detection, Checks P1–P5, mode-specific report path and report format
+- `openspec/specs/folder-audit-execution/spec.md` — MODIFIED mode-detection requirement (2→3 branch); ADDED requirements for Checks P1–P5 and the "all checks run despite P1 HIGH" invariant; Rules section extended
+- `openspec/specs/folder-audit-reporting/spec.md` — MODIFIED report-path requirement (mode-specific); MODIFIED header-metadata requirement; ADDED P1–P5 section label requirement, project-aware Findings Summary, project-aware Next Steps, git-exclusion footer; Rules section extended
+- `openspec/changes/archive/2026-03-03-claude-folder-audit-project-mode/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- Mode detection signal: `.claude/` directory at CWD (not `.claude/CLAUDE.md`) — CLAUDE.md absence is a P1 finding, not a mode-detection condition
+- Priority order: `global-config` (highest) → `project` → `global` (lowest) — full backwards compatibility preserved
+- P1 failure cascades to INFO-skip for P2+P3; P4+P5 still run against disk — "no early abort" invariant maintained
+- Report written to `<PROJECT_ROOT>/.claude/claude-folder-audit-report.md` in project mode (never to `~/.claude/`)
+- P5 (scope tier overlap) severity permanently capped at LOW
+- Substring match priority: `~/.claude/skills/` matched before `.claude/skills/` in P1 Skills Registry parsing
+**Notes**: Verify verdict: PASS WITH WARNINGS. The single warning (no automated tests) is an acknowledged repo-level constraint documented in design.md and not introduced by this change. Minor bookkeeping note: tasks.md header said "7/7" but had 8 task items — no functional impact.
+
+---
+
 ## [2026-03-03] — claude-folder-audit SDD cycle archived
 
 **Type**: Archive
