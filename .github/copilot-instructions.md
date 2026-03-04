@@ -232,7 +232,166 @@ If yes, guide them step by step:
 
 ---
 
-## Project Memory Layer
+## SDD Init Skill
+
+**Triggers**: any of the following phrases in Copilot Chat:
+- `initialize sdd`
+- `sdd init`
+- `setup sdd`
+- `bootstrap sdd`
+
+When any of these triggers is detected, execute the following procedure exactly. Do not ask for confirmation before starting — proceed step by step and report progress after each step.
+
+### Procedure
+
+**Step 1 — Detect project name**
+
+Ask the user: `What is the project name? (used in openspec/config.yaml)`
+
+Wait for the answer before continuing.
+
+**Step 2 — Detect existing structure**
+
+Check which of the following already exist:
+- `openspec/config.yaml`
+- `openspec/changes/archive/`
+- `docs/adr/README.md`
+- `ai-context/stack.md`
+- `.github/copilot-instructions.md`
+
+Report which are present and which are missing. Only create the missing ones in Steps 3–6.
+
+**Step 3 — Scaffold SDD directories**
+
+Create the following files (they create their parent directories implicitly):
+
+`openspec/config.yaml`:
+```yaml
+mode: openspec
+project: <project-name-from-step-1>
+```
+
+`openspec/changes/archive/.gitkeep`:
+```
+```
+
+`docs/adr/README.md`:
+```markdown
+# Architecture Decision Records
+
+| # | Title | Status | Date |
+|---|-------|--------|------|
+```
+
+**Step 4 — Generate ai-context/ memory layer**
+
+Scan the codebase and create the following files. Base content on what you actually find in the project — do not copy from this instructions file.
+
+`ai-context/stack.md`:
+```markdown
+# Stack — <project-name>
+
+> Last updated: <today's date>
+
+## Tech stack
+
+[inferred from package.json / pom.xml / requirements.txt / go.mod / etc.]
+
+## Directory structure
+
+[inferred from top-level project structure]
+```
+
+`ai-context/architecture.md`:
+```markdown
+# Architecture — <project-name>
+
+> Last updated: <today's date>
+
+## System design
+
+[inferred from codebase — describe main modules, data flow, key patterns]
+```
+
+`ai-context/conventions.md`:
+```markdown
+# Conventions — <project-name>
+
+> Last updated: <today's date>
+
+## Language
+
+[inferred — default to English if no evidence of other language]
+
+## Naming conventions
+
+[inferred from existing code files]
+```
+
+`ai-context/known-issues.md`:
+```markdown
+# Known Issues — <project-name>
+
+> Last updated: <today's date>
+
+[Leave empty if no issues are evident from the codebase. Add any TODO comments or obvious gaps found during scan.]
+```
+
+`ai-context/changelog-ai.md`:
+```markdown
+# AI Changelog — <project-name>
+
+## <today's date> — SDD initialization
+
+- Initialized SDD structure: openspec/, ai-context/, docs/adr/
+- Generated ai-context/ memory layer from codebase scan
+- Set up .github/copilot-instructions.md with SDD workflow
+```
+
+**Step 5 — Customize .github/copilot-instructions.md**
+
+If `.github/copilot-instructions.md` does NOT exist yet: create it by copying the full content of this file and then update the project-specific sections below.
+
+If it already exists: update only these sections based on what was found during the codebase scan:
+- `## Tech Stack` — replace with the actual stack detected in Step 4
+- `## Architecture` — update with what was found in Step 4, preserving the SDD architecture description
+- `## Conventions` — update with project-specific naming and style patterns found
+
+Do NOT modify: `## SDD Development Workflow`, `## Active SDD Coaching Instructions`, `## SDD Init Skill`, `## Working Principles`, or `## Bootstrapping Other Projects With Copilot`.
+
+**Step 6 — Summary**
+
+Print a summary table:
+
+```
+SDD initialization complete:
+
+  File                                   Status
+  ─────────────────────────────────────  ───────
+  openspec/config.yaml                   created
+  openspec/changes/archive/.gitkeep      created
+  docs/adr/README.md                     created
+  ai-context/stack.md                    created
+  ai-context/architecture.md             created
+  ai-context/conventions.md              created
+  ai-context/known-issues.md             created
+  ai-context/changelog-ai.md             created
+  .github/copilot-instructions.md        created / updated
+```
+
+(Mark files that already existed as `skipped` instead of `created`.)
+
+Then append:
+
+```
+Next step: review the generated ai-context/ files for accuracy, then commit:
+  git add openspec/ ai-context/ docs/adr/ .github/copilot-instructions.md
+  git commit -m "chore: initialize SDD structure"
+```
+
+---
+
+
 
 `ai-context/` is the project memory layer — read relevant files at session start, update after
 significant work.

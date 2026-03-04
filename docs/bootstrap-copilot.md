@@ -29,98 +29,37 @@ This single file gives Copilot:
 - The full SDD workflow (phases, artifacts, paths)
 - Active coaching instructions (it will guide you through SDD proactively)
 - The project memory layer structure (`ai-context/`)
+- **A built-in init skill** — see Step 2 below
 
 ---
 
-### Step 2 — Create the SDD directory structure
+### Step 2 — Run the SDD init skill
 
-In the target project, create the following directories and the config file:
+Open Copilot Chat in the target project and type exactly:
+
+```
+initialize sdd
+```
+
+Copilot will execute the full initialization automatically:
+1. Ask for the project name
+2. Detect what already exists
+3. Create `openspec/config.yaml`, `openspec/changes/archive/`, `docs/adr/README.md`
+4. Scan the codebase and generate all `ai-context/` files (`stack.md`, `architecture.md`, `conventions.md`, `known-issues.md`, `changelog-ai.md`)
+5. Customize the `## Tech Stack`, `## Architecture`, and `## Conventions` sections based on the actual project
+6. Print a summary of everything created
+
+> Other accepted trigger phrases: `sdd init`, `setup sdd`, `bootstrap sdd`
+
+---
+
+### Step 3 — Review and commit
+
+Review the generated files — especially `ai-context/stack.md` and `ai-context/conventions.md` — and correct any inaccuracies. Then commit:
 
 ```bash
-mkdir -p openspec/changes/archive
-mkdir -p ai-context
-mkdir -p docs/adr
-```
-
-Create `openspec/config.yaml` with this content (replace the project name):
-
-```yaml
-mode: openspec
-project: your-project-name
-```
-
-Create an empty `docs/adr/README.md`:
-
-```markdown
-# Architecture Decision Records
-
-| # | Title | Status | Date |
-|---|-------|--------|------|
-```
-
-At this point the project structure looks like:
-
-```
-your-project/
-├── .github/
-│   └── copilot-instructions.md   ← the SDD brain for Copilot
-├── openspec/
-│   ├── config.yaml
-│   └── changes/
-│       └── archive/
-├── ai-context/                   ← project memory layer (populated in Step 4)
-└── docs/
-    └── adr/
-        └── README.md
-```
-
----
-
-### Step 3 — Customize the instructions for this project
-
-Open the target project in VS Code and open Copilot Chat. Run this prompt:
-
-```
-Read the codebase and update the following sections in .github/copilot-instructions.md
-to reflect this project's actual stack and patterns:
-- ## Tech Stack
-- ## Architecture
-- ## Conventions
-
-Do not modify ## SDD Development Workflow, ## Active SDD Coaching Instructions,
-## Working Principles, or ## Bootstrapping Other Projects With Copilot.
-```
-
-Copilot will scan the project and rewrite only the project-specific sections, leaving the SDD machinery intact.
-
-Review the output before confirming — check that the tech stack table is accurate and the conventions match what the team actually uses.
-
----
-
-### Step 4 — Generate the project memory layer
-
-Run this prompt in Copilot Chat:
-
-```
-Read the project and create the following files in ai-context/,
-following the table structure described in the ## SDD Development Workflow section
-of .github/copilot-instructions.md:
-
-- ai-context/stack.md
-- ai-context/architecture.md
-- ai-context/conventions.md
-- ai-context/known-issues.md
-```
-
-These files serve as persistent context for every future Copilot session — Copilot reads them at session start so it doesn't need to re-scan the codebase each time.
-
----
-
-### Step 5 — Commit the setup
-
-```bash
-git add .github/copilot-instructions.md openspec/ ai-context/ docs/adr/
-git commit -m "chore: add SDD structure and Copilot instructions"
+git add openspec/ ai-context/ docs/adr/ .github/copilot-instructions.md
+git commit -m "chore: initialize SDD structure"
 ```
 
 **Setup complete.** The project is now SDD-ready with Copilot as the AI assistant.
@@ -251,6 +190,7 @@ explore (optional)
 
 | Situation | Prompt |
 |-----------|--------|
+| **Initialize SDD in a new project** | `initialize sdd` |
 | Start a change | `I want to implement X. Follow the SDD workflow.` |
 | Only propose | `Write a proposal for X — create openspec/changes/<name>/proposal.md` |
 | Only design | `Write a technical design for <name> — create openspec/changes/<name>/design.md` |
