@@ -4,6 +4,49 @@
 
 ---
 
+## [2026-03-04] — project-claude-organizer-cleanup-after-migrate (verify + archive)
+
+**Type**: SDD cycle closure
+**Agent**: Claude Sonnet 4.6 (sdd-verify + sdd-archive)
+**What was done**: Verified implementation against specs (PASS WITH WARNINGS — 1 warning: tagline blockquote at line 17 still reads "Never deletes or moves files" despite frontmatter and Rules section being updated). Archived change to `openspec/changes/archive/2026-03-04-project-claude-organizer-cleanup-after-migrate/`. Applied delta spec to master `openspec/specs/project-claude-organizer/spec.md`: modified source-file preservation invariant, appended 3 new requirements (cleanup prompt, deletion confirmation, report subsection).
+**Modified files**:
+- `openspec/specs/project-claude-organizer/spec.md` — modified 1 requirement, added 3 new requirements
+- `openspec/changes/archive/2026-03-04-project-claude-organizer-cleanup-after-migrate/` — archived
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- Skill tagline blockquote was identified as a WARNING (stale language not covered by the 12 tasks); does not block archiving
+- 12 scenarios in Spec Compliance Matrix all COMPLIANT — zero failing, zero untested, zero partial
+
+---
+
+## [2026-03-04] — project-claude-organizer-cleanup-after-migrate (apply + install)
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-apply all phases)
+**What was done**: Implemented all 12 tasks for project-claude-organizer-cleanup-after-migrate. Added 5 cleanup sub-steps to `skills/project-claude-organizer/SKILL.md` — one per eligible migration strategy (5.7.3-cleanup, 5.7.4-cleanup, 5.7.5-cleanup, 5.7.6-cleanup, 5.7.7-cleanup). Each cleanup sub-step checks for successful migration outcomes, presents WILL_DELETE/WILL_PRESERVE lists, prompts user for deletion confirmation, and records outcomes. Updated frontmatter description to reflect conditional deletion behavior. Added Rule 5 (new source-file deletion invariant). Extended Step 6 report with "Deleted from .claude/" subsection and made the source-preservation footer conditional. Updated Step 4 dry-run plan note to reflect new conditional source-file handling. Confirmed ADR 021 exists and is indexed. Deployed via install.sh.
+**Modified files**:
+- `skills/project-claude-organizer/SKILL.md` — 5 cleanup sub-steps added, Rule 5 added, frontmatter updated, Step 4 note updated, Step 6 report extended
+- `openspec/changes/project-claude-organizer-cleanup-after-migrate/tasks.md` — 12/12 tasks marked complete
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- delegate (commands/) and section-distribute (project.md/readme.md) strategies are permanently exempt from cleanup prompts
+- Deletion granularity is per-file (not directory removal) — preserves skipped/failed files
+- WILL_DELETE classification uses natural-language outcome labels: "copied to", "appended to", "scaffolded to"
+- Source-preservation footer in report is conditional: shown only when no deletions occurred
+
+---
+
+## [2026-03-04] — project-claude-organizer-smart-migration (Phase 5 + 6)
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-apply Phase 5+6)
+**What was done**: Extended project-claude-organizer skill with Legacy Directory Intelligence layer (Step 3b): 8-pattern recognition table (commands/, docs/, system/, plans/, requirements/, sops/, templates/, project.md/readme.md). Added Step 5.7 per-strategy apply handlers (delegate, section-distribute, copy, append, scaffold, user-choice). Extended Step 4 dry-run plan with Legacy migrations category. Extended Step 6 report with Legacy migrations subsection and updated summary line. commands/ uses advisory-only model that recommends /skill-create for qualifying workflow files. Deployed updated skill via install.sh.
+**Modified files**:
+- `skills/project-claude-organizer/SKILL.md` — extended with Step 3b Legacy Directory Intelligence, Step 5.7 apply handlers, Step 4 plan extension, Step 6 report extension
+- `ai-context/changelog-ai.md` — this entry
+
+---
+
 ## [2026-03-04] — project-claude-organizer-memory-layer archived
 
 **Type**: Feature

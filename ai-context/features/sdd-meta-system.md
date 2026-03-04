@@ -121,6 +121,15 @@ run. `memory-update` gains a Step 3b that appends session-acquired domain knowle
 `feature-domain-expert` skill serves as the authoring guide. `project-analyze` explicitly does NOT
 write to `ai-context/features/`.
 
+### 2026-03-04 — project-claude-organizer: post-migration cleanup with confirmed deletion
+
+**Decision**: After each applicable legacy migration category (`copy`, `append`, `scaffold`, `user-choice`) completes in Step 5.7, the skill offers to delete the successfully migrated source files via an explicit per-category yes/no prompt. `delegate` and `section-distribute` strategies are permanently exempt. Deletion is per-file (not directory), and only files with successful migration outcomes are eligible.
+> Added: 2026-03-04
+
+**Rationale**: The previous "never delete" invariant left `.claude/` structurally unchanged after migration, defeating the purpose of reorganization. Users had to manually remove source directories after the skill ran.
+
+**Impact**: ADR 021 documents this convention. Rule 5 was added to `project-claude-organizer/SKILL.md`. The source-file preservation invariant is now conditional (dual condition: successful migration AND explicit user confirmation). The skill tagline blockquote at line 17 was not updated in this cycle and remains stale — a future cleanup should address it.
+
 ---
 
 ## Known Gotchas
