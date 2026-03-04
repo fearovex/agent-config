@@ -119,6 +119,19 @@ For each selected target, apply the corresponding transformation prompt (see sub
 
 These transformation prompts are self-instructions executed by the agent using its own in-context LLM reasoning. No external API call, subprocess, or tool invocation is required to apply them — the agent reads the prompt and generates the output directly.
 
+#### Shared STRIP Preamble
+
+The following items MUST be stripped from ALL target outputs. Each transformation prompt below references this block — apply it in addition to any target-specific delta listed in that prompt.
+
+- All slash commands used as executable triggers (any `/<word>` pattern that is a Claude Code meta-tool or SDD phase command)
+- Task tool references and sub-agent delegation patterns (`"Task tool:"`, `"subagent_type:"`, `"Launch sub-agent"`, `"Sub-agent launch pattern"`)
+- install.sh and sync.sh references
+- Claude Code-specific identity statements ("I am an expert development assistant…")
+- The `## Skills Registry` section of `CLAUDE.md` (lines beginning with `~/.claude/skills/` or `.claude/skills/`)
+- Any section whose content is enclosed between `<!-- [auto-updated]` and `<!-- [/auto-updated] -->` comment markers in `ai-context/` files
+
+---
+
 #### Copilot transformation prompt
 
 Apply the following prompt to the source bundle to generate `.github/copilot-instructions.md`:
@@ -129,13 +142,10 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
 
 **Source bundle:** CLAUDE.md + any available ai-context/ files provided above.
 
-**STRIP the following entirely — do not include in output:**
+**STRIP:**
 
-- All slash commands used as executable triggers (e.g., `/sdd-ff`, `/project-audit`, any `/<word>` pattern)
-- Task tool references and sub-agent delegation patterns (`"Task tool:"`, `"subagent_type:"`, `"Launch sub-agent"`, `"Sub-agent launch pattern"`)
-- install.sh and sync.sh references
-- The full SKILL.md skills registry table (all `~/.claude/skills/...` file paths)
-- Claude Code-specific identity statements ("I am an expert development assistant with two roles…")
+Apply the Shared STRIP Preamble above, then additionally strip:
+
 - Plan Mode rules section (Claude Code-specific)
 
 **ADAPT — do NOT strip; rewrite for Copilot:**
@@ -205,15 +215,12 @@ You are transforming a Claude Code project configuration into a Google Gemini in
 
 **Source bundle:** CLAUDE.md + any available ai-context/ files provided above.
 
-**STRIP the following entirely — do not include in output:**
+**STRIP:**
 
-- All slash commands (any `/<word>` pattern that is a Claude Code meta-tool or SDD phase command)
-- Task tool references and sub-agent delegation patterns
+Apply the Shared STRIP Preamble above, then additionally strip:
+
 - SDD phase DAG diagram
-- install.sh and sync.sh references
-- The full SKILL.md skills registry table
 - openspec/ artifact paths and SDD change directory references
-- Claude Code-specific identity statements
 
 **ADAPT (do not strip wholesale):**
 
@@ -253,15 +260,12 @@ You are transforming a Claude Code project configuration into Cursor MDC rule fi
 
 **Source bundle:** CLAUDE.md + any available ai-context/ files provided above.
 
-**STRIP the following entirely from all output files — do not include in any .mdc file:**
+**STRIP the following from all output files:**
 
-- All slash commands (any `/<word>` pattern that is a Claude Code meta-tool or SDD phase command)
-- Task tool references and sub-agent delegation patterns
+Apply the Shared STRIP Preamble above, then additionally strip:
+
 - SDD phase DAG diagram
-- install.sh and sync.sh references
-- The full SKILL.md skills registry table
 - openspec/ artifact paths and SDD change directory references
-- Claude Code-specific identity statements
 
 **OUTPUT STRUCTURE — split into exactly three domain files:**
 
