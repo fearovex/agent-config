@@ -380,6 +380,9 @@ Each project has its memory layer in `ai-context/`:
 **Domain Knowledge:**
 - `~/.claude/skills/feature-domain-expert/SKILL.md` — authors and consumes feature-level domain knowledge files in `ai-context/features/`; reference guide for bounded-context business rules, invariants, integration points, and known gotchas
 
+### Design Principles
+- `~/.claude/skills/solid-ddd/SKILL.md` — SOLID principles and DDD tactical patterns (Entity, Value Object, Aggregate, Repository, Domain Service, Application Service, Domain Event); loaded unconditionally by sdd-apply for all non-documentation code changes
+
 **Tools / Platforms:**
 - `~/.claude/skills/claude-code-expert/SKILL.md` — CLAUDE.md configuration, custom skills, hooks, MCP servers, and advanced Claude Code workflows
 - `~/.claude/skills/excel-expert/SKILL.md` — creating, reading, and analyzing Excel files with ExcelJS, SheetJS (JS/TS) and openpyxl, pandas (Python)

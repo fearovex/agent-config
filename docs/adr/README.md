@@ -73,3 +73,4 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [019](019-project-claude-organizer-memory-layer-conventi.md) | Project Claude Organizer Memory Layer Convention — skip-on-destination-exists idempotency for documentation candidate copy operations | Proposed | 2026-03-04 |
 | [020](020-project-claude-organizer-smart-migration-patt.md) | Project Claude Organizer Smart Migration Pattern — Legacy Directory Intelligence layer with 8 known patterns and advisory delegation model | Proposed | 2026-03-04 |
 | [021](021-project-claude-organizer-cleanup-after-migrate-conv.md) | Project Claude Organizer Cleanup Convention — Confirmed-Deletion Post-Migration Pattern | Proposed | 2026-03-04 |
+| [022](022-solid-ddd-quality-enforcement-pattern.md) | Solid Ddd Quality Enforcement Pattern — unconditional solid-ddd preload and Quality Gate checklist in sdd-apply | Proposed | 2026-03-04 |
