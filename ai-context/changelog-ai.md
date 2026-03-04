@@ -4,6 +4,30 @@
 
 ---
 
+## [2026-03-04] — config-export-token-optimization (archive)
+
+**Type**: SDD cycle closure
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**What was done**: Archived change `config-export-token-optimization`. Synced delta specs to master specs: appended 2 new requirements + 4 new Rules entries to `openspec/specs/config-export-skill/spec.md`; appended 4 new requirements + 6 new Rules entries to `openspec/specs/config-export-targets/spec.md`. Change folder moved to `openspec/changes/archive/2026-03-04-config-export-token-optimization/`. verify-report.md had 5 [x] criteria with no critical blockers; 3 deferred criteria (output equivalence tests) pending next live `/config-export all` run.
+**Modified files**:
+- `openspec/specs/config-export-skill/spec.md` — added 2 requirements (Skills Registry skip, auto-updated section skip) + 4 filtering rules
+- `openspec/specs/config-export-targets/spec.md` — added 4 requirements (shared STRIP preamble, Skills Registry exclusion per target, auto-updated exclusion per target, output equivalence) + 6 rules
+- `openspec/changes/archive/2026-03-04-config-export-token-optimization/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- Line-count criterion (≥30 lines reduction) was not met — actual net reduction was 9 lines. The primary value delivered was DRY consolidation and two new skip instructions (Skills Registry and `[auto-updated]` blocks), not raw content removal.
+- Output-equivalence verification (criteria 5.2–5.4) deferred to next live `/config-export all` invocation; no structural change to transformation logic was made.
+
+---
+
+## [2026-03-04] — config-export-token-optimization (apply)
+
+**Type**: SDD apply
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**Change**: Refactored `skills/config-export/SKILL.md` to consolidate the three per-target STRIP lists into a single `#### Shared STRIP Preamble` sub-section; added skip instructions for the Skills Registry section and `[auto-updated]` blocks in ai-context/ files.
+
+---
+
 ## [2026-03-04] — solid-ddd-quality-enforcement (archive)
 
 **Type**: SDD cycle closure
