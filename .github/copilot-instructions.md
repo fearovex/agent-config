@@ -6,12 +6,12 @@
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Language | Markdown + YAML + Bash |
-| Framework | SDD meta-system (Specification-Driven Development) |
-| Artifact format | SKILL.md per skill directory |
-| Version control | Git |
+| Category        | Technology                                         |
+| --------------- | -------------------------------------------------- |
+| Language        | Markdown + YAML + Bash                             |
+| Framework       | SDD meta-system (Specification-Driven Development) |
+| Artifact format | SKILL.md per skill directory                       |
+| Version control | Git                                                |
 
 ### Project Structure
 
@@ -51,11 +51,11 @@ The repo (`claude-config/`) is the authoritative source. It is deployed to `~/.c
 Every skill is a directory with a single `SKILL.md` entry point. A `SKILL.md` must declare a
 `format:` field in its YAML frontmatter:
 
-| `format:` value | Required main section |
-|-----------------|----------------------|
-| `procedural` (default) | `## Process` |
-| `reference` | `## Patterns` or `## Examples` |
-| `anti-pattern` | `## Anti-patterns` |
+| `format:` value        | Required main section          |
+| ---------------------- | ------------------------------ |
+| `procedural` (default) | `## Process`                   |
+| `reference`            | `## Patterns` or `## Examples` |
+| `anti-pattern`         | `## Anti-patterns`             |
 
 All formats require `**Triggers**` and `## Rules`.
 
@@ -63,12 +63,12 @@ All formats require `**Triggers**` and `## Rules`.
 
 Skills communicate exclusively via file artifacts — never via in-memory state:
 
-| Artifact | Producer | Consumer |
-|----------|----------|----------|
-| `audit-report.md` | project-audit | project-fix |
-| `analysis-report.md` | project-analyze | project-audit, user |
-| `openspec/changes/*/tasks.md` | sdd-tasks | sdd-apply |
-| `ai-context/*.md` | memory-init, memory-update | all skills |
+| Artifact                      | Producer                   | Consumer            |
+| ----------------------------- | -------------------------- | ------------------- |
+| `audit-report.md`             | project-audit              | project-fix         |
+| `analysis-report.md`          | project-analyze            | project-audit, user |
+| `openspec/changes/*/tasks.md` | sdd-tasks                  | sdd-apply           |
+| `ai-context/*.md`             | memory-init, memory-update | all skills          |
 
 ### Key Architectural Decisions
 
@@ -87,15 +87,15 @@ Skills communicate exclusively via file artifacts — never via in-memory state:
 
 ### Naming
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Skill directories | kebab-case | `project-audit/`, `sdd-propose/` |
-| Skill entry point | UPPER | `SKILL.md` |
-| SDD phase skills | `sdd-[phase]` prefix | `sdd-propose`, `sdd-apply` |
-| Meta-tool skills | `project-[action]` prefix | `project-audit`, `project-fix` |
-| Tech skills | `[tech]-[version]` | `react-19`, `nextjs-15` |
-| SDD change names | kebab-case descriptive | `improve-project-audit` |
-| Archived changes | `YYYY-MM-DD-[name]` | `2026-02-23-add-project-fix` |
+| Element           | Convention                | Example                          |
+| ----------------- | ------------------------- | -------------------------------- |
+| Skill directories | kebab-case                | `project-audit/`, `sdd-propose/` |
+| Skill entry point | UPPER                     | `SKILL.md`                       |
+| SDD phase skills  | `sdd-[phase]` prefix      | `sdd-propose`, `sdd-apply`       |
+| Meta-tool skills  | `project-[action]` prefix | `project-audit`, `project-fix`   |
+| Tech skills       | `[tech]-[version]`        | `react-19`, `nextjs-15`          |
+| SDD change names  | kebab-case descriptive    | `improve-project-audit`          |
+| Archived changes  | `YYYY-MM-DD-[name]`       | `2026-02-23-add-project-fix`     |
 
 ### SKILL.md Structure
 
@@ -104,7 +104,7 @@ Skills communicate exclusively via file artifacts — never via in-memory state:
 name: skill-name
 description: >
   One-line description.
-format: procedural   # valid values: procedural | reference | anti-pattern
+format: procedural # valid values: procedural | reference | anti-pattern
 ---
 ```
 
@@ -172,16 +172,16 @@ explore (optional — for uncertain or investigative changes)
 
 ### Artifact storage
 
-| Phase | Artifact | Location |
-|-------|----------|----------|
-| propose | `proposal.md` | `openspec/changes/<name>/` |
-| propose (product) | `prd.md` | `openspec/changes/<name>/` |
-| spec | `specs/<domain>/spec.md` | `openspec/changes/<name>/` |
-| design | `design.md` | `openspec/changes/<name>/` |
-| design (arch decision) | `NNN-<slug>.md` + update `docs/adr/README.md` | `docs/adr/` |
-| tasks | `tasks.md` | `openspec/changes/<name>/` |
-| verify | `verify-report.md` | `openspec/changes/<name>/` |
-| archive | entire change folder renamed | `openspec/changes/archive/YYYY-MM-DD-<name>/` |
+| Phase                  | Artifact                                      | Location                                      |
+| ---------------------- | --------------------------------------------- | --------------------------------------------- |
+| propose                | `proposal.md`                                 | `openspec/changes/<name>/`                    |
+| propose (product)      | `prd.md`                                      | `openspec/changes/<name>/`                    |
+| spec                   | `specs/<domain>/spec.md`                      | `openspec/changes/<name>/`                    |
+| design                 | `design.md`                                   | `openspec/changes/<name>/`                    |
+| design (arch decision) | `NNN-<slug>.md` + update `docs/adr/README.md` | `docs/adr/`                                   |
+| tasks                  | `tasks.md`                                    | `openspec/changes/<name>/`                    |
+| verify                 | `verify-report.md`                            | `openspec/changes/<name>/`                    |
+| archive                | entire change folder renamed                  | `openspec/changes/archive/YYYY-MM-DD-<name>/` |
 
 ### Archive rule
 
@@ -191,14 +191,14 @@ Archive is irreversible. Always confirm that `verify-report.md` exists with at l
 
 Each project maintains a memory layer in `ai-context/`:
 
-| File | Content | When to update |
-|------|---------|----------------|
-| `stack.md` | Tech stack, versions, key tools | After adding/removing dependencies |
-| `architecture.md` | Architecture decisions and rationale | After significant design changes |
-| `conventions.md` | Code conventions, naming, team patterns | After establishing new conventions |
-| `known-issues.md` | Known bugs, gotchas, current limitations | Continuously |
-| `changelog-ai.md` | Log of AI-made changes | After each AI session |
-| `ai-context/features/*.md` | Feature-level domain knowledge per bounded context | After significant feature work |
+| File                       | Content                                            | When to update                     |
+| -------------------------- | -------------------------------------------------- | ---------------------------------- |
+| `stack.md`                 | Tech stack, versions, key tools                    | After adding/removing dependencies |
+| `architecture.md`          | Architecture decisions and rationale               | After significant design changes   |
+| `conventions.md`           | Code conventions, naming, team patterns            | After establishing new conventions |
+| `known-issues.md`          | Known bugs, gotchas, current limitations           | Continuously                       |
+| `changelog-ai.md`          | Log of AI-made changes                             | After each AI session              |
+| `ai-context/features/*.md` | Feature-level domain knowledge per bounded context | After significant feature work     |
 
 **Read relevant `ai-context/` files at the start of each session. Update them after completing significant work.**
 
@@ -232,20 +232,18 @@ If yes, guide them step by step:
 
 ---
 
-
-
 ## Project Memory Layer
 
 `ai-context/` is the project memory layer — read relevant files at session start, update after
 significant work.
 
-| File | Content |
-|------|---------|
-| `stack.md` | Tech stack, versions, key tools |
-| `architecture.md` | Architecture decisions and rationale |
-| `conventions.md` | Code conventions, naming, patterns |
-| `known-issues.md` | Known bugs, gotchas, limitations |
-| `changelog-ai.md` | Log of AI-made changes |
+| File                       | Content                                            |
+| -------------------------- | -------------------------------------------------- |
+| `stack.md`                 | Tech stack, versions, key tools                    |
+| `architecture.md`          | Architecture decisions and rationale               |
+| `conventions.md`           | Code conventions, naming, patterns                 |
+| `known-issues.md`          | Known bugs, gotchas, limitations                   |
+| `changelog-ai.md`          | Log of AI-made changes                             |
 | `ai-context/features/*.md` | Feature-level domain knowledge per bounded context |
 
 ## Known Issues & Gotchas
@@ -254,6 +252,7 @@ significant work.
 
 Shell scripts may emit `command not found` errors due to CRLF. `.gitattributes` forces LF for
 `.sh`, `.js`, `.md`. Fix on a new clone:
+
 ```bash
 sed -i 's/\r$//' sync.sh install.sh
 ```
@@ -276,11 +275,14 @@ changes will be overwritten.
 
 `project-analyze` writes `[auto-updated]` markers in `ai-context/` files. Other update skills are
 not aware of these markers and may overlap them. Risk is theoretical — not observed in practice.
+
 ---
 
 ## Bootstrapping Other Projects With Copilot (No Claude Code Required)
 
 This section explains how to set up the SDD workflow in **any new or existing project** using only GitHub Copilot in VS Code — no Claude Code needed.
+
+> Full step-by-step guide: [`docs/bootstrap-copilot.md`](../docs/bootstrap-copilot.md)
 
 ### Step 1 — Scaffold the SDD directories
 
@@ -299,6 +301,7 @@ docs/
 ```
 
 Minimal `openspec/config.yaml`:
+
 ```yaml
 mode: openspec
 project: <your-project-name>
