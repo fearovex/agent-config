@@ -235,6 +235,7 @@ If yes, guide them step by step:
 ## SDD Init Skill
 
 **Triggers**: any of the following phrases in Copilot Chat:
+
 - `initialize sdd`
 - `sdd init`
 - `setup sdd`
@@ -253,6 +254,7 @@ Wait for the answer before continuing.
 **Step 2 — Detect existing structure**
 
 Check which of the following already exist:
+
 - `openspec/config.yaml`
 - `openspec/changes/archive/`
 - `docs/adr/README.md`
@@ -266,21 +268,25 @@ Report which are present and which are missing. Only create the missing ones in 
 Create the following files (they create their parent directories implicitly):
 
 `openspec/config.yaml`:
+
 ```yaml
 mode: openspec
 project: <project-name-from-step-1>
 ```
 
 `openspec/changes/archive/.gitkeep`:
+
 ```
+
 ```
 
 `docs/adr/README.md`:
+
 ```markdown
 # Architecture Decision Records
 
-| # | Title | Status | Date |
-|---|-------|--------|------|
+| #   | Title | Status | Date |
+| --- | ----- | ------ | ---- |
 ```
 
 **Step 4 — Generate ai-context/ memory layer**
@@ -288,6 +294,7 @@ project: <project-name-from-step-1>
 Scan the codebase and create the following files. Base content on what you actually find in the project — do not copy from this instructions file.
 
 `ai-context/stack.md`:
+
 ```markdown
 # Stack — <project-name>
 
@@ -303,6 +310,7 @@ Scan the codebase and create the following files. Base content on what you actua
 ```
 
 `ai-context/architecture.md`:
+
 ```markdown
 # Architecture — <project-name>
 
@@ -314,6 +322,7 @@ Scan the codebase and create the following files. Base content on what you actua
 ```
 
 `ai-context/conventions.md`:
+
 ```markdown
 # Conventions — <project-name>
 
@@ -329,6 +338,7 @@ Scan the codebase and create the following files. Base content on what you actua
 ```
 
 `ai-context/known-issues.md`:
+
 ```markdown
 # Known Issues — <project-name>
 
@@ -338,6 +348,7 @@ Scan the codebase and create the following files. Base content on what you actua
 ```
 
 `ai-context/changelog-ai.md`:
+
 ```markdown
 # AI Changelog — <project-name>
 
@@ -353,6 +364,7 @@ Scan the codebase and create the following files. Base content on what you actua
 If `.github/copilot-instructions.md` does NOT exist yet: create it by copying the full content of this file and then update the project-specific sections below.
 
 If it already exists: update only these sections based on what was found during the codebase scan:
+
 - `## Tech Stack` — replace with the actual stack detected in Step 4
 - `## Architecture` — update with what was found in Step 4, preserving the SDD architecture description
 - `## Conventions` — update with project-specific naming and style patterns found
@@ -390,8 +402,6 @@ Next step: review the generated ai-context/ files for accuracy, then commit:
 ```
 
 ---
-
-
 
 `ai-context/` is the project memory layer — read relevant files at session start, update after
 significant work.

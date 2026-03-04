@@ -55,13 +55,13 @@ Continue; `CLAUDE.md` alone is sufficient.
 
 **Read and bundle source files in priority order:**
 
-| # | File | Required? | Behavior when absent |
-|---|------|----------|---------------------|
-| 1 | `CLAUDE.md` | Yes | Halt (see guard above) |
-| 2 | `ai-context/stack.md` | No | Skip; note "stack.md not available" in transformation context |
-| 3 | `ai-context/architecture.md` | No | Skip; note "architecture.md not available" in transformation context |
-| 4 | `ai-context/conventions.md` | No | Skip; note "conventions.md not available" in transformation context |
-| 5 | `ai-context/known-issues.md` | No | Skip silently if absent |
+| #   | File                         | Required? | Behavior when absent                                                 |
+| --- | ---------------------------- | --------- | -------------------------------------------------------------------- |
+| 1   | `CLAUDE.md`                  | Yes       | Halt (see guard above)                                               |
+| 2   | `ai-context/stack.md`        | No        | Skip; note "stack.md not available" in transformation context        |
+| 3   | `ai-context/architecture.md` | No        | Skip; note "architecture.md not available" in transformation context |
+| 4   | `ai-context/conventions.md`  | No        | Skip; note "conventions.md not available" in transformation context  |
+| 5   | `ai-context/known-issues.md` | No        | Skip silently if absent                                              |
 
 All present files are read into the in-context bundle before any transformation begins.
 
@@ -130,6 +130,7 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
 **Source bundle:** CLAUDE.md + any available ai-context/ files provided above.
 
 **STRIP the following entirely — do not include in output:**
+
 - All slash commands used as executable triggers (e.g., `/sdd-ff`, `/project-audit`, any `/<word>` pattern)
 - Task tool references and sub-agent delegation patterns (`"Task tool:"`, `"subagent_type:"`, `"Launch sub-agent"`, `"Sub-agent launch pattern"`)
 - install.sh and sync.sh references
@@ -145,6 +146,7 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
    - Do NOT include any slash command syntax — describe the phases as steps the developer initiates
 
 2. **SDD available commands table** → Replace with a `## Active SDD Coaching Instructions` section containing Copilot behavioral instructions:
+
    ```
    When a developer mentions implementing a new feature, change, or fix:
    - Proactively ask: "Would you like to follow the SDD workflow for this change?"
@@ -152,11 +154,13 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
    - Before starting apply, confirm that proposal.md, design.md, and tasks.md exist under openspec/changes/<change-name>/
    - Remind the developer to run verify after implementation and archive once confirmed
    ```
+
    Adapt the phrasing to be Copilot-idiomatic (imperative instructions telling Copilot how to behave).
 
 3. **Project memory layer (ai-context/)** → Retain the table and description verbatim; it applies directly to projects using Copilot too.
 
 **RETAIN and adapt:**
+
 - Tech stack (language, framework, key tools, versions)
 - Coding conventions (naming, style, patterns) — rephrase as direct instructions to the AI assistant in imperative voice
 - Architecture decisions and rationale
@@ -165,6 +169,7 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
 - openspec/ artifact paths and SDD change directory structure
 
 **FORMAT:**
+
 - Single flat Markdown file
 - UTF-8, no BOM
 - H2 sections (no YAML frontmatter)
@@ -201,6 +206,7 @@ You are transforming a Claude Code project configuration into a Google Gemini in
 **Source bundle:** CLAUDE.md + any available ai-context/ files provided above.
 
 **STRIP the following entirely — do not include in output:**
+
 - All slash commands (any `/<word>` pattern that is a Claude Code meta-tool or SDD phase command)
 - Task tool references and sub-agent delegation patterns
 - SDD phase DAG diagram
@@ -210,15 +216,18 @@ You are transforming a Claude Code project configuration into a Google Gemini in
 - Claude Code-specific identity statements
 
 **ADAPT (do not strip wholesale):**
+
 - SDD command tables: remove the command table verbatim; you MAY include an adapted prose paragraph describing a structured development workflow if it adds value for Gemini users — but no slash commands
 - Claude-specific section headers (e.g., "How I Execute Commands", "SDD Orchestrator — Delegation Pattern"): rename to Gemini equivalents or remove if the content has no value outside Claude Code
 
 **RETAIN:**
+
 - Tech stack, coding conventions, architecture decisions, known issues
 - Working principles and development philosophy
 - Project memory layer description (ai-context/ structure)
 
 **FORMAT:**
+
 - Single Markdown file at project root
 - UTF-8, no BOM
 - Structure similar to CLAUDE.md (not flat — preserve H2/H3 hierarchy where content warrants it)
@@ -245,6 +254,7 @@ You are transforming a Claude Code project configuration into Cursor MDC rule fi
 **Source bundle:** CLAUDE.md + any available ai-context/ files provided above.
 
 **STRIP the following entirely from all output files — do not include in any .mdc file:**
+
 - All slash commands (any `/<word>` pattern that is a Claude Code meta-tool or SDD phase command)
 - Task tool references and sub-agent delegation patterns
 - SDD phase DAG diagram
@@ -262,6 +272,7 @@ You are transforming a Claude Code project configuration into Cursor MDC rule fi
 If source material is insufficient to produce meaningful content for a domain (e.g., no architecture.md and no architecture content in CLAUDE.md), produce a minimal file with the frontmatter and a one-line note rather than omitting the file.
 
 **MDC FRONTMATTER CONTRACT — every file MUST have:**
+
 ```yaml
 ---
 description: "[one-line description of this rules domain]"
@@ -272,15 +283,16 @@ alwaysApply: [true|false]
 
 Domain defaults:
 
-| File | `globs` | `alwaysApply` |
-|------|---------|---------------|
-| `conventions.mdc` | `""` | `true` |
-| `stack.mdc` | `""` | `false` |
-| `architecture.mdc` | `""` | `false` |
+| File               | `globs` | `alwaysApply` |
+| ------------------ | ------- | ------------- |
+| `conventions.mdc`  | `""`    | `true`        |
+| `stack.mdc`        | `""`    | `false`       |
+| `architecture.mdc` | `""`    | `false`       |
 
 **CRITICAL — globs field:** Use `""` when no meaningful file-pattern can be inferred. NEVER guess at glob patterns. The `globs` field MUST be a string (not YAML null).
 
 **FORMAT per file:**
+
 - UTF-8, no BOM
 - YAML frontmatter block first (between `---` delimiters)
 - Generated-file banner immediately after the closing `---` of the frontmatter:
@@ -307,11 +319,13 @@ For each confirmed target:
    - Do NOT emit any output for directory creation unless it fails.
 
 2. Write the generated file to its canonical path, prepending the generated-file banner:
+
    ```
    <!-- GENERATED BY config-export — DO NOT EDIT MANUALLY -->
    <!-- Source: CLAUDE.md + ai-context/ | Generated: YYYY-MM-DD -->
    <!-- Re-generate: run /config-export in your Claude Code session -->
    ```
+
    Replace `YYYY-MM-DD` with today's date.
 
 3. Overwrite any existing file at the canonical path — this is idempotent behavior. No error is raised when overwriting.
