@@ -26,13 +26,23 @@ format: procedural
 ### Step 1 — Source collection
 
 **Guard — no CLAUDE.md:**
-If no `CLAUDE.md` exists in the current working directory, emit:
+If no `CLAUDE.md` exists in the current working directory, present the user with two paths:
 
 ```
-ERROR: No CLAUDE.md found in current directory — config-export requires at least a CLAUDE.md to export from
+No CLAUDE.md found in the current directory.
+
+Choose an option:
+  1. project-setup first  — run /project-setup to scaffold CLAUDE.md + ai-context/ in this project,
+                            then re-run /config-export (recommended for new projects with SDD workflow)
+  2. SDD bootstrap         — generate a minimal .github/copilot-instructions.md from the global SDD
+                            template only (no project-specific stack or conventions)
+
+Enter 1 or 2 (or press Enter to cancel):
 ```
 
-Stop here. No files are written.
+- If the user selects **1**: emit `Run /project-setup, then re-run /config-export` and stop. No files are written.
+- If the user selects **2**: proceed using the global SDD methodology as the sole source bundle (skip ai-context/ collection; note "No project CLAUDE.md — bootstrap mode" in transformation context).
+- If the user cancels: emit `Export cancelled — no files written` and stop.
 
 **Guard — no ai-context/:**
 If no `ai-context/` directory is present, emit:
@@ -120,13 +130,31 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
 **Source bundle:** CLAUDE.md + any available ai-context/ files provided above.
 
 **STRIP the following entirely — do not include in output:**
-- All slash commands (e.g., `/sdd-ff`, `/project-audit`, `/skill-create`, `/sdd-apply`, any `/<word>` pattern that is a Claude Code meta-tool or SDD phase command)
-- Task tool references and sub-agent delegation patterns (e.g., "Task tool:", "subagent_type:", "Launch sub-agent", "Sub-agent launch pattern")
-- SDD phase DAG diagram and all SDD orchestration machinery
+- All slash commands used as executable triggers (e.g., `/sdd-ff`, `/project-audit`, any `/<word>` pattern)
+- Task tool references and sub-agent delegation patterns (`"Task tool:"`, `"subagent_type:"`, `"Launch sub-agent"`, `"Sub-agent launch pattern"`)
 - install.sh and sync.sh references
-- The full SKILL.md skills registry table (all `~/.claude/skills/...` entries)
-- openspec/ artifact paths and SDD change directory references
+- The full SKILL.md skills registry table (all `~/.claude/skills/...` file paths)
 - Claude Code-specific identity statements ("I am an expert development assistant with two roles…")
+- Plan Mode rules section (Claude Code-specific)
+
+**ADAPT — do NOT strip; rewrite for Copilot:**
+
+1. **SDD phase DAG and workflow** → Convert to a `## SDD Development Workflow` section written in declarative prose:
+   - Describe each phase (explore, propose, spec, design, tasks, apply, verify, archive) and its artifacts
+   - Include the artifact storage paths (`openspec/changes/<change-name>/proposal.md`, `design.md`, `tasks.md`, `verify-report.md`, archive convention)
+   - Do NOT include any slash command syntax — describe the phases as steps the developer initiates
+
+2. **SDD available commands table** → Replace with a `## Active SDD Coaching Instructions` section containing Copilot behavioral instructions:
+   ```
+   When a developer mentions implementing a new feature, change, or fix:
+   - Proactively ask: "Would you like to follow the SDD workflow for this change?"
+   - If yes, guide them step by step: propose → (spec + design in parallel) → tasks → apply → verify → archive
+   - Before starting apply, confirm that proposal.md, design.md, and tasks.md exist under openspec/changes/<change-name>/
+   - Remind the developer to run verify after implementation and archive once confirmed
+   ```
+   Adapt the phrasing to be Copilot-idiomatic (imperative instructions telling Copilot how to behave).
+
+3. **Project memory layer (ai-context/)** → Retain the table and description verbatim; it applies directly to projects using Copilot too.
 
 **RETAIN and adapt:**
 - Tech stack (language, framework, key tools, versions)
@@ -134,12 +162,22 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
 - Architecture decisions and rationale
 - Known issues and gotchas relevant to a developer working in the project
 - Key working principles (clean code, no over-engineering, tests as first-class citizens, etc.)
+- openspec/ artifact paths and SDD change directory structure
 
 **FORMAT:**
 - Single flat Markdown file
 - UTF-8, no BOM
 - H2 sections (no YAML frontmatter)
 - Start with a top-level heading: `# Project Instructions`
+- Required H2 sections in this order:
+  1. `## Tech Stack` (if stack data available)
+  2. `## Architecture` (if architecture data available)
+  3. `## Conventions`
+  4. `## SDD Development Workflow` ← always present, even in bootstrap mode
+  5. `## Active SDD Coaching Instructions` ← always present
+  6. `## Working Principles`
+  7. `## Known Issues` (if known-issues.md available)
+  8. `## Source Notes` (only if any source file was absent)
 - Begin with the generated-file banner (verbatim, before the H1):
   ```
   <!-- GENERATED BY config-export — DO NOT EDIT MANUALLY -->
@@ -147,7 +185,7 @@ You are transforming a Claude Code project configuration into a GitHub Copilot i
   <!-- Re-generate: run /config-export in your Claude Code session -->
   ```
   Replace `YYYY-MM-DD` with today's date.
-- If a source file was not available, note it at the end under `## Source Notes` (e.g., "stack.md not available — stack section omitted")
+- In bootstrap mode (no project CLAUDE.md), the `## SDD Development Workflow` and `## Active SDD Coaching Instructions` sections MUST still be fully generated from the global SDD methodology; all project-specific sections are omitted and noted under `## Source Notes`.
 - Output path: `.github/copilot-instructions.md`
 
 ---
@@ -308,7 +346,10 @@ Exported files are snapshots. Re-run /config-export after significant changes to
 
 ## Rules
 
-- The skill MUST halt with an ERROR if no `CLAUDE.md` is found; no files are written in that case
+- If no `CLAUDE.md` is found in CWD, the skill MUST present the two-path menu (project-setup or bootstrap) before any file write; the hard ERROR path is NOT the default
+- Bootstrap mode (option 2) MUST produce a valid Copilot instructions file containing the full SDD workflow and coaching instructions even when no project CLAUDE.md exists
+- The Copilot transformation MUST NOT strip the SDD phase workflow or artifact paths — it MUST adapt them to prose and Copilot coaching instructions
+- The `## SDD Development Workflow` and `## Active SDD Coaching Instructions` sections MUST always be present in the Copilot output (whether from project mode or bootstrap mode)
 - Dry-run preview MUST precede any file write — there is no flag to skip dry-run
 - Overwrite warnings MUST appear in the dry-run step (before user confirmation), not after
 - The skill MUST NOT modify `CLAUDE.md`, any `ai-context/` file, or any `openspec/` artifact — read-only with respect to all source files
@@ -320,5 +361,6 @@ Exported files are snapshots. Re-run /config-export after significant changes to
 - Copilot output MUST be a single file at `.github/copilot-instructions.md` — no splitting
 - Gemini output MUST be a single file at `GEMINI.md` at the project root — no subdirectories
 - The `globs` field in Cursor MDC files MUST use `""` when no meaningful pattern can be inferred — never guess
-- All content in generated files MUST be free of Claude Code-specific syntax: no slash commands, no Task tool invocations, no sub-agent patterns
-- Content stripping rules apply to ALL three export targets equally — no target receives a verbatim copy of `CLAUDE.md`
+- All content in generated files MUST be free of Claude Code-specific execution syntax: no Task tool invocations, no sub-agent patterns, no `~/.claude/skills/` file paths
+- Copilot MUST adapt SDD content (workflow, phases, artifacts) — stripping rules apply only to execution-layer Claude Code syntax; SDD methodology and openspec/ paths are RETAINED and adapted for all targets
+- No target receives a verbatim copy of `CLAUDE.md`
