@@ -4,6 +4,21 @@
 
 ---
 
+## [2026-03-04] — solid-ddd-quality-enforcement (archive)
+
+**Type**: SDD cycle closure
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**What was done**: Archived change `solid-ddd-quality-enforcement`. Synced delta specs to master specs: appended 3 new requirements + modified 1 requirement in `openspec/specs/sdd-apply/spec.md`; created new master spec `openspec/specs/solid-ddd-skill/spec.md` (no prior master existed). Change folder moved to `openspec/changes/archive/2026-03-04-solid-ddd-quality-enforcement/`. No verify-report.md was created; user confirmed archiving without it.
+**Modified files**:
+- `openspec/specs/sdd-apply/spec.md` — modified backward-compatibility requirement; added solid-ddd preload, Quality Gate, and tech-skills-as-acceptance-criteria requirements
+- `openspec/specs/solid-ddd-skill/spec.md` — created (new master spec for solid-ddd skill)
+- `openspec/changes/archive/2026-03-04-solid-ddd-quality-enforcement/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- No verify-report.md — user confirmed proceeding without it; archive rules permit this (non-blocking)
+
+---
+
 ## 2026-03-04 — solid-ddd-quality-enforcement
 
 ### Summary

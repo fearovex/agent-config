@@ -1,134 +1,14 @@
-# Spec: sdd-apply — Technology Skill Auto-Activation
+# Delta Spec: sdd-apply-quality-gate
 
-*Created: 2026-03-03 by change "tech-skill-auto-activation"*
+Change: solid-ddd-quality-enforcement
+Date: 2026-03-04
+Base: openspec/specs/sdd-apply/spec.md
 
-## Requirements
-
-### Requirement: Step 0 — Technology Skill Preload
-
-`sdd-apply` MUST execute a technology skill preload step (Step 0) before reading the change context (Step 1). Step 0 MUST be non-blocking: its failure or partial execution MUST NOT change the overall apply `status` to `blocked` or `failed`.
-
-#### Scenario: Stack detected from ai-context/stack.md — matching skills exist
-
-- **GIVEN** `ai-context/stack.md` exists and contains the keyword `"react"`
-- **AND** `~/.claude/skills/react-19/SKILL.md` exists on disk
-- **WHEN** `sdd-apply` reaches Step 0
-- **THEN** it reads the contents of `~/.claude/skills/react-19/SKILL.md`
-- **AND** it adds those contents as implementation context for subsequent steps
-- **AND** it reports: `"Tech skill loaded: react-19 (source: ai-context/stack.md)"`
-
-#### Scenario: Stack detected — multiple matching skills
-
-- **GIVEN** `ai-context/stack.md` contains keywords `"typescript"`, `"react"`, and `"playwright"`
-- **AND** all three corresponding skill files exist on disk
-- **WHEN** `sdd-apply` reaches Step 0
-- **THEN** it loads all three skills: `typescript`, `react-19`, `playwright`
-- **AND** it reports one detection line per skill loaded
-
-#### Scenario: Detected technology skill absent from disk
-
-- **GIVEN** `ai-context/stack.md` contains `"django"`
-- **AND** `~/.claude/skills/django-drf/SKILL.md` does NOT exist on disk
-- **WHEN** `sdd-apply` reaches Step 0
-- **THEN** the missing skill is silently skipped
-- **AND** no `blocked` or `failed` status is produced
-- **AND** apply proceeds normally with Step 1
-
-#### Scenario: ai-context/stack.md absent
-
-- **GIVEN** the project has no `ai-context/stack.md` file
-- **WHEN** `sdd-apply` reaches Step 0
-- **THEN** Step 0 is skipped with an INFO-level note: `"Tech skill preload: skipped (ai-context/stack.md not found)"`
-- **AND** apply continues normally with Step 1
-
-#### Scenario: Documentation-only change (scope guard)
-
-- **GIVEN** the design.md file change matrix contains ONLY `.md` and `.yaml` file extensions (no source code files)
-- **WHEN** `sdd-apply` reaches Step 0
-- **THEN** Step 0 is skipped with note: `"Tech skill preload: skipped (documentation-only change)"`
-- **AND** apply continues normally with Step 1
-
-#### Scenario: openspec/config.yaml stack section used as secondary source
-
-- **GIVEN** `ai-context/stack.md` is absent
-- **AND** `openspec/config.yaml` contains a `project.stack` section with `language: "typescript"`
-- **WHEN** `sdd-apply` reaches Step 0
-- **THEN** it reads the `project.stack` section from `openspec/config.yaml`
-- **AND** it applies keyword matching against the Stack-to-Skill Mapping Table
-- **AND** it reports: `"Tech skill loaded: typescript (source: openspec/config.yaml)"`
-
----
-
-### Requirement: Stack-to-Skill Mapping Table
-
-`sdd-apply` MUST contain an exhaustive Stack-to-Skill Mapping Table that maps technology keywords to their corresponding skill paths. The table MUST cover all technology skills in the global catalog.
-
-#### Scenario: Complete mapping coverage
-
-- **GIVEN** the Stack-to-Skill Mapping Table is embedded in `sdd-apply/SKILL.md`
-- **WHEN** a developer inspects the table
-- **THEN** every technology skill in the CLAUDE.md Skills Registry is represented by at least one keyword row
-- **AND** the mapping is unambiguous: each keyword maps to exactly one skill path
-
-#### Scenario: Keyword matching is case-insensitive
-
-- **GIVEN** `ai-context/stack.md` contains `"TypeScript"` (capital T)
-- **AND** the mapping table has keyword `"typescript"` → `typescript/SKILL.md`
-- **WHEN** Step 0 runs the matching
-- **THEN** it matches `"TypeScript"` to `typescript` (case-insensitive comparison)
-- **AND** `typescript` skill is loaded
-
----
-
-### Requirement: Detection Report
-
-`sdd-apply` MUST produce a detection report in its Step 0 output. The report MUST list every skill that was loaded or explain why preload was skipped.
-
-#### Scenario: Normal detection report
-
-- **GIVEN** Step 0 loaded two skills: `typescript` and `react-19`
-- **WHEN** `sdd-apply` produces its output
-- **THEN** the output includes:
-  ```
-  Tech skill preload:
-    - typescript loaded (source: ai-context/stack.md)
-    - react-19 loaded (source: ai-context/stack.md)
-  ```
-
-#### Scenario: Skipped skills appear in report
-
-- **GIVEN** Step 0 detected `"python"` in stack.md
-- **AND** `~/.claude/skills/pytest/SKILL.md` does not exist
-- **WHEN** Step 0 produces the detection report
-- **THEN** the report notes: `"pytest: skipped (file not found)"`
-
----
-
-### Requirement: Backward compatibility with existing Code Standards section *(modified in: 2026-03-04 by change "solid-ddd-quality-enforcement")*
-
-The existing `## Code standards` or `## Code Standards` section MUST be replaced (not supplemented) by the new Quality Gate section. The reference to "I load technology skills if applicable" MUST remain, forwarding to Step 0 as previously required.
-
-*(Before: the Code Standards section contained vague directives with no actionable checklist — "follow conventions", "no over-engineering" — and instructed sub-agents to load technology skills but provided no enforcement mechanism for their patterns.)*
-
-#### Scenario: old Code Standards section is fully replaced
-
-- **GIVEN** the updated `sdd-apply/SKILL.md`
-- **WHEN** a developer searches for the old vague directives ("follow conventions", "no over-engineering" as standalone instructions)
-- **THEN** those phrases do NOT appear as the sole content of a quality criterion
-- **AND** they are either absent or appear only as context within a more specific verifiable criterion
-
-#### Scenario: Quality Gate section references Step 0 for skill loading
-
-- **GIVEN** the updated Quality Gate section
-- **WHEN** an implementer reads it
-- **THEN** it references Step 0 as the mechanism by which technology skills and solid-ddd are loaded
-- **AND** it does NOT re-list the loading logic inline
+## ADDED — New requirements
 
 ---
 
 ### Requirement: solid-ddd unconditional preload for all non-documentation code changes
-
-*(Added in: 2026-03-04 by change "solid-ddd-quality-enforcement")*
 
 `sdd-apply` MUST load `~/.claude/skills/solid-ddd/SKILL.md` during Step 0 for every non-documentation code change, regardless of the project's technology stack. The scope guard (documentation-only exclusion) that already gates tech skill preloads MUST also gate the `solid-ddd` preload — when the scope guard skips tech skill preloads, it MUST also skip `solid-ddd` preload. For all other changes, `solid-ddd` is always loaded alongside any matched framework skills.
 
@@ -177,8 +57,6 @@ The existing `## Code standards` or `## Code Standards` section MUST be replaced
 ---
 
 ### Requirement: sdd-apply enforces a structured Quality Gate before task completion
-
-*(Added in: 2026-03-04 by change "solid-ddd-quality-enforcement")*
 
 `sdd-apply` MUST replace the vague "Code Standards" or "Code standards" section with a structured Quality Gate. The Quality Gate MUST contain a numbered checklist of at least 5 independently verifiable criteria. A sub-agent executing a code task MUST evaluate each criterion before marking the task `[x]` complete.
 
@@ -248,8 +126,6 @@ The existing `## Code standards` or `## Code Standards` section MUST be replaced
 
 ### Requirement: loaded technology skills and solid-ddd are treated as acceptance criteria, not reference
 
-*(Added in: 2026-03-04 by change "solid-ddd-quality-enforcement")*
-
 When `sdd-apply` loads technology skills and/or `solid-ddd` in Step 0, the sub-agent MUST treat the patterns in those skills as acceptance criteria to be checked before task completion — not as contextual reference material to be optionally consulted.
 
 #### Scenario: tech skill pattern used as acceptance criterion
@@ -270,9 +146,31 @@ When `sdd-apply` loads technology skills and/or `solid-ddd` in Step 0, the sub-a
 
 ---
 
-## Rules
+## MODIFIED — Modified requirements
 
-*(Added in: 2026-03-04 by change "solid-ddd-quality-enforcement")*
+### Requirement: Backward compatibility with existing Code Standards section *(modified)*
+
+The existing `## Code standards` or `## Code Standards` section MUST be replaced (not supplemented) by the new Quality Gate section. The reference to "I load technology skills if applicable" MUST remain, forwarding to Step 0 as previously required.
+
+*(Before: the Code Standards section contained vague directives with no actionable checklist — "follow conventions", "no over-engineering" — and instructed sub-agents to load technology skills but provided no enforcement mechanism for their patterns.)*
+
+#### Scenario: old Code Standards section is fully replaced
+
+- **GIVEN** the updated `sdd-apply/SKILL.md`
+- **WHEN** a developer searches for the old vague directives ("follow conventions", "no over-engineering" as standalone instructions)
+- **THEN** those phrases do NOT appear as the sole content of a quality criterion
+- **AND** they are either absent or appear only as context within a more specific verifiable criterion
+
+#### Scenario: Quality Gate section references Step 0 for skill loading
+
+- **GIVEN** the updated Quality Gate section
+- **WHEN** an implementer reads it
+- **THEN** it references Step 0 as the mechanism by which technology skills and solid-ddd are loaded
+- **AND** it does NOT re-list the loading logic inline
+
+---
+
+## Rules
 
 - The Quality Gate checklist MUST use a numbered list format (not bullet points) so items can be referenced by number in QUALITY_VIOLATION notes
 - Each Quality Gate criterion MUST include a "what to look for" signal or heuristic — vague criteria are non-conforming
