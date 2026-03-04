@@ -4,6 +4,70 @@
 
 ---
 
+## [2026-03-04] — project-claude-organizer-memory-layer archived
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**What was done**: Archived the `project-claude-organizer-memory-layer` SDD cycle. Delta spec for `project-claude-organizer` domain promoted to new master spec at `openspec/specs/project-claude-organizer/spec.md` (no prior master spec existed — delta became full spec). Change folder moved to `openspec/changes/archive/2026-03-04-project-claude-organizer-memory-layer/`. Verification was PASS with no critical issues and no warnings.
+**Modified files**:
+- `openspec/specs/project-claude-organizer/spec.md` — created (new master spec from delta)
+- `openspec/changes/archive/2026-03-04-project-claude-organizer-memory-layer/` — archive folder created
+- `openspec/changes/archive/2026-03-04-project-claude-organizer-memory-layer/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- DOCUMENTATION_CANDIDATES classification (Signal 1: filename stem match, Signal 2: heading presence) is now a permanent spec in openspec/specs/project-claude-organizer/
+- Copy-only invariant and source preservation are now canonical requirements in the master spec
+
+---
+
+## [2026-03-04] — project-claude-organizer-memory-layer applied
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-apply Phase 5)
+**What was done**: Extended project-claude-organizer skill to detect .md documentation files inside .claude/ that belong in ai-context/ (DOCUMENTATION_CANDIDATES bucket). Added fourth plan category in dry-run display, copy-only apply step (Step 5.4), and Documentation copied to ai-context/ report section. Updated architecture.md artifact table entry for claude-organizer-report.md.
+**Modified files**:
+- `skills/project-claude-organizer/SKILL.md` — extended (Phases 1–4: classification, dry-run, apply, report)
+- `ai-context/architecture.md` — updated claude-organizer-report.md artifact table entry
+- `openspec/changes/project-claude-organizer-memory-layer/tasks.md` — all 8 tasks marked complete
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- DOCUMENTATION_CANDIDATES bucket uses closed KNOWN_AI_CONTEXT_TARGETS list plus heading-pattern fallback for broader detection
+- Copy-only semantics (source always preserved) enforced as invariant in Step 5.4
+- No-op condition guard in Step 4 updated to require DOCUMENTATION_CANDIDATES is also empty
+
+---
+
+## [2026-03-04] — project-claude-folder-organizer archived
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**What was done**: Archived the `project-claude-folder-organizer` SDD cycle. Delta specs for `folder-organizer-execution` and `folder-organizer-reporting` promoted to master specs in `openspec/specs/`. Change folder moved to `openspec/changes/archive/2026-03-04-project-claude-folder-organizer/`. Verification was PASS WITH WARNINGS (0 critical — 2 warnings: manual integration tests not executed, install.sh execution not confirmed). CLOSURE.md created.
+**Modified files**:
+- `openspec/specs/folder-organizer-execution/spec.md` — created (new master spec)
+- `openspec/specs/folder-organizer-reporting/spec.md` — created (new master spec)
+- `openspec/changes/archive/2026-03-04-project-claude-folder-organizer/` — change folder archived here
+- `openspec/changes/archive/2026-03-04-project-claude-folder-organizer/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- No master spec conflicts — both delta specs were entirely new domains, copied directly as initial master specs
+- Unresolved warnings at archive: integration tests and install.sh confirmation are pending manual steps
+
+## [2026-03-04] — project-claude-folder-organizer applied
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-ff + sdd-apply)
+**What was done**: Added `project-claude-organizer` skill (procedural meta-tool) that reads project `.claude/` folder, compares against canonical SDD structure, and applies additive reorganization after user confirmation. Registered in CLAUDE.md Available Commands, dispatch table, and Skills Registry. Added `claude-organizer-report.md` row to architecture.md artifact table.
+**Modified files**:
+- `skills/project-claude-organizer/SKILL.md` — created; procedural meta-tool with 6-step process (resolve paths, enumerate observed items, compare against canonical expected set, build and present plan / dry-run, apply plan, write report); includes canonical expected item set inline, Windows path resolution chain, three-category plan format, and report structure
+- `CLAUDE.md` — `/project-claude-organizer` row added to Available Commands table, dispatch table, and Skills Registry (System Audits section)
+- `ai-context/architecture.md` — `claude-organizer-report.md` artifact row added to communication table (Producer: project-claude-organizer; Consumer: humans / operators)
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- Apply step is strictly additive (mkdir + write stub only — no delete, move, or overwrite) — preserves existing user content unconditionally
+- Skill reads live `.claude/` folder state, NOT `audit-report.md` — decoupled from audit cycle
+- Target is always `PROJECT_ROOT/.claude/` — explicitly never `~/.claude/`
+- User confirmation gate is mandatory and MUST NOT be skipped
+
 ## [2026-03-03] — enhance-claude-folder-audit archived
 
 **Type**: Enhancement
