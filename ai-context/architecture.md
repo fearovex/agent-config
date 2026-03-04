@@ -1,6 +1,6 @@
 # Architecture — claude-config
 
-> Last updated: 2026-02-23
+> Last updated: 2026-03-03
 
 ## System role
 
@@ -105,6 +105,7 @@ Skills that need to pass state to each other use **file artifacts**:
 | `~/.claude/claude-folder-audit-report.md` | claude-folder-audit (runtime artifact, never committed) | humans / operators | `~/.claude/` — generated on each `/claude-folder-audit` invocation; overwritten on re-run; contains findings with HIGH/MEDIUM/LOW/INFO severity; includes Findings Summary table, per-check detail sections, and Recommended Next Steps |
 | `docs/adr/` (D12 — ADR Coverage) | N/A (human-maintained) | project-audit (D12) | `docs/adr/` — informational audit dimension; no score impact. Checks `README.md` existence (HIGH finding if absent) and each `docs/adr/NNN-*.md` for a `## Status` section (MEDIUM finding per ADR missing Status). Activated only when CLAUDE.md references `docs/adr/`; skipped with "N/A" when no reference found. Findings placed in `required_actions` and are actionable by `/project-fix`. |
 | `openspec/specs/` (D13 — Spec Coverage) | sdd-spec | project-audit (D13) | `openspec/specs/` — informational audit dimension; no score impact. Activated when `openspec/specs/` exists and is non-empty. Checks each domain directory for a `spec.md` (MEDIUM finding per missing file) and scans referenced paths in each spec for existence (INFO finding per stale path, added to `violations[]` only). Skipped with "N/A" when directory is absent or empty. Findings placed in `required_actions` and are actionable by `/project-fix`. |
+| `ai-context/features/*.md` | `memory-init` (scaffold on first run) / `memory-update` (session updates) / human authors | `sdd-propose` (Step 0, optional), `sdd-spec` (Step 0, optional) | `ai-context/features/` in project | `project-analyze` does NOT write to `ai-context/features/`; `_template.md` is never loaded by SDD phases |
 
 ## Key architectural decisions
 
@@ -117,40 +118,72 @@ Skills that need to pass state to each other use **file artifacts**:
 
 6. **Two-tier skill placement model** (added 2026-03-02, change: skill-scope-global-vs-project) — Skills have two placement tiers: global (`~/.claude/skills/`) and project-local (`.claude/skills/`). When `/skill-add` or `/skill-creator` is used inside a project (not `claude-config`), the default placement is project-local — the skill file is copied into the repo and versioned alongside project source code. Global placement remains available as an explicit override. `project-fix` treats `move-to-global` as informational only (no automated file moves). Project-local skills MUST be committed to the repo; no `.gitignore` rule should exclude `.claude/skills/`. The CLAUDE.md Skills Registry uses `.claude/skills/<name>/SKILL.md` for local copies and `~/.claude/skills/<name>/SKILL.md` for global references — both formats can coexist.
 
-<!-- [auto-updated]: structure-mapping — last run: 2026-03-01 -->
+## claude-folder-audit: Check Inventory (project mode)
+
+Project mode runs **8 checks** (P1–P8). Each check is listed below with its sub-phases and severity caps.
+
+| Check | Name | Sub-phases | Max severity |
+|-------|------|-----------|-------------|
+| P1 | CLAUDE.md presence and content quality | A: file presence; B: openspec/config.yaml; C: section headings, line count, SDD commands, Skills Registry paths | MEDIUM (Phase C caps at MEDIUM) |
+| P2 | Global skills reachability and content quality | A: existence at ~/.claude/skills/; B: reachability; C: SKILL.md frontmatter, format: field, section contract, body length, TODO marker | MEDIUM |
+| P3 | Local skills reachability and content quality | A: existence in .claude/skills/; B: reachability; C: SKILL.md frontmatter, format: field, section contract, body length, TODO marker | MEDIUM |
+| P4 | Orphaned global skills | Detects skills present in ~/.claude/skills/ but not referenced in CLAUDE.md | MEDIUM |
+| P5 | Scope tier overlap | Detects skills registered in both global and local tiers simultaneously | HIGH |
+| P6 | Memory layer (ai-context/) | Presence of ai-context/ directory; presence of each of the five required files (stack.md, architecture.md, conventions.md, known-issues.md, changelog-ai.md); line count per file | MEDIUM |
+| P7 | Feature domain knowledge layer (ai-context/features/) | Presence of ai-context/features/; non-template file count; section headings per domain file (Domain Overview, Business Rules and Invariants, Data Model Summary, Integration Points, Decision Log, Known Gotchas); line count per file | LOW (severity cap — never above LOW) |
+| P8 | .claude/ folder inventory | Unexpected items directly under .claude/ vs. expected set; empty hook files in hooks/ | MEDIUM |
+
+**Phase C content quality sub-checks (P1-C, P2-C, P3-C):**
+- P1-Phase C: Reads CLAUDE.md and validates mandatory section headings (`## Tech Stack`, `## Architecture`, `## Unbreakable Rules`, `## Plan Mode Rules`, `## Skills Registry`); line count thresholds (MEDIUM if <30 lines, LOW if 30–50 lines); SDD command presence (`/sdd-ff` or `/sdd-new`); Skills Registry path entries.
+- P2-Phase C and P3-Phase C: Validates SKILL.md frontmatter presence (leading `---` block); extracts `format:` value (LOW if absent or unrecognized, defaults to procedural); runs section contract per format type (procedural: `**Triggers**`/`## Triggers` + `## Process`/`### Step N` + `## Rules`; reference: `**Triggers**`/`## Triggers` + `## Patterns`/`## Examples` + `## Rules`; anti-pattern: `**Triggers**`/`## Triggers` + `## Anti-patterns` + `## Rules`); body line count (LOW if <30); TODO marker detection (INFO).
+- P4 orphaned skills are explicitly excluded from Phase C content sub-checks.
+
+**Section detection rule (uniform across P1-C, P2-C, P3-C, P7):** A section is present when at least one line STARTS with `## <section-name>`. Lines inside fenced code blocks are not exempt from this rule. Bold-trigger pattern (`**Triggers**`) is also a valid match for the Triggers section specifically.
+
+**ADR reference:** P7 is the V2 audit integration deferred in ADR-015 (feature-domain-knowledge-layer-architecture). ADR-016 (enhance-claude-folder-audit-content-quality-convention) documents the Phase C sub-check convention.
+
+<!-- [auto-updated]: structure-mapping — last run: 2026-03-03 -->
 ## Observed Structure (auto-detected)
 
 Organization pattern: **feature-based** (confidence: high)
 Each `skills/` subdirectory is a distinct capability with one `SKILL.md` entry point.
 
 ```
-claude-config/ (observed 2026-03-01)
-├── CLAUDE.md, README.md, settings.json, install.sh, sync.sh
-├── skills/          44 skill directories (see stack-detection for full list)
-│   ├── sdd-*/       SDD phase/orchestrator skills
-│   ├── project-*/   6 meta-tool skills
-│   ├── memory-*/    2 memory management skills
-│   ├── skill-*/     2 skill management skills
-│   └── [others]     tech catalog + smart-commit
-├── hooks/           smart-commit-context.js
-├── openspec/        config.yaml + changes/ + specs/
+claude-config/ (observed 2026-03-03)
+├── CLAUDE.md, README.md, settings.json, install.sh, sync.sh, .gitattributes
+├── skills/          47 skill directories
+│   ├── sdd-*/       11 SDD phase/orchestrator skills (explore, propose, spec,
+│   │                  design, tasks, apply, verify, archive, ff, new, status)
+│   ├── project-*/   6 meta-tool skills (setup, onboard, audit, analyze, fix, update)
+│   ├── memory-*/    2 memory management skills (memory-init, memory-update)
+│   ├── skill-*/     2 skill management skills (skill-creator, skill-add)
+│   ├── claude-*/    2 system skills (claude-code-expert, claude-folder-audit)
+│   ├── config-export/  1 config export skill
+│   ├── feature-domain-expert/  1 domain knowledge skill
+│   ├── smart-commit/   1 commit automation skill
+│   └── [tech-skills]   18 technology catalog skills
+├── hooks/           smart-commit-context.js (Node.js)
+├── openspec/        config.yaml + changes/ (3 active) + specs/ (22 domains) + archive/
 ├── ai-context/      8 files: stack, architecture, conventions, known-issues,
 │                    changelog-ai, onboarding, quick-reference, scenarios
-├── docs/            adr/ (6 ADRs) + templates/ (prd, adr)
+│                    + features/ sub-directory (domain knowledge scaffold)
+├── docs/            adr/ (16 ADRs + README.md) + templates/ (prd, adr)
 └── memory/          MEMORY.md + topic files
 ```
 
+Active SDD changes: `config-export`, `enhance-claude-folder-audit`, `feature-domain-knowledge-layer` (all have proposal.md + tasks.md; verify-report.md present for config-export and feature-domain-knowledge-layer).
+
 <!-- [/auto-updated] -->
 
-<!-- [auto-updated]: drift-summary — last run: 2026-03-01 -->
+<!-- [auto-updated]: drift-summary — last run: 2026-03-03 -->
 ## Architecture Drift (auto-detected)
 
 Drift level: **minor** (2 informational entries)
 
-Summary of drift vs. `architecture.md` baseline (2026-02-23):
-- Skill count: documented ~35 in stack.md manual section, 44 observed (natural catalog growth)
-- `.claude/` local directory at repo root (audit artifact) — not in documented structure; expected, not committed
+Summary of drift vs. `architecture.md` baseline (2026-03-03):
+- Skill count: stack.md manual section documents ~44 skills; 47 observed (natural catalog growth — config-export, feature-domain-expert, and one additional skill added since last count)
+- ai-context/ file count: stack.md lists 5 core files; 8 files observed (onboarding.md, quick-reference.md, scenarios.md are documented in the architecture.md artifact table but stack.md count is outdated)
 
-All drift is informational. No structural mismatches detected. Previous drift items from 2026-02-28 (openclaw-assistant reference, command separator inconsistency, openspec/specs/ omission) appear resolved or no longer applicable.
+All drift is informational. No structural mismatches detected. All documented architectural layers (skills/, hooks/, openspec/, ai-context/, docs/adr/, docs/templates/, memory/) are present and correctly positioned.
 
 <!-- [/auto-updated] -->

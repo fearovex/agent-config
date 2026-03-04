@@ -76,7 +76,7 @@ git clone <repo> && bash install.sh
 `install.sh` is repo-authoritative: copies everything repo → `~/.claude/`.
 `sync.sh` captures memory/ only: `~/.claude/memory/ → repo/memory/`. Never run it expecting to capture skill or config changes.
 
-<!-- [auto-updated]: stack-detection — last run: 2026-03-01 -->
+<!-- [auto-updated]: stack-detection — last run: 2026-03-03 -->
 ## Stack (auto-detected)
 
 Source: openspec/config.yaml + file-extension sampling
@@ -88,10 +88,11 @@ Source: openspec/config.yaml + file-extension sampling
 | Database | none | openspec/config.yaml |
 | Testing | manual validation via /project-audit | openspec/config.yaml |
 | Build tool | install.sh (bash deploy) | file: install.sh |
-| Hooks runtime | Node.js | file: hooks/smart-commit-context.js |
+| Hooks runtime | Node.js | file: hooks/smart-commit-context.js (.js extension) |
 | Version control | Git | .git directory |
 
-Observed skill count: **44 directories** under `skills/` (up from 43 on 2026-02-28 — natural catalog growth).
+Observed skill count: **47 directories** under `skills/` (up from 44 on 2026-03-01 — natural catalog growth: config-export, feature-domain-expert, and one additional skill added).
+File extension distribution: `.md` (83), `.json` (3), `.sh` (2), `.yaml` (1), `.js` (1).
 No standard package manifests (package.json, pyproject.toml, etc.) — expected for a Markdown/YAML/Bash meta-system.
 
 <!-- [/auto-updated] -->

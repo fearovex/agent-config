@@ -4,6 +4,88 @@
 
 ---
 
+## [2026-03-03] — feature-domain-knowledge-layer archived
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-apply + sdd-verify + sdd-archive)
+**What was done**: Full SDD cycle for `feature-domain-knowledge-layer` completed and archived. Verification PASS (19/19 tasks, all success criteria verified, no regressions). Added a Feature Intelligence Layer (`ai-context/features/`) to the SDD system so domain knowledge (business rules, invariants, integration points, decision logs, known gotchas) is captured once per bounded context and automatically preloaded into relevant SDD phases. Four new master specs created. Change folder moved to `openspec/changes/archive/2026-03-03-feature-domain-knowledge-layer/`.
+**Modified files**:
+- `ai-context/features/_template.md` — created (canonical six-section template for domain knowledge files)
+- `ai-context/features/sdd-meta-system.md` — created (worked example feature file for the SDD meta-system bounded context)
+- `skills/feature-domain-expert/SKILL.md` — created (new reference-format skill documenting how to author and consume feature files)
+- `skills/sdd-propose/SKILL.md` — Step 0 domain context preload inserted (reads matching ai-context/features/<domain>.md, non-blocking)
+- `skills/sdd-spec/SKILL.md` — Step 0 domain context preload inserted (identical heuristic, non-blocking)
+- `skills/memory-init/SKILL.md` — Step 7 feature discovery block appended (generates ai-context/features/ stubs when directory absent)
+- `skills/memory-update/SKILL.md` — Step 3b feature file update path added (persists session-acquired domain knowledge to existing feature files)
+- `CLAUDE.md` — memory layer table row added for ai-context/features/*.md; Skill Overlap table updated; feature-domain-expert entry added to Skills Registry
+- `ai-context/architecture.md` — artifact communication table row added for ai-context/features/*.md (Producer: memory-init/memory-update; Consumer: sdd-propose/sdd-spec)
+- `openspec/specs/feature-domain-knowledge/spec.md` — created (new master spec, promoted from delta)
+- `openspec/specs/memory-management/spec.md` — created (new master spec, promoted from delta)
+- `openspec/specs/sdd-phase-context-loading/spec.md` — created (new master spec, promoted from delta)
+- `openspec/specs/system-documentation/spec.md` — created (new master spec, promoted from delta)
+- `openspec/changes/archive/2026-03-03-feature-domain-knowledge-layer/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- Storage at `ai-context/features/<domain>.md` — extends the existing memory layer pattern; separates business context from observable behavior (openspec/specs/)
+- Domain matching heuristic: filename-stem match (split change slug on hyphens, non-blocking on miss) — zero-config, convention-based
+- `feature-domain-expert` placed in global tier (`skills/`) — meta-system authoring guide, not project-specific
+- Write ownership strictly `memory-update` (session) + `memory-init` (scaffold); `project-analyze` explicitly does NOT write to `ai-context/features/`
+- Template file approach (not a new `format:` value) — avoids cascading changes to project-audit, project-fix, skill-creator; V2 can add format type if audit enforcement is needed
+- V1 activates memory side only; D10 `feature_docs:` audit integration deferred to V2
+**Notes**: Verify verdict: PASS (0 criticals, 0 warnings, 0 deviations). Pre-existing D3f CLAUDE.md conflict with config-export resolved naturally when config-export was archived first.
+
+---
+
+## [2026-03-03] — tech-skill-auto-activation archived
+
+**Type**: Archive
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**What was done**: SDD cycle for `tech-skill-auto-activation` completed and archived. Verification PASS (all 8 criteria checked, 0 critical issues, 0 warnings). New master spec created at `openspec/specs/sdd-apply/spec.md` (4 requirements: Step 0 Technology Skill Preload, Stack-to-Skill Mapping Table, Detection Report, Backward Compatibility). Change folder moved to `openspec/changes/archive/2026-03-03-tech-skill-auto-activation/`.
+**Modified files**:
+- `openspec/specs/sdd-apply/spec.md` — created (new master spec domain; delta spec promoted verbatim)
+- `openspec/changes/archive/2026-03-03-tech-skill-auto-activation/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- N/A (no new decisions at archive step — all decisions recorded in the apply entry below)
+
+---
+
+## [2026-03-03] — skill-compliance-fixes archived
+
+**Type**: Compliance Fix
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**What was done**: SDD cycle for `skill-compliance-fixes` completed and archived. Verification PASS WITH MINOR NOTE (4/5 criteria verified; criterion 5 — `/project-audit` score comparison — deferred as non-blocking; all structural changes are additive-only, no regression possible). Delta spec promoted to new master spec domain `skill-structure` (4 requirements, 12 scenarios). Change folder moved to `openspec/changes/archive/2026-03-03-skill-compliance-fixes/`.
+**Modified files**:
+- `skills/smart-commit/SKILL.md` — added `**Triggers**` bold-marker line before `## When to Use` (satisfies claude-folder-audit P2-C and project-audit D4b format contract check)
+- `skills/project-analyze/SKILL.md` — added tool-sequence sentence in Step 6 after merge pseudocode: "Use the Read tool to load each target file, compute the merged content in-context, then use the Write tool to write the updated file. Do not use Bash or the Edit tool for this merge."
+- `skills/config-export/SKILL.md` — added mechanism statement in Step 3 before Copilot transformation prompt: "These transformation prompts are self-instructions executed by the agent using its own in-context LLM reasoning. No external API call, subprocess, or tool invocation is required to apply them."
+- `openspec/specs/skill-structure/spec.md` — created (new master spec domain; delta becomes canonical spec)
+- `openspec/changes/archive/2026-03-03-skill-compliance-fixes/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- `**Triggers**` bold-pattern inserted as standalone line (not renaming `## When to Use`) — preserves the existing section heading while satisfying the format contract detector
+- Merge tool sequence (Read + Write) codified explicitly — prevents future agents from using Edit or Bash for this merge operation
+- Transformation prompt mechanism (in-context self-instruction) made explicit — removes ambiguity about external API calls
+
+---
+
+## [2026-03-03] — tech-skill-auto-activation applied
+
+**Type**: Feature
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**What was done**: Added Step 0 — Technology Skill Preload to `skills/sdd-apply/SKILL.md`. The step reads `ai-context/stack.md` (primary) or `openspec/config.yaml project.stack` (secondary), matches technology keywords against an inline Stack-to-Skill Mapping Table (21 entries), reads matching skill files into implementation context, and produces a detection report. Includes a scope guard (skips for documentation-only changes) and is fully non-blocking. The `## Code standards` section forward-reference updated to point to Step 0. ADR-017 (`docs/adr/017-tech-skill-mapping-table-inline-convention.md`) was pre-created by the sdd-ff agent and confirmed present. Deployed via `install.sh`.
+**Modified files**:
+- `skills/sdd-apply/SKILL.md` — Step 0 inserted before Step 1; Stack-to-Skill Mapping Table embedded (21 rows); `## Code standards` forward reference updated
+- `docs/adr/017-tech-skill-mapping-table-inline-convention.md` — pre-created by sdd-ff; no changes needed
+- `docs/adr/README.md` — ADR-017 row pre-added by sdd-ff; no changes needed
+- `ai-context/changelog-ai.md` — this entry
+**Decisions made**:
+- Mapping table embedded inline in `sdd-apply/SKILL.md` (ADR-017) — self-contained, portable, no external config dependency
+- `react native` / `expo` matched before `react` in table to prevent shorter keyword absorbing longer compound keyword
+- Step 0 carries loaded-skill list forward to Step 2 detection report output line
+
+---
+
 ## [2026-03-03] — smart-commit-auto-stage archived
 
 **Type**: Feature

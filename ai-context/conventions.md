@@ -171,26 +171,28 @@ bash sync.sh → git add memory/ && git commit
 Use this periodically to persist Claude's automatic memory updates (`~/.claude/memory/`) into the repo.
 This is the ONLY directory that flows `~/.claude/ → repo/`.
 
-<!-- [auto-updated]: observed-conventions — last run: 2026-03-01 -->
+<!-- [auto-updated]: observed-conventions — last run: 2026-03-03 -->
 ## Conventions Observed (auto-detected)
 
 Sample: 20 files across skills/, ai-context/
-Method: auto-detected (SKILL.md files + ai-context/ memory files)
+Method: auto-detected (SKILL.md files from SDD, meta-tool, and tech skill categories + ai-context/ memory files)
+Directories sampled: skills/sdd-ff, skills/sdd-propose, skills/sdd-apply, skills/sdd-archive, skills/project-audit, skills/project-fix, skills/memory-init, skills/react-19, skills/elixir-antipatterns, skills/smart-commit, skills/config-export, skills/claude-folder-audit, skills/feature-domain-expert, ai-context/
 
 ### Naming
 - Skill directories: kebab-case — e.g. `project-audit`, `sdd-propose`, `react-19`
 - Entry point filenames: UPPER_CASE — `SKILL.md` in every skill directory
 - Bash functions: snake_case — e.g. `copy_dir` in install.sh
-- SDD change names: kebab-case descriptive — e.g. `normalize-tech-skill-structure`
-- Archived changes: `YYYY-MM-DD-[name]` — e.g. `2026-02-27-global-config-skill-audit`
+- SDD change names: kebab-case descriptive — e.g. `smart-commit-auto-stage`, `claude-folder-audit-project-mode`
+- Archived changes: `YYYY-MM-DD-[name]` — e.g. `2026-03-03-smart-commit-auto-stage`
+- Skill prefix conventions: `sdd-[phase]` for SDD phases, `project-[action]` for meta-tools, `memory-[action]` for memory management, `[tech]-[version]` for technology skills
 
 ### SKILL.md structure (observed)
 All sampled SKILL.md files follow this pattern:
-1. Optional YAML frontmatter with `name`, `description`, optional `license`/`metadata`
+1. YAML frontmatter with `name`, `description`, `format:` (procedural|reference|anti-pattern), optional `license`/`metadata`
 2. H1 heading (`# skill-name`)
 3. Blockquote description (`> ...`)
 4. Bold triggers (`**Triggers**: ...`)
-5. Numbered steps: `## Step N — Description` (em-dash separator)
+5. Format-specific main section: `## Process` / `### Step N` (procedural), `## Patterns` or `## Examples` (reference), `## Anti-patterns` (anti-pattern)
 6. `## Rules` section last
 
 ### Error handling (observed)
