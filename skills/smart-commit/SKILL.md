@@ -201,8 +201,6 @@ type(scope): short description
 
 - bullet change 1
 - bullet change 2
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -218,7 +216,7 @@ On failure, report the full git error and suggest remediation.
 
 Iterate through every group in the order shown in the plan. For each group:
 0. For each file in this group tagged `unstaged` or `untracked`, issue `git add <file>`; skip files already tagged `staged`.
-1. Execute `git commit` with the group's proposed message (including the `Co-Authored-By` trailer).
+1. Execute `git commit` with the group's proposed message.
 2. Print the resulting commit hash immediately after each commit fires.
 3. Do not present any intermediate prompt between groups.
 
@@ -242,8 +240,8 @@ Proceed? [y / edit message / skip / abort remaining]
 ```
 
 Apply the user's choice before moving to the next group:
-- `y` → for each file in this group tagged `unstaged` or `untracked`, issue `git add <file>`; skip files already tagged `staged`; then execute `git commit` with the proposed message (including `Co-Authored-By` trailer); print the resulting hash; continue to the next group.
-- `edit message` → prompt: `Enter replacement message:` — use the provided text verbatim for this commit only (the replacement message replaces the proposed message; the `Co-Authored-By` trailer is still appended); for each file in this group tagged `unstaged` or `untracked`, issue `git add <file>`; skip files already tagged `staged`; then execute and print the hash; continue to the next group.
+- `y` → for each file in this group tagged `unstaged` or `untracked`, issue `git add <file>`; skip files already tagged `staged`; then execute `git commit` with the proposed message; print the resulting hash; continue to the next group.
+- `edit message` → prompt: `Enter replacement message:` — use the provided text verbatim for this commit only; for each file in this group tagged `unstaged` or `untracked`, issue `git add <file>`; skip files already tagged `staged`; then execute and print the hash; continue to the next group.
 - `skip` → no `git add` is issued for this group; leave this group's files in their original state without committing; move to the next group.
 - `abort remaining` → no `git add` is issued for remaining groups; stop processing after the current group (do not commit any subsequent groups); print the partial-execution summary.
 
@@ -324,6 +322,6 @@ Issue `git add` only for groups the user explicitly confirmed; never batch-stage
 - For skipped or aborted groups, issue no `git add` — their files must remain in the exact state they were in when the skill was invoked
 - When detected files span two or more functional groups, present the full multi-commit plan before executing any commit
 - ERROR conditions in any group block the entire multi-commit plan — no partial execution allowed when ERRORs are present
-- Every commit in a multi-commit sequence MUST include the `Co-Authored-By` trailer
+- Every commit in a multi-commit sequence uses the proposed message without additional trailers
 - The grouping heuristic is applied in priority order: test → config/infra → docs → directory prefix → misc fallback; no file may appear in more than one group
 - The single-group fast-path preserves exact backward compatibility — no behavior change when all staged files resolve to one group
