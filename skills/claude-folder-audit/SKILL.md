@@ -76,7 +76,7 @@ Accumulate findings in a list. Each finding has:
 
 ```
 severity: HIGH | MEDIUM | LOW | INFO
-check:    identifier (1..5 for global-config/global modes; P1..P5 for project mode)
+check:    identifier (1..5 for global-config/global modes; P1..P8 for project mode)
 title:    short description
 detail:   what was observed
 remediation: exact step to resolve (optional for INFO)
@@ -84,7 +84,7 @@ remediation: exact step to resolve (optional for INFO)
 
 ---
 
-**If `MODE = project`** — run Checks P1–P5 below (skip Checks 1–5):
+**If `MODE = project`** — run Checks P1–P8 below (skip Checks 1–5):
 
 ---
 
@@ -128,6 +128,72 @@ Collect:
 - `GLOBAL_SKILLS` = list of globally-registered skill names
 - `LOCAL_SKILLS` = list of locally-registered skill names
 
+**Phase C — CLAUDE.md content quality**:
+
+This phase runs only when Phase A confirmed the file is present and Phase B confirmed a Skills Registry section exists. The file content is already available from the Phase A/B read.
+
+**Required section headings** — for each of the following, a section is present when at least one line in the file STARTS with `## <section-name>` (no leading whitespace). `## Tech Stack` and `## Stack` are treated as aliases for the same section.
+
+Required sections:
+- `## Tech Stack` (alias: `## Stack`)
+- `## Architecture`
+- `## Unbreakable Rules`
+- `## Plan Mode Rules`
+- `## Skills Registry`
+
+For each required section that is absent, record:
+```
+severity: MEDIUM
+check: P1
+title: CLAUDE.md is missing mandatory section: <section-name>
+detail: No line starting with "## <section-name>" was found in PROJECT_CLAUDE_DIR/CLAUDE.md.
+remediation: Add the missing section to .claude/CLAUDE.md — refer to the global CLAUDE.md in the claude-config repo as a template
+```
+
+**Line count check** — count the total number of lines in the file:
+
+If **fewer than 30 lines**:
+```
+severity: MEDIUM
+check: P1
+title: CLAUDE.md appears too short (<30 lines) — may be a stub or placeholder
+detail: File has <N> lines total.
+remediation: Populate .claude/CLAUDE.md with at minimum a ## Tech Stack, ## Architecture, ## Unbreakable Rules, ## Plan Mode Rules, and ## Skills Registry section
+```
+
+If **between 30 and 50 lines (inclusive)**:
+```
+severity: LOW
+check: P1
+title: CLAUDE.md is short (30–50 lines) — may not contain enough context
+detail: File has <N> lines total.
+remediation: Consider expanding .claude/CLAUDE.md with richer context — aim for >50 lines
+```
+
+If **more than 50 lines** → no finding for line count.
+
+**SDD command reference check** — scan the entire file for at least one occurrence of `/sdd-ff` or `/sdd-new` anywhere in the content.
+
+If **neither is found**:
+```
+severity: LOW
+check: P1
+title: CLAUDE.md has no SDD command references (/sdd-ff, /sdd-new) — SDD workflow may not be configured
+detail: Neither /sdd-ff nor /sdd-new was found anywhere in PROJECT_CLAUDE_DIR/CLAUDE.md.
+remediation: Add SDD commands to the Available Commands section; consult the global CLAUDE.md for the standard SDD command table
+```
+
+**Skills Registry path entry check** — scan the file for lines containing `~/.claude/skills/` or `.claude/skills/` (these are the path patterns used in skill registry entries).
+
+If **no such lines are found**:
+```
+severity: LOW
+check: P1
+title: CLAUDE.md has a ## Skills Registry section but contains no skill path entries
+detail: No lines matching ~/.claude/skills/ or .claude/skills/ path patterns were found in PROJECT_CLAUDE_DIR/CLAUDE.md.
+remediation: Register skills by adding path entries under ## Skills Registry — use ~/.claude/skills/<name>/SKILL.md for global skills or .claude/skills/<name>/SKILL.md for local ones
+```
+
 If no findings in P1 → no finding for this check.
 
 ---
@@ -164,6 +230,87 @@ Skip the rest of P2.
 
 If `GLOBAL_SKILLS` is empty → record one INFO: "No global-tier skill registrations found in CLAUDE.md — check skipped."
 
+**Phase C — SKILL.md content quality** (runs only for skills where SKILL.md exists and passed the Phase A/B reachability check above):
+
+For each skill name `<n>` in `GLOBAL_SKILLS` where `RUNTIME_ROOT/skills/<n>/SKILL.md` exists:
+
+**(a) Frontmatter presence** — read `RUNTIME_ROOT/skills/<n>/SKILL.md`. If the file does NOT start with a `---` line:
+```
+severity: MEDIUM
+check: P2
+title: SKILL.md for skill '<n>' is missing YAML frontmatter — the file must begin with a '---' block
+detail: The file at RUNTIME_ROOT/skills/<n>/SKILL.md does not begin with a YAML frontmatter block (---).
+remediation: Add a YAML frontmatter block (---) with at minimum name:, description:, and format: fields
+```
+Skip sub-checks (b), (c), (d), (e) for this skill and continue to the next skill.
+
+**(b) `format:` field extraction** — scan the lines between the opening `---` and the closing `---` marker. Look for a line starting with `format:` and extract its value (trimmed).
+
+- If no `format:` field found:
+  ```
+  severity: LOW
+  check: P2
+  title: SKILL.md for skill '<n>' has no 'format:' field in frontmatter — defaulting to 'procedural'
+  detail: No format: line found inside the YAML frontmatter block of RUNTIME_ROOT/skills/<n>/SKILL.md.
+  remediation: Add 'format: procedural' (or 'reference' or 'anti-pattern') to the SKILL.md frontmatter
+  ```
+  Treat format as `procedural` and continue to sub-check (c).
+
+- If `format:` value is not one of `procedural`, `reference`, `anti-pattern`:
+  ```
+  severity: LOW
+  check: P2
+  title: SKILL.md for skill '<n>' has unrecognized format value '<value>' — defaulting to 'procedural'
+  detail: The format: field in RUNTIME_ROOT/skills/<n>/SKILL.md contains an unrecognized value '<value>'.
+  remediation: Valid format values are: procedural, reference, anti-pattern
+  ```
+  Treat format as `procedural` and continue to sub-check (c).
+
+**(c) Section contract check** — using the section detection rule (a section is present when a line STARTS with `## <name>` or `**<name>**` for Triggers), verify required sections per detected format:
+
+- **procedural**: requires (i) `**Triggers**` or a line starting with `## Triggers`, (ii) `## Process` or at least one line starting with `### Step`, (iii) `## Rules`. For each missing required element:
+  ```
+  severity: MEDIUM
+  check: P2
+  title: SKILL.md for skill '<n>' (procedural) is missing required section: <section>
+  detail: The required section <section> was not found in RUNTIME_ROOT/skills/<n>/SKILL.md.
+  remediation: Add the missing section to the SKILL.md — procedural format requires: **Triggers**, ## Process (or ### Step N steps), and ## Rules
+  ```
+
+- **reference**: requires (i) `**Triggers**` or a line starting with `## Triggers`, (ii) `## Patterns` or `## Examples`, (iii) `## Rules`. For each missing required element:
+  ```
+  severity: MEDIUM
+  check: P2
+  title: SKILL.md for skill '<n>' (reference) is missing required section: <section>
+  detail: The required section <section> was not found in RUNTIME_ROOT/skills/<n>/SKILL.md.
+  remediation: Add the missing section to the SKILL.md — reference format requires: **Triggers**, ## Patterns or ## Examples, and ## Rules
+  ```
+
+- **anti-pattern**: requires (i) `**Triggers**` or a line starting with `## Triggers`, (ii) `## Anti-patterns`, (iii) `## Rules`. For each missing required element:
+  ```
+  severity: MEDIUM
+  check: P2
+  title: SKILL.md for skill '<n>' (anti-pattern) is missing required section: <section>
+  detail: The required section <section> was not found in RUNTIME_ROOT/skills/<n>/SKILL.md.
+  remediation: Add the missing section to the SKILL.md — anti-pattern format requires: **Triggers**, ## Anti-patterns, and ## Rules
+  ```
+
+**(d) Post-frontmatter body line count** — count lines after the closing `---` marker. If fewer than 30:
+```
+severity: LOW
+check: P2
+title: SKILL.md for skill '<n>' has very short body (<30 lines post-frontmatter) — may be a stub
+detail: The post-frontmatter content of RUNTIME_ROOT/skills/<n>/SKILL.md has fewer than 30 lines.
+remediation: Review and populate this SKILL.md — stubs should have a plan or be removed
+```
+
+**(e) TODO: marker check** — scan the entire file for any line containing `TODO:`. If found:
+```
+severity: INFO
+check: P2
+title: SKILL.md for skill '<n>' contains TODO: markers — may be a work-in-progress
+```
+
 ---
 
 #### Check P3 — Local-Path Registration Verification
@@ -197,6 +344,87 @@ Skip the rest of P3.
   ```
 
 If `LOCAL_SKILLS` is empty → record one INFO: "No local-tier skill registrations found in CLAUDE.md — check skipped."
+
+**Phase C — SKILL.md content quality** (runs only for skills where SKILL.md exists and passed the Phase A/B reachability check above):
+
+For each skill name `<n>` in `LOCAL_SKILLS` where `PROJECT_ROOT/.claude/skills/<n>/SKILL.md` exists:
+
+**(a) Frontmatter presence** — read `PROJECT_ROOT/.claude/skills/<n>/SKILL.md`. If the file does NOT start with a `---` line:
+```
+severity: MEDIUM
+check: P3
+title: SKILL.md for skill '<n>' is missing YAML frontmatter — the file must begin with a '---' block
+detail: The file at PROJECT_ROOT/.claude/skills/<n>/SKILL.md does not begin with a YAML frontmatter block (---).
+remediation: Add a YAML frontmatter block (---) with at minimum name:, description:, and format: fields
+```
+Skip sub-checks (b), (c), (d), (e) for this skill and continue to the next skill.
+
+**(b) `format:` field extraction** — scan the lines between the opening `---` and the closing `---` marker. Look for a line starting with `format:` and extract its value (trimmed).
+
+- If no `format:` field found:
+  ```
+  severity: LOW
+  check: P3
+  title: SKILL.md for skill '<n>' has no 'format:' field in frontmatter — defaulting to 'procedural'
+  detail: No format: line found inside the YAML frontmatter block of PROJECT_ROOT/.claude/skills/<n>/SKILL.md.
+  remediation: Add 'format: procedural' (or 'reference' or 'anti-pattern') to the SKILL.md frontmatter
+  ```
+  Treat format as `procedural` and continue to sub-check (c).
+
+- If `format:` value is not one of `procedural`, `reference`, `anti-pattern`:
+  ```
+  severity: LOW
+  check: P3
+  title: SKILL.md for skill '<n>' has unrecognized format value '<value>' — defaulting to 'procedural'
+  detail: The format: field in PROJECT_ROOT/.claude/skills/<n>/SKILL.md contains an unrecognized value '<value>'.
+  remediation: Valid format values are: procedural, reference, anti-pattern
+  ```
+  Treat format as `procedural` and continue to sub-check (c).
+
+**(c) Section contract check** — using the section detection rule (a section is present when a line STARTS with `## <name>` or `**<name>**` for Triggers), verify required sections per detected format:
+
+- **procedural**: requires (i) `**Triggers**` or a line starting with `## Triggers`, (ii) `## Process` or at least one line starting with `### Step`, (iii) `## Rules`. For each missing required element:
+  ```
+  severity: MEDIUM
+  check: P3
+  title: SKILL.md for skill '<n>' (procedural) is missing required section: <section>
+  detail: The required section <section> was not found in PROJECT_ROOT/.claude/skills/<n>/SKILL.md.
+  remediation: Add the missing section to the SKILL.md — procedural format requires: **Triggers**, ## Process (or ### Step N steps), and ## Rules
+  ```
+
+- **reference**: requires (i) `**Triggers**` or a line starting with `## Triggers`, (ii) `## Patterns` or `## Examples`, (iii) `## Rules`. For each missing required element:
+  ```
+  severity: MEDIUM
+  check: P3
+  title: SKILL.md for skill '<n>' (reference) is missing required section: <section>
+  detail: The required section <section> was not found in PROJECT_ROOT/.claude/skills/<n>/SKILL.md.
+  remediation: Add the missing section to the SKILL.md — reference format requires: **Triggers**, ## Patterns or ## Examples, and ## Rules
+  ```
+
+- **anti-pattern**: requires (i) `**Triggers**` or a line starting with `## Triggers`, (ii) `## Anti-patterns`, (iii) `## Rules`. For each missing required element:
+  ```
+  severity: MEDIUM
+  check: P3
+  title: SKILL.md for skill '<n>' (anti-pattern) is missing required section: <section>
+  detail: The required section <section> was not found in PROJECT_ROOT/.claude/skills/<n>/SKILL.md.
+  remediation: Add the missing section to the SKILL.md — anti-pattern format requires: **Triggers**, ## Anti-patterns, and ## Rules
+  ```
+
+**(d) Post-frontmatter body line count** — count lines after the closing `---` marker. If fewer than 30:
+```
+severity: LOW
+check: P3
+title: SKILL.md for skill '<n>' has very short body (<30 lines post-frontmatter) — may be a stub
+detail: The post-frontmatter content of PROJECT_ROOT/.claude/skills/<n>/SKILL.md has fewer than 30 lines.
+remediation: Review and populate this SKILL.md — stubs should have a plan or be removed
+```
+
+**(e) TODO: marker check** — scan the entire file for any line containing `TODO:`. If found:
+```
+severity: INFO
+check: P3
+title: SKILL.md for skill '<n>' contains TODO: markers — may be a work-in-progress
+```
 
 ---
 
@@ -258,7 +486,165 @@ If `LOCAL_SKILLS` is empty → record one INFO: "No local-tier skills registered
 
 ---
 
-**If `MODE = global-config` or `MODE = global`** — run Checks 1–5 below (skip Checks P1–P5):
+#### Check P6 — Memory Layer (ai-context/)
+
+Test for the `PROJECT_ROOT/ai-context/` directory.
+
+**If `PROJECT_ROOT/ai-context/` does NOT exist**:
+```
+severity: MEDIUM
+check: P6
+title: ai-context/ directory not found — project memory layer is absent
+detail: No ai-context/ directory found at PROJECT_ROOT/ai-context/. The project memory layer (stack, architecture, conventions, known-issues, changelog) has not been initialized.
+remediation: Run /memory-init to generate the ai-context/ layer for this project
+```
+Skip all file sub-checks below and proceed to Check P7.
+
+**If `PROJECT_ROOT/ai-context/` exists**, check for each of the five required core files:
+
+Required core files: `stack.md`, `architecture.md`, `conventions.md`, `known-issues.md`, `changelog-ai.md`
+
+For each file that is **absent**:
+```
+severity: LOW
+check: P6
+title: ai-context/<filename> is missing
+detail: The file PROJECT_ROOT/ai-context/<filename> was not found. This file is part of the required project memory layer.
+remediation: Run /memory-init or manually create ai-context/<filename> to restore the project memory layer
+```
+
+For each file that is **present**, count its lines. If fewer than 10 lines:
+```
+severity: INFO
+check: P6
+title: ai-context/<filename> is very short (<10 lines) — may not contain useful context
+```
+
+If all five files are present and no files have fewer than 10 lines → no finding for this check.
+
+> Severity cap: P6 MUST NOT produce findings above MEDIUM.
+
+---
+
+#### Check P7 — Feature Domain Knowledge Layer (ai-context/features/)
+
+Test for the `PROJECT_ROOT/ai-context/features/` directory.
+
+**If `PROJECT_ROOT/ai-context/features/` does NOT exist**:
+```
+severity: INFO
+check: P7
+title: ai-context/features/ not found — feature-domain knowledge layer not initialized for this project
+```
+No further sub-checks. Proceed to Check P8.
+
+**If `PROJECT_ROOT/ai-context/features/` exists**:
+
+**(a) Template file check** — if `_template.md` exists in the directory:
+```
+severity: INFO
+check: P7
+title: ai-context/features/_template.md is present
+```
+
+**(b) Non-template file inventory** — collect all files whose name does NOT start with `_` (these are authored feature domain knowledge files).
+
+If no such files exist (the directory contains only files starting with `_`, or is empty):
+```
+severity: INFO
+check: P7
+title: ai-context/features/ contains only template/stub files — no feature domain knowledge files authored yet
+```
+No further sub-checks. Proceed to Check P8.
+
+**(c) Section and stub checks** — for each non-template feature file `<name>.md`:
+
+Check for the following six required section headings using the line-prefix rule (a section is present when at least one line in the file STARTS with `## <section-name>`):
+- `## Domain Overview`
+- `## Business Rules and Invariants`
+- `## Data Model Summary`
+- `## Integration Points`
+- `## Decision Log`
+- `## Known Gotchas`
+
+For each missing section:
+```
+severity: LOW
+check: P7
+title: Feature file 'ai-context/features/<name>.md' is missing section: <section-name>
+detail: No line starting with "## <section-name>" was found in the feature file.
+remediation: Add the missing section to the feature file — refer to ai-context/features/_template.md for the required structure
+```
+
+Count total lines in the file. If fewer than 30 lines:
+```
+severity: INFO
+check: P7
+title: Feature file 'ai-context/features/<name>.md' is very short (<30 lines) — likely a stub not yet populated
+```
+
+> Severity cap: P7 MUST NOT produce any findings above LOW. This is per ADR-015 non-blocking design intent.
+
+---
+
+#### Check P8 — .claude/ Folder Inventory
+
+Enumerate all items (files and directories) directly under `PROJECT_CLAUDE_DIR` (one level only — NOT recursive).
+
+**Expected item set**:
+```
+CLAUDE.md
+skills/
+audit-report.md
+claude-folder-audit-report.md
+settings.json
+settings.local.json
+openspec/
+ai-context/
+hooks/
+```
+
+For each item found directly under `PROJECT_CLAUDE_DIR` that is **NOT** in the expected item set:
+```
+severity: MEDIUM
+check: P8
+title: Unexpected item in .claude/: '<name>' — possible manual edit or stale artifact
+detail: The item PROJECT_CLAUDE_DIR/<name> does not correspond to any known expected item in .claude/.
+remediation: Review the item manually; if it should not be there, remove it; if it is intentional, consider documenting it in .claude/CLAUDE.md
+```
+
+**Hooks sub-check** — if `PROJECT_CLAUDE_DIR/hooks/` exists:
+
+Enumerate all `.js` and `.sh` files within `PROJECT_CLAUDE_DIR/hooks/`. For each file that is empty (0 bytes or whitespace only):
+```
+severity: LOW
+check: P8
+title: Hook script '.claude/hooks/<filename>' is empty — likely a placeholder
+detail: The file PROJECT_CLAUDE_DIR/hooks/<filename> contains no executable content.
+remediation: Populate the hook script with valid logic or remove it if not needed
+```
+
+If all `.js` and `.sh` files in `hooks/` are non-empty → no finding from the hooks sub-check.
+
+**If `PROJECT_CLAUDE_DIR/hooks/` does NOT exist**:
+```
+severity: INFO
+check: P8
+title: No hooks/ directory found in .claude/ — hook execution is not configured for this project
+```
+
+**If all items found are within the expected set** → record one INFO:
+```
+severity: INFO
+check: P8
+title: .claude/ inventory clean — <N> item(s) found, all expected
+```
+
+> Severity cap: P8 MUST NOT produce findings above MEDIUM.
+
+---
+
+**If `MODE = global-config` or `MODE = global`** — run Checks 1–5 below (skip Checks P1–P8):
 
 ---
 
@@ -514,6 +900,24 @@ Summary: <N> HIGH, <N> MEDIUM, <N> LOW, <N> INFO
 
 ---
 
+## Check P6 — Memory Layer (ai-context/)
+
+[findings or "No findings."]
+
+---
+
+## Check P7 — Feature Domain Knowledge Layer (ai-context/features/)
+
+[findings or "No findings."]
+
+---
+
+## Check P8 — .claude/ Folder Inventory
+
+[findings or "No findings."]
+
+---
+
 ## Recommended Next Steps
 
 <!-- If HIGH findings exist: -->
@@ -522,8 +926,16 @@ Summary: <N> HIGH, <N> MEDIUM, <N> LOW, <N> INFO
 3. Add missing SKILL.md files or remove stale registry entries (P3/P4 findings)
 4. Review LOW findings at your discretion
 
-<!-- If no HIGH or MEDIUM findings: -->
-Project .claude/ configuration appears healthy — no required actions detected.
+<!-- If highest-severity is MEDIUM from P6 (ai-context/ absent): -->
+1. Run /memory-init to generate the ai-context/ memory layer for this project
+2. Review LOW findings at your discretion
+
+<!-- If highest-severity is MEDIUM from P8 (unexpected .claude/ item): -->
+1. Review the unexpected item(s) in .claude/ manually; if intentional, document in .claude/CLAUDE.md; if not, remove the item
+2. Review LOW findings at your discretion
+
+<!-- If no HIGH or MEDIUM findings across all 8 checks: -->
+Project Claude configuration appears healthy — no required actions detected.
 [Optional: list LOW/INFO items as review notes]
 
 ---
@@ -648,13 +1060,16 @@ Report written to: <RUNTIME_ROOT>/claude-folder-audit-report.md
 ## Rules
 
 - Run all checks even if earlier checks produce HIGH findings — never abort early
-- Severity caps: Check 3 (drift) MUST NOT exceed MEDIUM; Check 4 (orphaned artifacts) MUST NOT exceed MEDIUM; Check P5 (scope tier overlap) MUST NOT exceed LOW
+- Severity caps: Check 3 (drift) MUST NOT exceed MEDIUM; Check 4 (orphaned artifacts) MUST NOT exceed MEDIUM; Check P5 (scope tier overlap) MUST NOT exceed LOW; P6 (memory layer) MUST NOT exceed MEDIUM; P7 (feature domain knowledge layer) MUST NOT exceed LOW; P8 (.claude/ folder inventory) MUST NOT exceed MEDIUM
 - Path normalization MUST use the explicit env var priority chain — NEVER rely on shell tilde expansion
 - The report file MUST be overwritten on every run (never appended)
 - All displayed paths in report and output MUST use forward slashes
 - INFO observations MAY omit the `Remediation:` line; HIGH, MEDIUM, and LOW findings MUST include one
+- INFO findings from check sections MUST NOT appear in the Findings Summary table — the Findings Summary table covers HIGH, MEDIUM, and LOW findings only
 - The report MUST be valid Markdown — all section headers use `##`, all finding labels use bold (`**HIGH**`, etc.)
 - The skill MUST NOT emit any finding that recommends deleting a file without human review as a prerequisite
 - On Windows, all path operations MUST use `$USERPROFILE` (not `~`) for the home directory
 - In `project` mode, the skill MUST NOT audit `~/.claude/` as the primary target; references to `~/.claude/` are only for P2 and P5 reachability checks
 - In `project` mode, the report MUST be written to `<PROJECT_ROOT>/.claude/claude-folder-audit-report.md` — NEVER to `~/.claude/`
+- Section detection rule: a section is present when a line STARTS with `## <section-name>` (top-level heading, no leading whitespace); lines inside fenced code blocks are not considered; the bold-trigger pattern (`**Triggers**`) is also valid for the Triggers section specifically
+- The `name:` field is NOT a required frontmatter check in P2/P3 sub-checks — only `format:` is validated in addition to frontmatter presence

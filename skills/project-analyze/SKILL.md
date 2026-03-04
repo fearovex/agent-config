@@ -284,6 +284,8 @@ FOR each auto-updated block project-analyze wants to write:
 WRITE updated file
 ```
 
+Use the Read tool to load each target file, compute the merged content in-context, then use the Write tool to write the updated file. Do not use Bash or the Edit tool for this merge.
+
 This algorithm is deterministic and idempotent: running `project-analyze` twice produces the same result.
 
 **Print summary to user:**

@@ -34,6 +34,21 @@ I must read:
 - `openspec/specs/<domain>/spec.md` if it exists (current domain spec)
 - `ai-context/architecture.md` if it exists (to understand the current system)
 
+#### Step 0 — Domain context preload
+
+After reading the artifacts above and before identifying affected domains, I perform an optional, non-blocking domain context preload:
+
+1. **List candidates**: List all `.md` files in `ai-context/features/`, excluding `_template.md` and any file whose name begins with an underscore. If the directory is absent, skip this step silently.
+2. **Apply the filename-stem matching heuristic**:
+   - Split the change slug on hyphens to produce stems; discard any single-character stems.
+   - For each candidate file, compute its domain slug (filename without `.md` extension).
+   - A match occurs when: the domain slug appears in the change name, OR any change-name stem appears in the domain slug (case-insensitive comparison).
+3. **Load matches**: If one or more files match, read each file and inject its content as enrichment context before writing the spec. If no file matches, skip silently — do NOT produce an error or warning.
+4. **Multiple matches**: If more than one file matches, load all matching files.
+5. **Non-blocking contract**: This step MUST NEVER produce `status: blocked` or `status: failed`. Any file read error is treated as a miss (skip silently).
+6. **Enrichment note**: Feature file content is treated as enrichment context — it surfaces business rules, invariants, and known gotchas that should inform the spec's requirements and THEN clauses. It is NOT a replacement for reading the existing `openspec/specs/<domain>/spec.md` when one exists. Both files MUST be read when both are present.
+7. **Orchestrator reporting**: When one or more feature files are loaded, the `summary` field MUST note that domain context was preloaded (e.g., "domain context loaded from ai-context/features/auth.md"). Each loaded file path MUST appear in the `artifacts` list (read, not written).
+
 ### Step 2 — Identify affected domains
 
 From the proposal I extract the domains that need specs:

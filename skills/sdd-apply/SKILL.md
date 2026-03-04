@@ -22,6 +22,95 @@ The implementation phase converts the task plan into real code. The implementer 
 
 ## Process
 
+### Step 0 — Technology Skill Preload
+
+Before reading the change context, I load technology-specific skills to ensure their patterns and conventions are available throughout implementation.
+
+#### Scope guard
+
+I first check whether this is a documentation-only change by inspecting the File Change Matrix in `openspec/changes/<change-name>/design.md`. I scan every file listed in the matrix:
+
+```
+scope_guard_triggered = true
+for each file in design.md file change matrix:
+    if file extension not in [".md", ".yaml", ".yml"]:
+        scope_guard_triggered = false
+        break
+if scope_guard_triggered:
+    → report: "Tech skill preload: skipped (documentation-only change)"
+    → skip remainder of Step 0
+```
+
+#### Stack detection
+
+I detect the project technology stack using two sources in priority order:
+
+**Primary — `ai-context/stack.md`:**
+I read the file and extract all technology keywords (case-insensitive, free text).
+
+**Secondary — `openspec/config.yaml` `project.stack` key:**
+Used only when `ai-context/stack.md` is absent. I read `project.stack` and extract keywords from its values.
+
+If neither source is available:
+→ report: `"Tech skill preload: skipped (no stack source found — ai-context/stack.md absent and openspec/config.yaml has no project.stack)"`
+→ skip remainder of Step 0
+
+#### Stack-to-Skill Mapping Table
+
+I match detected keywords (case-insensitive substring match) against the following table:
+
+| Keyword(s) | Skill path |
+|------------|------------|
+| react native, expo | `~/.claude/skills/react-native/SKILL.md` |
+| react | `~/.claude/skills/react-19/SKILL.md` |
+| next, nextjs, next.js | `~/.claude/skills/nextjs-15/SKILL.md` |
+| typescript, ts | `~/.claude/skills/typescript/SKILL.md` |
+| zustand | `~/.claude/skills/zustand-5/SKILL.md` |
+| zod | `~/.claude/skills/zod-4/SKILL.md` |
+| tailwind | `~/.claude/skills/tailwind-4/SKILL.md` |
+| ai sdk, vercel ai, ai-sdk | `~/.claude/skills/ai-sdk-5/SKILL.md` |
+| electron | `~/.claude/skills/electron/SKILL.md` |
+| django, drf | `~/.claude/skills/django-drf/SKILL.md` |
+| spring boot, spring-boot | `~/.claude/skills/spring-boot-3/SKILL.md` |
+| hexagonal, ports and adapters | `~/.claude/skills/hexagonal-architecture-java/SKILL.md` |
+| java | `~/.claude/skills/java-21/SKILL.md` |
+| playwright | `~/.claude/skills/playwright/SKILL.md` |
+| pytest, python test | `~/.claude/skills/pytest/SKILL.md` |
+| github pr, pull request | `~/.claude/skills/github-pr/SKILL.md` |
+| jira task | `~/.claude/skills/jira-task/SKILL.md` |
+| jira epic | `~/.claude/skills/jira-epic/SKILL.md` |
+| elixir, phoenix | `~/.claude/skills/elixir-antipatterns/SKILL.md` |
+| excel, xlsx, spreadsheet | `~/.claude/skills/excel-expert/SKILL.md` |
+| ocr, image text, image ocr | `~/.claude/skills/image-ocr/SKILL.md` |
+
+> Note: `react native` and `expo` are matched before `react` to avoid the shorter keyword absorbing the longer one. Match order in the table is top-to-bottom; once a keyword matches a row, that row's skill is queued for loading.
+
+#### Skill loading
+
+For each matched skill path:
+- If the file exists on disk → read its contents and load its patterns into context
+- If the file does not exist on disk → skip silently; note: `"<skill-name>: skipped (file not found at <path>)"`
+
+This step MUST NOT produce `status: blocked` or `status: failed` under any circumstance. All failure modes degrade to INFO or skip.
+
+#### Detection report
+
+```
+Tech skill preload:
+  - <skill-name> loaded (source: ai-context/stack.md)
+  - <skill-name> loaded (source: openspec/config.yaml)
+  - <skill-name>: skipped (file not found at ~/.claude/skills/<skill-name>/SKILL.md)
+
+[or, if entire step skipped:]
+Tech skill preload: skipped (documentation-only change)
+Tech skill preload: skipped (no stack source found — ai-context/stack.md absent and openspec/config.yaml has no project.stack)
+```
+
+The list of loaded skills is carried forward and included in the Step 2 detection output line:
+`"Technology skills loaded: [typescript, react-19, playwright]"` (or `"none"` if preload was skipped or no matches).
+
+---
+
 ### Step 1 — Read full context
 
 I read in this order:
@@ -53,7 +142,7 @@ I search for existing test files matching common patterns: `*.test.*`, `*.spec.*
 - `signal_count == 1` → TDD mode is **OFF**. Report: `"TDD mode: OFF ([signal found] but insufficient signals)"`
 - `signal_count == 0` → TDD mode is **OFF**. Report: `"TDD mode: OFF"`
 
-The detection step MUST NOT install test frameworks, create test files, or modify any configuration. Its only observable effect is the detection report line.
+The detection step MUST NOT install test frameworks, create test files, or modify any configuration. Its only observable effect is the detection report line, which also includes the technology skills summary from Step 0.
 
 ### Step 3 — Verify work scope
 
@@ -125,10 +214,7 @@ If `ai-context/conventions.md` exists, I apply it strictly.
 If not, I observe the existing code and follow its patterns.
 
 ### I load technology skills if applicable
-If I am implementing in a specific stack, I load the corresponding skill:
-- TypeScript → `~/.claude/skills/typescript/SKILL.md` if it exists
-- React → `~/.claude/skills/react-19/SKILL.md` if it exists
-- etc.
+Technology skills are loaded automatically in Step 0 — Technology Skill Preload. No manual judgment is required here.
 
 ### No over-engineering
 - I implement the minimum necessary to pass the spec's scenarios

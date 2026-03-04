@@ -177,6 +177,152 @@ Updated by running /memory-update at the end of a work session.
 *Empty history — will be filled during development.*
 ```
 
+### Step 7 — Feature discovery
+
+**Goal**: Scaffold `ai-context/features/` with domain stub files so that SDD phases (sdd-propose, sdd-spec) can preload bounded-context knowledge on future runs.
+
+#### 7.1 — Idempotency check
+
+Check whether `ai-context/features/` already exists in the project.
+
+- **If it exists**: skip this step entirely. Log: `"ai-context/features/ already exists — skipping feature discovery"`. Proceed to the final summary.
+- **If it does not exist**: continue with 7.2.
+
+#### 7.2 — Detect domain slugs
+
+Collect candidate domain slugs from two sources:
+
+**Priority 1 — `openspec/specs/` subdirectory names:**
+If `openspec/specs/` exists, read its top-level subdirectory names. Each subdirectory name is a candidate domain slug (e.g., `openspec/specs/auth/` → slug `auth`).
+
+**Priority 2 — Source code top-level subdirectory names:**
+Check whether any of `src/`, `app/`, or `lib/` exist in the project root. If one or more are present, read their top-level subdirectory names as additional candidate domain slugs. Use agent discretion to skip obvious utility/cross-cutting directories (e.g., `shared`, `common`, `utils`, `helpers`, `types`, `assets`) that are unlikely to represent bounded contexts.
+
+After collecting from both sources, **deduplicate** the full slug list (case-insensitive). The final list may be empty.
+
+#### 7.3 — Create `ai-context/features/_template.md`
+
+Always create `ai-context/features/_template.md`, even when no domain slugs were detected.
+
+Use this exact content:
+
+```markdown
+<!-- _template.md — DO NOT load this file in SDD phases. Copy it to <domain>.md and fill in each section. -->
+
+# Feature: <Domain Name>
+
+> One-line description of this bounded context.
+
+Last updated: YYYY-MM-DD
+Related specs: openspec/specs/<domain>/spec.md
+
+---
+
+## Domain Overview
+
+Write 2–4 sentences describing what this feature or bounded context does, who owns it, and what
+core responsibility it holds within the larger system. Explain the problem it solves and its
+primary role. Avoid implementation detail here — focus on purpose and scope.
+
+---
+
+## Business Rules and Invariants
+
+List the always-true constraints this domain enforces regardless of code path. Each item should be
+a declarative statement that holds in every state of the system. Examples of what to write:
+
+- [Rule 1: state what is always true — e.g. "A refund cannot exceed the original payment amount"]
+- [Rule 2: another invariant the domain guarantees]
+- [Rule 3: edge-case constraint that distinguishes valid from invalid state]
+
+Do not document implementation choices here — only rules that would remain true even if the
+implementation were rewritten from scratch.
+
+---
+
+## Data Model Summary
+
+Describe the key entities this domain owns, their relationships, and any critical field constraints.
+This is NOT a full schema — write in plain prose or use a small table for the most important
+entities. The goal is to orient a developer quickly, not to duplicate the database schema.
+
+| Entity | Key Fields | Constraints |
+|--------|------------|-------------|
+| [EntityName] | [field1, field2] | [e.g. "field1 must be unique", "field2 is required"] |
+| [EntityName] | [field1, field2] | [constraints] |
+
+Add any relationship notes below the table (e.g. "Order has many OrderItems; an Order with zero
+items is invalid").
+
+---
+
+## Integration Points
+
+Document every external system, service, or domain that this bounded context depends on or exposes
+an interface to. Include both inbound (things that call into this domain) and outbound (things this
+domain calls or emits to).
+
+| System / Service | Direction | Contract |
+|-----------------|-----------|----------|
+| [ServiceName] | inbound | [what it sends and what this domain expects] |
+| [ServiceName] | outbound | [what this domain calls and what it expects back] |
+| [OtherDomain] | inbound/outbound | [contract description] |
+
+Add notes for async contracts (events, queues) or infrastructure dependencies (external APIs,
+third-party providers) below the table.
+
+---
+
+## Decision Log
+
+Record significant design or implementation decisions made for this domain, in chronological order.
+Each entry answers: what was decided, why, and what it constrains going forward. Add entries as
+decisions are made — never delete old entries.
+
+### [YYYY-MM-DD] — [Decision name]
+
+**Decision**: [What was decided — state it as a fact, e.g. "We use optimistic locking for
+inventory updates rather than pessimistic locking."]
+
+**Rationale**: [Why this decision was made — constraints, trade-offs, context at the time]
+
+**Impact**: [What changed or what future changes are now constrained by this decision]
+
+---
+
+## Known Gotchas
+
+List unexpected behaviors, operational hazards, historical defects, or non-obvious constraints that
+a developer working in this domain MUST be aware of. Include things that caused bugs in the past,
+edge cases that are easy to miss, and anything that tripped up previous contributors.
+
+- [Gotcha 1: describe the non-obvious behavior and when it manifests]
+- [Gotcha 2: describe another hazard, historical failure mode, or surprising constraint]
+```
+
+#### 7.4 — Generate domain stub files
+
+For each slug in the deduplicated list (skip if slug is `_template` or starts with `_`):
+
+Create `ai-context/features/<slug>.md` using the canonical six-section structure. Replace the template header comment with the auto-generated header:
+
+```
+<!-- Auto-generated by memory-init on [YYYY-MM-DD]. Fill in each section with actual domain knowledge. -->
+```
+
+Replace `<Domain Name>` in the title with a title-cased version of the slug (e.g., `auth` → `Auth`, `payments` → `Payments`). Replace `<domain>` in the `Related specs:` line with the actual slug. All placeholder text within the six sections is kept as-is from the template.
+
+**Never** generate a stub file named `_template.md`.
+
+#### 7.5 — Summary entry
+
+Include in the `memory-init` final summary:
+
+- The number of feature stub files generated (e.g., `"Feature discovery: 3 stubs generated (auth, payments, notifications)"`)
+- A reminder: `"Stubs contain placeholder text — fill in each section with actual domain knowledge before relying on feature preloading in SDD phases."`
+- If the step was skipped due to idempotency: `"Feature discovery skipped — ai-context/features/ already exists."`
+- If no slugs were detected: `"Feature discovery: 0 stubs generated. Only _template.md was created in ai-context/features/."`
+
 ---
 
 ## Rules

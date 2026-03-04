@@ -107,6 +107,8 @@ For each selected target, apply the corresponding transformation prompt (see sub
    No files are written.
 5. If the user responds `y`, proceed to Step 4.
 
+These transformation prompts are self-instructions executed by the agent using its own in-context LLM reasoning. No external API call, subprocess, or tool invocation is required to apply them — the agent reads the prompt and generates the output directly.
+
 #### Copilot transformation prompt
 
 Apply the following prompt to the source bundle to generate `.github/copilot-instructions.md`:

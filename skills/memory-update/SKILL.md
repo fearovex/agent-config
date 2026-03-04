@@ -50,6 +50,7 @@ I review the context of the current session:
 | Coding patterns, naming conventions, or import styles changed | `conventions.md` |
 | Bugs were found/resolved | `known-issues.md` |
 | Any significant change was made | `changelog-ai.md` |
+| Feature file touched during session | `ai-context/features/<domain>.md` |
 
 ### Step 3 — Update stack.md (if applicable)
 
@@ -57,6 +58,35 @@ I only update the sections that changed. I add without deleting history:
 - New dependency: add it to the table with its version and purpose
 - Removed dependency: mark it as `~~[name]~~ (removed [date])`
 - Updated version: update the number
+
+### Step 3b — Update feature files (if applicable)
+
+I check whether any bounded-context domain with an existing `ai-context/features/<domain>.md` file was involved in the current session.
+
+**Determining relevance:**
+1. I identify the set of domains from the filenames present in `ai-context/features/` (excluding `_template.md` and any file whose name starts with `_`).
+2. For each domain slug, I assess whether the session touched that domain: files modified under a matching directory, decisions referencing the domain by name, business rules or gotchas discovered about it.
+3. Only domains with matching session content proceed to the update step.
+
+**If no relevant domain is found:** I skip this step entirely and silently. Nothing is written.
+
+**If one or more relevant domains are found:** For each matching domain file I perform append-or-merge writes as follows:
+
+- **New business rules or invariants** discovered during the session → appended to the `## Business Rules and Invariants` section
+  - Each new rule is appended as a new list item
+  - Include an inline date note: `> Added: YYYY-MM-DD`
+- **New decisions** made during the session → appended to the `## Decision Log` section
+  - Follow the existing log entry format already present in the file
+- **New gotchas** discovered or old gotchas resolved during the session → appended to (or annotated in) the `## Known Gotchas` section
+  - For a resolved gotcha: add a resolution note and date inline under the existing entry rather than deleting it
+  - For a new gotcha: append as a new list item
+
+**Constraints:**
+- NEVER overwrite or delete existing content — only append or annotate
+- NEVER create a new feature file — only update files that already exist in `ai-context/features/`
+- If the file contains `[auto-updated]` section boundary markers (`<!-- [auto-updated] -->` ... `<!-- [/auto-updated] -->`), write new entries **outside** those boundaries and leave marker content intact
+
+**Reporting:** Include each modified feature file in the Step 7 summary's "Modified files" list with a brief note of what was added (e.g., `ai-context/features/auth.md — 1 new invariant, 1 Decision Log entry`). If a session domain had no matching feature file, you MAY note this informally in the summary (e.g., `notifications — no feature file found, domain knowledge not persisted`).
 
 ### Step 4 — Update architecture.md (if applicable)
 

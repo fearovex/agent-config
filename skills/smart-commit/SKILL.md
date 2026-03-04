@@ -15,6 +15,8 @@ metadata:
 format: procedural
 ---
 
+**Triggers**: When the user says "commit", "smart commit", or /commit.
+
 ## When to Use
 
 **Triggers**: When the user says "commit", "smart commit", or /commit.

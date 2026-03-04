@@ -22,6 +22,37 @@ The proposal defines the **WHAT and WHY** before entering into technical details
 
 ## Process
 
+### Step 0 — Domain context preload
+
+This step is **non-blocking**: any failure (missing directory, unreadable file, no match) MUST produce at most an INFO-level note in the output. This step MUST NOT produce `status: blocked` or `status: failed` on its own.
+
+1. **List candidate files**: list all `.md` files in `ai-context/features/`. Exclude `_template.md` and any file whose name begins with an underscore (`_`). If the directory does not exist or is empty after exclusions, skip this step silently and proceed to Step 1.
+
+2. **Apply the filename-stem matching heuristic**:
+   - Split the `<change-name>` on hyphens (`-`) to obtain stems.
+   - Discard any single-character stems.
+   - For each candidate file, compute its domain slug (filename without `.md`).
+   - A match occurs when: the domain slug appears anywhere in `<change-name>` **OR** any change-name stem appears anywhere in the domain slug (case-insensitive comparison).
+
+3. **Load matching files**: for each file that matches, read its full contents and treat them as enrichment context for proposal authoring. If multiple files match, load all of them. If a file cannot be read (e.g. permissions issue), log an INFO note and continue — do not block.
+
+4. **If no file matches**: skip silently. Proceed to Step 1 without error or warning.
+
+5. **When files are loaded**: note the loaded paths in the Step 6 output summary and include them in the `artifacts` list (marked as read, not written).
+
+**Algorithm reference** (from design.md):
+```
+stems = change_name.split("-").filter(s => s.length > 1)
+for each feature_file in ai-context/features/ (excluding _ prefix files):
+  domain = feature_file.stem  (filename without .md)
+  if domain in change_name OR any stem in domain → match
+```
+
+**Examples**:
+- change `add-payments-gateway` → stems `[add, payments, gateway]` → matches `features/payments.md`
+- change `auth-token-refresh` → stems `[auth, token, refresh]` → matches `features/auth.md`
+- change `improve-project-audit` → stems `[improve, project, audit]` → no match → skip silently
+
 ### Step 1 — Read prior context
 
 If `openspec/changes/<change-name>/exploration.md` exists, I read it first.
