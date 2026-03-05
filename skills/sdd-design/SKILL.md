@@ -4,6 +4,8 @@ description: >
   Produces the technical design with architecture decisions, data flow, and a file change plan.
   Trigger: /sdd-design <change-name>, technical design, change architecture, how to implement.
 format: procedural
+model: sonnet
+thinking: enabled
 ---
 
 # sdd-design
@@ -25,12 +27,14 @@ The design defines **HOW to implement** what the specs say the system MUST do. I
 ### Step 1 — Read prior artifacts
 
 I must read:
+
 - `openspec/changes/<change-name>/proposal.md`
 - `openspec/changes/<change-name>/specs/` (all spec.md files)
 - `ai-context/architecture.md` if it exists
 - `ai-context/conventions.md` if it exists
 
 Then I read real code:
+
 - Relevant entry points
 - Files that will be affected according to the proposal
 - Existing patterns to follow (not reinvent)
@@ -39,6 +43,7 @@ Then I read real code:
 ### Step 2 — Design the technical solution
 
 I evaluate the solution considering:
+
 - Patterns already used in the project (prefer consistency)
 - Minimal impact on existing code
 - Testability
@@ -55,24 +60,29 @@ Date: [YYYY-MM-DD]
 Proposal: openspec/changes/[name]/proposal.md
 
 ## General Approach
+
 [High-level description of the technical solution in 3-5 lines]
 
 ## Technical Decisions
-| Decision | Choice | Discarded Alternatives | Justification |
-|----------|--------|------------------------|---------------|
+
+| Decision   | Choice           | Discarded Alternatives         | Justification     |
+| ---------- | ---------------- | ------------------------------ | ----------------- |
 | [decision] | [what is chosen] | [alternative A, alternative B] | [why this choice] |
 
 ## Data Flow
+
 [ASCII diagram or description of the flow]
 
 Example:
 ```
+
 Request → Middleware → Controller → Service → Repository → DB
-                           ↓
-                       Validator (Zod)
-                           ↓
-                       Response DTO
-```
+↓
+Validator (Zod)
+↓
+Response DTO
+
+````
 
 ## File Change Matrix
 | File | Action | What is added/modified |
@@ -96,17 +106,20 @@ interface RefreshTokenResponse {
   accessToken: string;
   expiresIn: number;
 }
-```
+````
 
 ## Testing Strategy
-| Layer | What to test | Tool |
-|-------|-------------|------|
-| Unit | [service/function] | [jest/vitest/pytest] |
-| Integration | [endpoint/module] | [supertest/httpx] |
-| E2E | [full flow if applicable] | [playwright/cypress] |
+
+| Layer       | What to test              | Tool                 |
+| ----------- | ------------------------- | -------------------- |
+| Unit        | [service/function]        | [jest/vitest/pytest] |
+| Integration | [endpoint/module]         | [supertest/httpx]    |
+| E2E         | [full flow if applicable] | [playwright/cypress] |
 
 ## Migration Plan
+
 [If there are changes to DB, schema, or existing data:]
+
 - Step 1: [migration script]
 - Step 2: [gradual rollout if applicable]
 - Step 3: [post-cleanup]
@@ -114,11 +127,14 @@ interface RefreshTokenResponse {
 [If no migration: "No data migration required."]
 
 ## Open Questions
+
 [Aspects that need clarification before implementing]
+
 - [question]: [impact if not resolved]
 
 [If none: "None."]
-```
+
+````
 
 ### Step 4 — ADR Detection and Generation
 
@@ -152,9 +168,10 @@ This step is **non-blocking**: any failure produces a warning in the output, nev
 | Input validation | Zod at controller layer | Class-validator, manual |
 The project already uses Zod for DB schemas (Drizzle).
 Maintaining consistency avoids two validation systems. |
-```
+````
 
 ### Poorly documented
+
 ```markdown
 | Validation | Zod | others | It's better |
 ```

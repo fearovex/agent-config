@@ -4,6 +4,7 @@ description: >
   Fast-forward SDD cycle: runs propose → spec+design (parallel) → tasks automatically, then asks before apply.
   Trigger: /sdd-ff <change-name>, quick SDD cycle, fast-forward, skip explore phase.
 format: procedural
+model: haiku
 ---
 
 # sdd-ff
@@ -19,12 +20,14 @@ format: procedural
 `$ARGUMENTS` must be a non-empty kebab-case change name (e.g. `add-payment-flow`).
 
 If empty or missing:
+
 ```
 Usage: /sdd-ff <change-name>
 
 Provide a kebab-case change name. Example:
   /sdd-ff add-payment-flow
 ```
+
 Stop here if argument is missing.
 
 ---
@@ -36,6 +39,7 @@ Use the Task tool:
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: haiku
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -66,9 +70,11 @@ Wait for the result. If status is `blocked` or `failed`, stop and report to user
 Use two Task tool calls simultaneously:
 
 **Spec sub-agent:**
+
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: sonnet
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -91,9 +97,12 @@ Task tool:
 ```
 
 **Design sub-agent:**
+
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: sonnet
+  thinking: enabled
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -126,6 +135,7 @@ Use the Task tool:
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: haiku
   prompt: |
     You are a specialized SDD sub-agent.
 

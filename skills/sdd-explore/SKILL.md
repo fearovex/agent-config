@@ -4,6 +4,7 @@ description: >
   Investigates and analyzes an idea or codebase area before committing to changes. Pure research, no writes.
   Trigger: /sdd-explore <topic>, explore, investigate codebase, research feature, analyze before changing.
 format: procedural
+model: haiku
 ---
 
 # sdd-explore
@@ -19,6 +20,7 @@ format: procedural
 The exploration phase is **optional but valuable**. Its goal is to understand the terrain before proposing changes. It creates no code and modifies nothing. It only reads and analyzes.
 
 Use it when:
+
 - The request is vague or complex
 - You are unsure of the scope of the change
 - You want to understand the impact before committing
@@ -31,6 +33,7 @@ Use it when:
 ### Step 1 — Understand the request
 
 I classify what type of exploration is needed:
+
 - **New feature**: What already exists? Where would it fit?
 - **Bug**: Where is the problem? What is the root cause?
 - **Refactor**: What code is affected? What are the risks?
@@ -39,6 +42,7 @@ I classify what type of exploration is needed:
 ### Step 2 — Investigate the codebase
 
 I read real code following this hierarchy:
+
 1. Entry points of the affected area
 2. Files related to the functionality
 3. Existing tests (they reveal expected behavior)
@@ -49,10 +53,10 @@ I read real code following this hierarchy:
 
 For each possible approach I generate a comparison table:
 
-| Approach | Pros | Cons | Effort | Risk |
-|----------|------|------|--------|------|
-| [Option A] | | | Low/Medium/High | Low/Medium/High |
-| [Option B] | | | | |
+| Approach   | Pros | Cons | Effort          | Risk            |
+| ---------- | ---- | ---- | --------------- | --------------- |
+| [Option A] |      |      | Low/Medium/High | Low/Medium/High |
+| [Option B] |      |      |                 |                 |
 
 ### Step 4 — Identify risks and dependencies
 
@@ -70,15 +74,18 @@ If invoked as `/sdd-explore <change-name>`, I save to:
 # Exploration: [topic]
 
 ## Current State
+
 [What currently exists in the codebase]
 
 ## Affected Areas
+
 | File/Module | Impact | Notes |
-|-------------|--------|-------|
+| ----------- | ------ | ----- |
 
 ## Analyzed Approaches
 
 ### Approach A: [name]
+
 **Description**: [how it would work]
 **Pros**: [advantages]
 **Cons**: [disadvantages]
@@ -86,18 +93,23 @@ If invoked as `/sdd-explore <change-name>`, I save to:
 **Risk**: Low/Medium/High
 
 ### Approach B: [name]
+
 [same format]
 
 ## Recommendation
+
 [Recommended approach and why]
 
 ## Identified Risks
+
 - [risk]: [impact] — [suggested mitigation]
 
 ## Open Questions
+
 - [things that need clarification before proposing]
 
 ## Ready for Proposal
+
 [Yes/No — and why if No]
 ```
 

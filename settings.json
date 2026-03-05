@@ -1,17 +1,12 @@
 {
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
+  "alwaysThinkingEnabled": false,
+  "effortLevel": "low",
   "model": "sonnet",
   "env": {
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "true"
   },
   "permissions": {
-    "allow": [
-      "Read",
-      "Glob",
-      "Grep",
-      "Bash"
-    ]
+    "allow": ["Read", "Glob", "Grep", "Bash"]
   },
   "mcpServers": {
     "github": {
@@ -25,7 +20,13 @@
     "filesystem": {
       "type": "stdio",
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "."]
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."
+      ]
     }
   }
 }

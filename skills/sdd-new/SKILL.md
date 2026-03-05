@@ -4,6 +4,7 @@ description: >
   Starts a complete SDD cycle with optional exploration phase and user confirmation gates at each stage.
   Trigger: /sdd-new <change-name>, new SDD change, start full SDD cycle, new feature SDD.
 format: procedural
+model: haiku
 ---
 
 # sdd-new
@@ -19,12 +20,14 @@ format: procedural
 `$ARGUMENTS` must be a non-empty kebab-case change name (e.g. `add-payment-flow`).
 
 If empty or missing:
+
 ```
 Usage: /sdd-new <change-name>
 
 Provide a kebab-case change name. Example:
   /sdd-new add-payment-flow
 ```
+
 Stop here if argument is missing.
 
 ---
@@ -46,6 +49,7 @@ If user answers Y (or yes), launch the explore sub-agent:
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: haiku
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -76,6 +80,7 @@ Wait for result. Present the exploration summary to the user. If status is `bloc
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: haiku
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -100,6 +105,7 @@ Task tool:
 Wait for result. Present the proposal summary.
 
 **Confirmation gate — after propose:**
+
 ```
 Proposal created: openspec/changes/[change-name]/proposal.md
 [one-paragraph summary from sub-agent]
@@ -118,9 +124,11 @@ If user says N, stop gracefully.
 Use two Task tool calls simultaneously:
 
 **Spec sub-agent:**
+
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: sonnet
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -143,9 +151,12 @@ Task tool:
 ```
 
 **Design sub-agent:**
+
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: sonnet
+  thinking: enabled
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -170,6 +181,7 @@ Task tool:
 Wait for **both** to complete. Present both summaries.
 
 **Confirmation gate — after spec + design:**
+
 ```
 Spec and design complete:
   spec   : [status] — [one-line summary]
@@ -191,6 +203,7 @@ If user says N, stop gracefully.
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: haiku
   prompt: |
     You are a specialized SDD sub-agent.
 

@@ -4,6 +4,7 @@ description: >
   Breaks down the design into an atomic, ordered, and verifiable task plan stored in tasks.md.
   Trigger: /sdd-tasks <change-name>, task plan, break down implementation, task breakdown.
 format: procedural
+model: haiku
 ---
 
 # sdd-tasks
@@ -27,6 +28,7 @@ It is the input for `sdd-apply`. Without an approved tasks file, nothing gets im
 ### Step 1 — Read prior artifacts
 
 I must read:
+
 - `openspec/changes/<change-name>/design.md` (the file matrix and approach)
 - `openspec/changes/<change-name>/specs/` (the success criteria)
 - `openspec/config.yaml` if it exists (project rules)
@@ -34,6 +36,7 @@ I must read:
 ### Step 2 — Analyze dependencies between tasks
 
 I identify the natural implementation order:
+
 - Types/interfaces before their usage
 - Providers/services before their consumers
 - Schema/migration before the code that uses them
@@ -99,12 +102,14 @@ Design: openspec/changes/[name]/design.md
 ## Implementation Notes
 
 [Design decisions the implementer must keep in mind:]
+
 - [important note 1]
 - [important note 2]
 
 ## Blockers
 
 [Tasks that cannot start until something external is ready:]
+
 - [blocker]: [what resolves it]
 
 [If none: "None."]
@@ -115,11 +120,13 @@ Design: openspec/changes/[name]/design.md
 ## Format of a well-written task
 
 ### Well written
+
 ```
 - [ ] 2.1 Create `src/services/payment.service.ts` with method `processPayment(dto: PaymentDto): Promise<PaymentResult>`
 ```
 
 ### Poorly written
+
 ```
 - [ ] Add payment logic
 ```

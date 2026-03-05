@@ -4,6 +4,7 @@ description: >
   Syncs delta specs to master specs and archives a completed SDD change to openspec/changes/archive/.
   Trigger: /sdd-archive <change-name>, archive change, finalize SDD cycle, close change.
 format: procedural
+model: haiku
 ---
 
 # sdd-archive
@@ -40,6 +41,7 @@ Archiving is the **final step** of the SDD cycle. It integrates the learnings fr
 I read `openspec/changes/<change-name>/verify-report.md` if it exists.
 
 If there are unresolved CRITICAL issues:
+
 ```
 No archiving allowed.
 
@@ -94,15 +96,20 @@ I apply the delta:
 **REMOVED** → I delete the requirement (with an audit comment)
 
 Merge example:
+
 ```markdown
 <!-- Before in master spec -->
+
 ### Requirement: Export JSON
+
 The system MUST export data in JSON format.
 
 <!-- After applying MODIFIED from delta -->
+
 ### Requirement: Export JSON
+
 The system MUST export data in JSON and CSV format.
-*(Modified in: 2026-02-23 by change "add-csv-export")*
+_(Modified in: 2026-02-23 by change "add-csv-export")_
 ```
 
 **I PRESERVE EVERYTHING that is NOT in the delta.**
@@ -114,6 +121,7 @@ I copy the delta file to `openspec/specs/<domain>/spec.md` (it becomes the full 
 ### Step 4 — Move to archive
 
 I move the change folder:
+
 ```
 openspec/changes/<change-name>/
 → openspec/changes/archive/YYYY-MM-DD-<change-name>/
@@ -132,23 +140,29 @@ Start date: [date from proposal.md]
 Close date: [YYYY-MM-DD]
 
 ## Summary
+
 [What was done in one or two lines]
 
 ## Modified Specs
-| Domain | Action | Change |
-|--------|--------|--------|
+
+| Domain   | Action                 | Change        |
+| -------- | ---------------------- | ------------- |
 | [domain] | Added/Modified/Created | [description] |
 
 ## Modified Code Files
+
 [List of main files that changed]
 
 ## Key Decisions Made
+
 [The architecture.md decisions relevant for the future]
 
 ## Lessons Learned
+
 [If there were deviations, problems, or insights during the cycle]
 
 ## User Docs Reviewed
+
 [YES — updated scenarios.md / quick-reference.md / onboarding.md as needed | NO — change does not affect user-facing workflows | N/A — pre-dates this requirement]
 ```
 

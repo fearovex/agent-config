@@ -4,6 +4,7 @@ description: >
   Shows the status of all active SDD changes by inspecting openspec/changes/ on disk.
   Trigger: /sdd-status, show active changes, what changes are in progress, SDD status.
 format: procedural
+model: haiku
 ---
 
 # sdd-status
@@ -21,12 +22,14 @@ format: procedural
 Check if `openspec/changes/` exists in the current project.
 
 If it does NOT exist:
+
 ```
 No openspec/changes/ directory found.
 
 This project has no SDD changes yet.
 To start a new change: /sdd-new <change-name>
 ```
+
 Stop here.
 
 ---
@@ -36,12 +39,14 @@ Stop here.
 Read all directories directly under `openspec/changes/` EXCLUDING `archive/`.
 
 Each subdirectory is a change. If there are no non-archive directories:
+
 ```
 No active changes found in openspec/changes/.
 
 Archived: [N] changes in openspec/changes/archive/
 To start a new change: /sdd-new <change-name>
 ```
+
 Stop here.
 
 ---
@@ -49,6 +54,7 @@ Stop here.
 ### Step 3 — Check artifacts for each change
 
 For each change directory, check the presence of these files:
+
 - `exploration.md` → marks explore phase done
 - `proposal.md` → marks propose phase done
 - `specs/` directory (non-empty) → marks spec phase done
@@ -62,14 +68,14 @@ For each change directory, check the presence of these files:
 
 Based on which artifacts are present, infer the current phase for each change:
 
-| Condition | Current Phase |
-|-----------|--------------|
-| No artifacts at all | not started |
-| proposal.md absent | explore (or not started) |
-| proposal.md present, specs/ or design.md absent | propose done — awaiting spec/design |
-| proposal.md + specs/ + design.md present, tasks.md absent | spec+design done — awaiting tasks |
-| tasks.md present, verify-report.md absent | tasks done — ready for apply/verify |
-| verify-report.md present | verify done — ready to archive |
+| Condition                                                 | Current Phase                       |
+| --------------------------------------------------------- | ----------------------------------- |
+| No artifacts at all                                       | not started                         |
+| proposal.md absent                                        | explore (or not started)            |
+| proposal.md present, specs/ or design.md absent           | propose done — awaiting spec/design |
+| proposal.md + specs/ + design.md present, tasks.md absent | spec+design done — awaiting tasks   |
+| tasks.md present, verify-report.md absent                 | tasks done — ready for apply/verify |
+| verify-report.md present                                  | verify done — ready to archive      |
 
 ---
 

@@ -4,6 +4,8 @@ description: >
   Implements SDD plan tasks following specs and design, marking progress in tasks.md as it goes.
   Trigger: /sdd-apply <change-name>, implement change, apply SDD tasks, write code for change.
 format: procedural
+model: sonnet
+thinking: enabled
 ---
 
 # sdd-apply
@@ -59,30 +61,30 @@ If neither source is available:
 
 I match detected keywords (case-insensitive substring match) against the following table:
 
-| Keyword(s) | Skill path |
-|------------|------------|
-| always (non-doc changes) | `~/.claude/skills/solid-ddd/SKILL.md` |
-| react native, expo | `~/.claude/skills/react-native/SKILL.md` |
-| react | `~/.claude/skills/react-19/SKILL.md` |
-| next, nextjs, next.js | `~/.claude/skills/nextjs-15/SKILL.md` |
-| typescript, ts | `~/.claude/skills/typescript/SKILL.md` |
-| zustand | `~/.claude/skills/zustand-5/SKILL.md` |
-| zod | `~/.claude/skills/zod-4/SKILL.md` |
-| tailwind | `~/.claude/skills/tailwind-4/SKILL.md` |
-| ai sdk, vercel ai, ai-sdk | `~/.claude/skills/ai-sdk-5/SKILL.md` |
-| electron | `~/.claude/skills/electron/SKILL.md` |
-| django, drf | `~/.claude/skills/django-drf/SKILL.md` |
-| spring boot, spring-boot | `~/.claude/skills/spring-boot-3/SKILL.md` |
+| Keyword(s)                    | Skill path                                              |
+| ----------------------------- | ------------------------------------------------------- |
+| always (non-doc changes)      | `~/.claude/skills/solid-ddd/SKILL.md`                   |
+| react native, expo            | `~/.claude/skills/react-native/SKILL.md`                |
+| react                         | `~/.claude/skills/react-19/SKILL.md`                    |
+| next, nextjs, next.js         | `~/.claude/skills/nextjs-15/SKILL.md`                   |
+| typescript, ts                | `~/.claude/skills/typescript/SKILL.md`                  |
+| zustand                       | `~/.claude/skills/zustand-5/SKILL.md`                   |
+| zod                           | `~/.claude/skills/zod-4/SKILL.md`                       |
+| tailwind                      | `~/.claude/skills/tailwind-4/SKILL.md`                  |
+| ai sdk, vercel ai, ai-sdk     | `~/.claude/skills/ai-sdk-5/SKILL.md`                    |
+| electron                      | `~/.claude/skills/electron/SKILL.md`                    |
+| django, drf                   | `~/.claude/skills/django-drf/SKILL.md`                  |
+| spring boot, spring-boot      | `~/.claude/skills/spring-boot-3/SKILL.md`               |
 | hexagonal, ports and adapters | `~/.claude/skills/hexagonal-architecture-java/SKILL.md` |
-| java | `~/.claude/skills/java-21/SKILL.md` |
-| playwright | `~/.claude/skills/playwright/SKILL.md` |
-| pytest, python test | `~/.claude/skills/pytest/SKILL.md` |
-| github pr, pull request | `~/.claude/skills/github-pr/SKILL.md` |
-| jira task | `~/.claude/skills/jira-task/SKILL.md` |
-| jira epic | `~/.claude/skills/jira-epic/SKILL.md` |
-| elixir, phoenix | `~/.claude/skills/elixir-antipatterns/SKILL.md` |
-| excel, xlsx, spreadsheet | `~/.claude/skills/excel-expert/SKILL.md` |
-| ocr, image text, image ocr | `~/.claude/skills/image-ocr/SKILL.md` |
+| java                          | `~/.claude/skills/java-21/SKILL.md`                     |
+| playwright                    | `~/.claude/skills/playwright/SKILL.md`                  |
+| pytest, python test           | `~/.claude/skills/pytest/SKILL.md`                      |
+| github pr, pull request       | `~/.claude/skills/github-pr/SKILL.md`                   |
+| jira task                     | `~/.claude/skills/jira-task/SKILL.md`                   |
+| jira epic                     | `~/.claude/skills/jira-epic/SKILL.md`                   |
+| elixir, phoenix               | `~/.claude/skills/elixir-antipatterns/SKILL.md`         |
+| excel, xlsx, spreadsheet      | `~/.claude/skills/excel-expert/SKILL.md`                |
+| ocr, image text, image ocr    | `~/.claude/skills/image-ocr/SKILL.md`                   |
 
 > Note: `react native` and `expo` are matched before `react` to avoid the shorter keyword absorbing the longer one. Match order in the table is top-to-bottom; once a keyword matches a row, that row's skill is queued for loading.
 
@@ -91,6 +93,7 @@ I match detected keywords (case-insensitive substring match) against the followi
 #### Skill loading
 
 For each matched skill path:
+
 - If the file exists on disk → read its contents and load its patterns into context
 - If the file does not exist on disk → skip silently; note: `"<skill-name>: skipped (file not found at <path>)"`
 
@@ -117,6 +120,7 @@ The list of loaded skills is carried forward and included in the Step 2 detectio
 ### Step 1 — Read full context
 
 I read in this order:
+
 1. `openspec/changes/<change-name>/tasks.md` — which tasks are assigned
 2. `openspec/changes/<change-name>/specs/` — the success criteria (WHAT it must do)
 3. `openspec/changes/<change-name>/design.md` — how to implement it (technical decisions, interfaces)
@@ -130,6 +134,7 @@ Before implementing, I determine whether to use TDD (test-driven development) mo
 
 **Source 1 — Explicit config (highest priority):**
 I read `openspec/config.yaml` and look for a `tdd` key:
+
 - `tdd: true` or `tdd.enabled: true` → TDD mode is **ON**. Report: `"TDD mode: ON (source: config)"`
 - `tdd: false` or `tdd.enabled: false` → TDD mode is **OFF**. Report: `"TDD mode: OFF (explicitly disabled in config)"`. Skip Sources 2 and 3.
 - Key not present → continue to heuristic detection (Sources 2 and 3).
@@ -141,6 +146,7 @@ I scan the project's CLAUDE.md skills registry for testing-related skills (e.g. 
 I search for existing test files matching common patterns: `*.test.*`, `*.spec.*`, `test_*`, `*_test.*`. If at least one match is found → `signal_count++`.
 
 **Decision (when no explicit config):**
+
 - `signal_count >= 2` → TDD mode is **ON**. Report: `"TDD mode: ON (source: testing skill + test files)"`
 - `signal_count == 1` → TDD mode is **OFF**. Report: `"TDD mode: OFF ([signal found] but insufficient signals)"`
 - `signal_count == 0` → TDD mode is **OFF**. Report: `"TDD mode: OFF"`
@@ -190,6 +196,7 @@ For each assigned task:
 ### Step 5 — Respect the design
 
 If during implementation I find that the design has a problem:
+
 - **I do NOT fix it silently**
 - I note it in my report as "DEVIATION: [what and why]"
 - If it is a blocker, I stop and report `status: blocked`
@@ -197,11 +204,13 @@ If during implementation I find that the design has a problem:
 ### Step 6 — Update progress in tasks.md
 
 I update the progress counter in tasks.md:
+
 ```markdown
 ## Progress: [completed]/[total] tasks
 ```
 
 And I mark each completed task:
+
 ```markdown
 - [x] 1.1 Create `src/types/auth.types.ts` ✓
 - [x] 1.2 Create `src/schemas/auth.schema.ts` ✓
@@ -213,10 +222,12 @@ And I mark each completed task:
 ## Quality Gate
 
 ### I always follow project conventions
+
 If `ai-context/conventions.md` exists, I apply it strictly.
 If not, I observe the existing code and follow its patterns.
 
 ### I load technology skills if applicable
+
 Technology skills and `solid-ddd` are loaded automatically in Step 0 — Technology Skill Preload. No manual judgment is required here.
 
 ### Quality Gate checklist
@@ -232,12 +243,14 @@ Before marking any code task `[x]`, I evaluate each criterion below. For each it
 7. **Naming clarity**: Do names (classes, functions, variables) reveal intent without requiring a comment to explain them? If a name needs a comment to be understood, rename it first → `QUALITY_VIOLATION: Naming — <description>`.
 
 **Reporting rules:**
+
 - `N/A — [one-line reason]`: the criterion does not apply to this task (e.g., "task adds a CLI flag — no domain model touched").
 - `QUALITY_VIOLATION: <principle> — <description>`: criterion fails. Fix the code BEFORE marking `[x]`. If fixing requires scope outside this task, report as `DEVIATION: <principle> — <description>` and set `status: warning`.
 - Non-contradicting violations do NOT block the apply phase. The orchestrator MUST surface all `QUALITY_VIOLATION` notes in the phase summary.
 - A violation that contradicts a scenario in the spec MUST be escalated to `DEVIATION` and MUST set `status: warning`.
 
 ### No over-engineering
+
 - I implement the minimum necessary to pass the spec's scenarios
 - I do not add features that are not in the proposal
 - I do not refactor code that is not part of the change
@@ -256,9 +269,7 @@ Before marking any code task `[x]`, I evaluate each criterion below. For each it
     "src/types/auth.types.ts — created",
     "openspec/changes/<name>/tasks.md — updated"
   ],
-  "deviations": [
-    "DEVIATION in task 2.1: [description and reason]"
-  ],
+  "deviations": ["DEVIATION in task 2.1: [description and reason]"],
   "next_recommended": ["sdd-apply (Phase 2)"],
   "risks": []
 }
