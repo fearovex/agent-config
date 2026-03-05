@@ -184,7 +184,7 @@ destination paths), `strategy` (see table below), and `confirmation_required = t
 
 | Pattern name | Match condition | Migration strategy | Destination summary |
 |---|---|---|---|
-| `commands/` | Directory named `commands` (case-insensitive) | `delegate` — advisory only | Skill creation advisory via `/skill-create` per qualifying `.md` file; no files written |
+| `commands/` | Directory named `commands` (case-insensitive) | `scaffold` — active SKILL.md generation | For each qualifying `.md` file: derive skill name from stem (kebab-case), infer format type via 4-signal heuristic, check idempotency (skip if `.claude/skills/<stem>/SKILL.md` already exists), write SKILL.md skeleton to `.claude/skills/<stem>/SKILL.md`; non-qualifying files receive advisory notes only; source files NEVER modified or deleted |
 | `docs/` | Directory named `docs` (case-insensitive) | `copy` — per `.md` file | `ai-context/features/<name>.md` for each `.md` at immediate `docs/` level |
 | `system/` | Directory named `system` (case-insensitive) | `append` — route by filename | `architecture.md` → `ai-context/architecture.md`; `database.md` + `api-overview.md` → `ai-context/stack.md` |
 | `plans/` | Directory named `plans` (case-insensitive) | `copy` — route by status | Active plans → `openspec/changes/<plan-name>/`; archived plans → `openspec/changes/archive/<plan-name>/` |
@@ -192,7 +192,7 @@ destination paths), `strategy` (see table below), and `confirmation_required = t
 | `sops/` | Directory named `sops` (case-insensitive) | `user-choice` — per file | Option A: append section to `ai-context/conventions.md`; Option B: copy to `docs/sops/<filename>` |
 | `templates/` | Directory named `templates` (case-insensitive) | `copy` | `docs/templates/<filename>` for each file at immediate `templates/` level |
 | `project.md` | Root-level `.md` file named `project.md` (case-insensitive) | `section-distribute` | Sections routed to `ai-context/stack.md`, `ai-context/architecture.md`, `ai-context/known-issues.md` by heading signal |
-| `readme.md` | Root-level `.md` file named `readme.md` (case-insensitive) | `section-distribute` | Sections routed to `ai-context/stack.md`, `ai-context/architecture.md`, `ai-context/known-issues.md` by heading signal |
+| `readme.md` | Root-level `.md` file named `readme.md` (case-insensitive) | `user-choice` | Option A: append full content to `PROJECT_ROOT/CLAUDE.md` under marker `<!-- .claude/readme.md -->`; Option B: copy to `PROJECT_ROOT/docs/README-claude.md`; idempotency: if marker already present in CLAUDE.md → record "already integrated (skipped)" |
 
 **Classification loop:**
 
@@ -211,14 +211,14 @@ For each item in `UNEXPECTED`:
 ##### Pattern: `commands/`
 
 - **Match condition**: Directory named `commands` (case-insensitive)
-- **Strategy**: `delegate` — SKILL_ADVISORY
-- **Destination**: Advisory only — no file writes under any circumstance
+- **Strategy**: `scaffold` — active SKILL.md generation per qualifying `.md` file
+- **Destination**: `.claude/skills/<stem>/SKILL.md` — one SKILL.md skeleton per qualifying file
 
-**Content analysis procedure** (runs when `commands/` category is confirmed in Step 5.7):
+**Scaffold procedure** (runs when `commands/` category is confirmed in Step 5.7):
 
 1. List all `.md` files at the **immediate** `commands/` level only (no recursion into subdirectories).
 2. If no `.md` files are found → output:
-   `commands/ — no .md files found at immediate level; nothing to advise`
+   `commands/ — no .md files found at immediate level; nothing to scaffold`
    Stop; no further processing for this category.
 3. For each `.md` file found, apply the **4 qualifying markers** (any one marker is sufficient to qualify):
    - **(a) Step-numbered sections**: the file contains lines matching `### Step N`, `- Step N`, or `N.` where N is a number (numbered/bulleted process sections)
@@ -226,14 +226,106 @@ For each item in `UNEXPECTED`:
    - **(c) Process headings**: the file contains a section heading that is exactly `## Process`, `## Steps`, `## How to`, or `## Instructions`
    - **(d) Filename-stem keyword match**: the file's stem (case-insensitive) matches one of: `deploy`, `rollback`, `setup`, `onboard`, `audit`, `install`, `release`, `build`, `migrate`, `sync`
 4. **Qualifying file** (at least one marker matched):
-   Output advisory:
-   `<filename> — qualifying workflow detected. Suggested skill name: <stem>. Suggested format: procedural. To scaffold: /skill-create <stem>`
-   Do NOT create any file or directory. Do NOT invoke `/skill-create`.
+   - **(4a) Derive skill name**: extract the filename stem; normalize to kebab-case (lowercase, spaces and underscores replaced with hyphens). `<stem>` = normalized stem.
+   - **(4b) Infer format type** using the 4-signal heuristic (first match wins; precedence: anti-pattern > reference > procedural):
+     - If the source file contains a heading starting with `## Anti-patterns` → `anti-pattern`
+     - Else if the source file contains a heading starting with `## Patterns` or `## Examples` → `reference`
+     - Otherwise (step-numbered sections, process headings, trigger patterns, keyword stem, or no signals) → `procedural` (default)
+   - **(4c) Idempotency guard**: check whether `PROJECT_CLAUDE_DIR/skills/<stem>/SKILL.md` already exists.
+     - **If it exists**: record `<filename>.md — [already exists — not overwritten]`. Skip to the next file; do NOT write anything.
+     - **If it does not exist**: proceed to 4d.
+   - **(4d) Generate SKILL.md skeleton** based on inferred format type. Create directory `PROJECT_CLAUDE_DIR/skills/<stem>/` if absent. Write the appropriate skeleton to `PROJECT_CLAUDE_DIR/skills/<stem>/SKILL.md`:
+
+     **For `procedural` format:**
+     ```markdown
+     ---
+     name: <stem>
+     description: >
+       TODO: describe what this skill does and when to trigger it.
+     format: procedural
+     ---
+
+     # <stem>
+
+     **Triggers**: TODO — describe triggers
+
+     ---
+
+     ## Process
+
+     ### Step 1 — TODO
+
+     TODO: describe step 1.
+
+     ---
+
+     ## Rules
+
+     - TODO: add rules
+     ```
+
+     **For `reference` format:**
+     ```markdown
+     ---
+     name: <stem>
+     description: >
+       TODO: describe what this skill does and when to trigger it.
+     format: reference
+     ---
+
+     # <stem>
+
+     **Triggers**: TODO — describe triggers
+
+     ---
+
+     ## Patterns
+
+     ### Pattern 1 — TODO
+
+     TODO: describe pattern.
+
+     ---
+
+     ## Rules
+
+     - TODO: add rules
+     ```
+
+     **For `anti-pattern` format:**
+     ```markdown
+     ---
+     name: <stem>
+     description: >
+       TODO: describe what this skill does and when to trigger it.
+     format: anti-pattern
+     ---
+
+     # <stem>
+
+     **Triggers**: TODO — describe triggers
+
+     ---
+
+     ## Anti-patterns
+
+     ### Anti-pattern 1 — TODO
+
+     TODO: describe anti-pattern.
+
+     ---
+
+     ## Rules
+
+     - TODO: add rules
+     ```
+
+   - **(4e) Record outcome**: `<filename>.md → .claude/skills/<stem>/SKILL.md — scaffolded (format: <format>)`.
 5. **Non-qualifying file** (no marker matched):
-   Record: `<filename> — non-qualifying (no structured workflow detected). Recommend manual archival.`
+   Record: `<filename>.md — advisory only (no qualifying signals)`.
    Do NOT create or modify any file.
 
-> **Invariant**: The delegate strategy produces **zero file writes**. Any write operation during `commands/` processing is a violation of this invariant. Source files are NEVER deleted, moved, or modified.
+> **Invariant**: Source files in `commands/` are NEVER deleted, moved, or modified — regardless of scaffold outcome. The scaffold strategy writes only to `PROJECT_CLAUDE_DIR/skills/<stem>/SKILL.md`. No deletion prompt is ever issued for the `commands/` category.
 
 ---
 
@@ -378,9 +470,9 @@ For each item in `UNEXPECTED`:
 
 ---
 
-##### Pattern: `project.md` and `readme.md`
+##### Pattern: `project.md`
 
-- **Match condition**: Root-level `.md` file named `project.md` or `readme.md` (case-insensitive match on the full filename).
+- **Match condition**: Root-level `.md` file named `project.md` (case-insensitive match on the full filename).
 - **Strategy**: `section-distribute`
 - **Section routing heuristic**: read the file's section headings and route each section to a destination using the following signal lists:
 
@@ -395,7 +487,7 @@ For each item in `UNEXPECTED`:
   - A heading matching any entry in `ISSUES_HEADING_SIGNALS` → routes that section to `ai-context/known-issues.md`
   - Headings matching no signal list are not routed and not appended to any file.
 
-**Section-distribute procedure** (runs when `project.md` / `readme.md` category is confirmed in Step 5.7):
+**Section-distribute procedure** (runs when `project.md` category is confirmed in Step 5.7):
 
 1. Read the file's section headings.
 2. For each heading matched by a signal list, extract the section content (from the heading to the next same-level or higher heading).
@@ -405,6 +497,106 @@ For each item in `UNEXPECTED`:
    (Replace `<filename>` with the actual filename, e.g. `project.md`. Replace `YYYY-MM-DD` with the current date.)
    If the destination file does not exist, create it with the appended content.
 5. Source file is NEVER deleted or modified.
+
+---
+
+##### Pattern: `readme.md`
+
+- **Match condition**: Root-level `.md` file named `readme.md` (case-insensitive match on the full filename).
+- **Strategy**: `user-choice`
+- **Classification**: `LEGACY_MIGRATION` — `readme.md` is NOT classified as `section-distribute` and is NOT subject to heading-signal routing.
+- **Destinations**:
+  - **Option A**: Append full file content to `PROJECT_ROOT/CLAUDE.md` under the marker `<!-- .claude/readme.md -->`. Create `CLAUDE.md` if absent (unlikely but guarded).
+  - **Option B**: Copy `readme.md` to `PROJECT_ROOT/docs/README-claude.md`. Create `docs/` directory if absent.
+
+**Idempotency guard**: Before presenting options to the user, check whether `PROJECT_ROOT/CLAUDE.md` already contains the string `<!-- .claude/readme.md -->`.
+- If the marker IS present → record `readme.md — already integrated (skipped)` and skip this pattern entirely. Do NOT present options.
+- If the marker is NOT present → proceed to present Option A and Option B.
+
+**User-choice procedure** (runs when `readme.md` category is confirmed in Step 5.7):
+
+See Step 5.7.2b below for the full execution procedure.
+
+---
+
+### Step 3c — Skills Audit
+
+After Step 3b completes, perform a skills audit over the `.claude/skills/` directory.
+
+**Skip condition**: If `PROJECT_CLAUDE_DIR/skills/` does not exist as a directory, skip this step entirely. Do not produce an error.
+
+Initialize the findings list:
+
+```
+SKILL_AUDIT_FINDINGS = []
+```
+
+**Scope-overlap detection — read the CLAUDE.md Skills Registry:**
+
+1. Read `PROJECT_CLAUDE_DIR/CLAUDE.md`.
+2. Locate the Skills Registry section (look for the comment `<!-- Skills Registry` or headings containing `Skills Registry`).
+3. Extract all lines matching the pattern `~/.claude/skills/<name>/SKILL.md` (where `<name>` is a non-empty path segment with no slashes).
+4. Build `GLOBAL_REGISTRY_NAMES` = set of `<name>` values extracted (case-sensitive stems).
+
+If `PROJECT_CLAUDE_DIR/CLAUDE.md` does not exist or the Skills Registry section cannot be located, treat `GLOBAL_REGISTRY_NAMES` as an empty set (scope-overlap detection produces no findings, but other rules still run).
+
+**Detection loop:**
+
+Enumerate all **immediate subdirectories** of `PROJECT_CLAUDE_DIR/skills/` (one level deep only — do not recurse).
+
+For each subdirectory `D`:
+
+**Detection Rule 1 — scope_overlap (HIGH):**
+If `D.name` is present in `GLOBAL_REGISTRY_NAMES` (case-sensitive string equality):
+
+```
+SKILL_AUDIT_FINDINGS.append({
+  skill_name:   D.name,
+  finding_type: "scope_overlap",
+  severity:     "HIGH",
+  detail:       "also referenced as ~/.claude/skills/" + D.name + "/ in CLAUDE.md Skills Registry"
+})
+```
+
+**Detection Rule 2 — broken_shell (MEDIUM):**
+If `PROJECT_CLAUDE_DIR/skills/D.name/SKILL.md` does NOT exist as a file:
+
+```
+SKILL_AUDIT_FINDINGS.append({
+  skill_name:   D.name,
+  finding_type: "broken_shell",
+  severity:     "MEDIUM",
+  detail:       "no SKILL.md found in directory"
+})
+```
+
+**Detection Rule 3 — suspicious_name (LOW):**
+If `D.name` does NOT match the kebab-case convention — i.e., it contains at least one of:
+- An uppercase letter (`A`–`Z`)
+- A space character
+- An underscore character (`_`)
+
+```
+SKILL_AUDIT_FINDINGS.append({
+  skill_name:   D.name,
+  finding_type: "suspicious_name",
+  severity:     "LOW",
+  detail:       "name does not follow kebab-case convention (contains spaces, uppercase letters, or underscores)"
+})
+```
+
+> **Multiple findings per directory**: all three rules are applied independently to each subdirectory. A single directory may produce multiple `SKILL_AUDIT_FINDINGS` entries — one per rule that fires.
+
+> **SKILL_AUDIT_FINDINGS entry structure:**
+>
+> | Field | Type | Description |
+> |-------|------|-------------|
+> | `skill_name` | string | The immediate subdirectory name under `.claude/skills/` |
+> | `finding_type` | `"scope_overlap"` \| `"broken_shell"` \| `"suspicious_name"` | Which detection rule fired |
+> | `severity` | `"HIGH"` \| `"MEDIUM"` \| `"LOW"` | Severity corresponding to finding type |
+> | `detail` | string | Human-readable explanation of the finding |
+>
+> Findings are advisory only — this step NEVER modifies, deletes, or moves any file.
 
 ---
 
@@ -439,7 +631,12 @@ Documentation to migrate → ai-context/:
   exclusions when responding to the prompt below.
 
 Legacy migrations (source files offered for deletion after successful migration):
-  ~ commands/    — strategy: delegate — advisory for /skill-create per qualifying .md file
+  ~ commands/    — strategy: scaffold — active SKILL.md generation per qualifying .md file
+                   Files to scaffold:
+                     deploy.md → .claude/skills/deploy/ [format: procedural]
+                     auth.md   → [already exists — will skip]
+                     misc.md   — non-qualifying (no structured workflow detected)
+                   (Source files in commands/ are NEVER deleted or modified.)
   ~ docs/        — strategy: copy — each .md file → ai-context/features/<name>.md
   ~ system/      — strategy: append — architecture.md → ai-context/architecture.md;
                    database.md + api-overview.md → ai-context/stack.md
@@ -451,11 +648,27 @@ Legacy migrations (source files offered for deletion after successful migration)
   ~ templates/   — strategy: copy — each file → docs/templates/<filename>
   ~ project.md   — strategy: section-distribute → ai-context/stack.md,
                    ai-context/architecture.md, ai-context/known-issues.md
+  ~ readme.md    — strategy: user-choice
+                   Option A: append full content to CLAUDE.md (marker: <!-- .claude/readme.md -->)
+                   Option B: copy to docs/README-claude.md
 
   Note: each legacy migration category requires explicit per-category confirmation in Step 5.7
   before any write occurs. Source files are offered for deletion after successful migration —
-  deletion requires explicit user confirmation. delegate and section-distribute strategies
-  are exempt from cleanup prompts.
+  deletion requires explicit user confirmation. scaffold (commands/) and section-distribute
+  strategies are exempt from cleanup prompts. readme.md (user-choice) deletion requires explicit
+  confirmation after successful migration only.
+
+Skills audit:
+  (Displayed only when SKILL_AUDIT_FINDINGS is non-empty and .claude/skills/ exists)
+
+  | Skill | Finding | Severity |
+  |-------|---------|----------|
+  | `react-19` | scope_overlap — also referenced as `~/.claude/skills/react-19/` | HIGH |
+  | `_draft-auth` | suspicious_name — name does not follow kebab-case convention | LOW |
+  | `my-broken-skill` | broken_shell — no SKILL.md found in directory | MEDIUM |
+
+  (When SKILL_AUDIT_FINDINGS is empty: "Skills audit: no issues detected.")
+  (When .claude/skills/ was absent: omit the Skills audit section entirely.)
 
 Unexpected items (will be flagged, NOT deleted or moved):
   ! commands/    — not part of canonical SDD .claude/ structure (review manually)
@@ -470,6 +683,11 @@ comment in the report only.
 ```
 
 Omit any category that has zero items (applies to all four categories).
+
+**Skills audit rendering rules (applies to the `Skills audit:` section in the plan):**
+- If `PROJECT_CLAUDE_DIR/skills/` does NOT exist → omit the `Skills audit:` section entirely from the plan display.
+- If `PROJECT_CLAUDE_DIR/skills/` exists AND `SKILL_AUDIT_FINDINGS` is non-empty → render the table with one row per finding.
+- If `PROJECT_CLAUDE_DIR/skills/` exists AND `SKILL_AUDIT_FINDINGS` is empty → display: `Skills audit: no issues detected.` (no table).
 
 After displaying the plan, prompt:
 ```
@@ -575,7 +793,7 @@ For each item in `PRESENT`:
 
 **5.7 — Apply legacy migrations (per-category confirmation gates):**
 
-Process categories in strategy execution order: delegate → section-distribute → copy → append → scaffold → user-choice.
+Process categories in strategy execution order: scaffold (commands/) → section-distribute (project.md) → user-choice (readme.md) → copy → append → scaffold (requirements/) → user-choice (sops/).
 
 For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the order above):
 1. Present the full list of files in the category and their proposed destinations.
@@ -583,11 +801,11 @@ For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the 
 3. If the user responds `no`: skip the category entirely; record `<category> — skipped by user (no files written)`. Do NOT write any files for this category.
 4. If the user responds `yes` or `all`: apply the strategy for this category (see sub-steps below). The `all` response also confirms all remaining unprocessed categories — no further per-category prompts are required for those.
 
-**5.7.1 — delegate strategy (`commands/`):**
+**5.7.1 — scaffold strategy (`commands/`):**
 
 1. List all `.md` files at the **immediate** `commands/` level (no recursion into subdirectories).
 2. If no `.md` files are found at the immediate level:
-   Output: `commands/ — no .md files found at immediate level; nothing to advise`
+   Output: `commands/ — no .md files found at immediate level; nothing to scaffold`
    Stop processing this category.
 3. For each `.md` file found, apply the **4 qualifying markers** (any one is sufficient to qualify):
    - **(a) Step-numbered sections**: the file contains lines matching `### Step N`, `- Step N`, or `N.` where N is a number
@@ -595,28 +813,178 @@ For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the 
    - **(c) Process headings**: the file contains a section heading that is exactly `## Process`, `## Steps`, `## How to`, or `## Instructions`
    - **(d) Filename-stem keyword match**: the file's stem (case-insensitive) matches one of: `deploy`, `rollback`, `setup`, `onboard`, `audit`, `install`, `release`, `build`, `migrate`, `sync`
 4. **Qualifying file** (at least one marker matched):
-   Output advisory: `<filename> — qualifying workflow detected. Suggested skill name: <stem>. Suggested format: procedural. To scaffold: /skill-create <stem>`
-   Do NOT create any file or directory. Do NOT invoke `/skill-create`.
+   - **(4a) Derive skill name**: extract the filename stem; normalize to kebab-case (lowercase, spaces and underscores replaced with hyphens). `<stem>` = normalized stem.
+   - **(4b) Infer format type** using the 4-signal heuristic (first match wins; precedence: anti-pattern > reference > procedural):
+     - If the source file contains a heading starting with `## Anti-patterns` → `anti-pattern`
+     - Else if the source file contains a heading starting with `## Patterns` or `## Examples` → `reference`
+     - Otherwise (step-numbered sections, process headings, trigger patterns, keyword stem, or no signals) → `procedural` (default)
+   - **(4c) Idempotency guard**: check whether `PROJECT_CLAUDE_DIR/skills/<stem>/SKILL.md` already exists.
+     - **If it exists**: record `<filename>.md — already exists (not overwritten). Review .claude/skills/<stem>/SKILL.md manually.` Skip to the next file; do NOT write anything.
+     - **If it does not exist**: proceed to 4d.
+   - **(4d) Generate SKILL.md skeleton** based on inferred format type. Create directory `PROJECT_CLAUDE_DIR/skills/<stem>/` if absent. Write the appropriate skeleton to `PROJECT_CLAUDE_DIR/skills/<stem>/SKILL.md`:
+
+     **For `procedural` format:**
+     ```markdown
+     ---
+     name: <stem>
+     description: >
+       <stem> — migrated from .claude/commands/<filename>.md
+     format: procedural
+     ---
+
+     # <stem>
+
+     > <stem> procedure.
+
+     **Triggers**: <stem>
+
+     ---
+
+     ## Process
+
+     <source file content copied here>
+
+     ---
+
+     ## Rules
+
+     - <!-- Add rules and constraints here. -->
+     ```
+
+     **For `reference` format:**
+     ```markdown
+     ---
+     name: <stem>
+     description: >
+       <stem> — migrated from .claude/commands/<filename>.md
+     format: reference
+     ---
+
+     # <stem>
+
+     > <stem> reference.
+
+     **Triggers**: <stem>
+
+     ---
+
+     ## Patterns
+
+     <source file content copied here>
+
+     ---
+
+     ## Rules
+
+     - <!-- Add rules and constraints here. -->
+     ```
+
+     **For `anti-pattern` format:**
+     ```markdown
+     ---
+     name: <stem>
+     description: >
+       <stem> — migrated from .claude/commands/<filename>.md
+     format: anti-pattern
+     ---
+
+     # <stem>
+
+     > <stem> anti-patterns.
+
+     **Triggers**: <stem>
+
+     ---
+
+     ## Anti-patterns
+
+     <source file content copied here>
+
+     ---
+
+     ## Rules
+
+     - <!-- Add rules and constraints here. -->
+     ```
+
+   - **(4e) Record outcome**: `<filename>.md — scaffolded to .claude/skills/<stem>/SKILL.md (format: <format>)`.
 5. **Non-qualifying file** (no marker matched):
-   Record: `<filename> — non-qualifying (no structured workflow detected). Recommend manual archival.`
+   Record: `<filename>.md — non-qualifying (no structured workflow detected). Recommend manual archival.`
    Do NOT create or modify any file.
 
-> **Invariant**: The delegate strategy produces **zero file writes**. Source files are NEVER touched.
+> **Invariant**: Source files in `commands/` are NEVER deleted, moved, or modified — regardless of scaffold outcome. No deletion prompt is ever issued for the `commands/` category.
 
-**5.7.2 — section-distribute strategy (`project.md`, `readme.md`):**
+**5.7.2 — section-distribute strategy (`project.md`):**
 
 1. Read the file's section headings.
-2. Map each heading to a destination file using the signal lists:
+2. For each heading, apply **emoji normalization** before comparing against any signal list:
+   - Strip leading Unicode emoji characters (including all Unicode emoji ranges and variation selectors) and any following whitespace from the heading text.
+   - Use the normalized form for all signal-list comparisons.
+   - The original heading text is preserved — the source file is NEVER modified.
+   - Any per-section confirmation prompt shown to the user MUST display the original heading text (including emoji prefix), not the normalized form.
+3. Map each heading (using normalized text) to a destination file using the signal lists:
    - `STACK_HEADING_SIGNALS = ["## Tech Stack", "## Stack", "## Dependencies", "## Tools"]` → `ai-context/stack.md`
    - `ARCH_HEADING_SIGNALS = ["## Architecture", "## System Design", "## Overview"]` → `ai-context/architecture.md`
    - `ISSUES_HEADING_SIGNALS = ["## Known Issues", "## Issues", "## Gotchas", "## Limitations"]` → `ai-context/known-issues.md`
-   - Headings matching no signal list are not routed.
-3. **Per-section user confirmation**: for each mapped section, present the section content to the user and request explicit confirmation before appending. Do NOT append any section the user does not confirm.
-4. **Append strategy**: append each confirmed section to the destination file under the labeled separator:
+   - Headings matching no signal list (even after normalization) are not routed.
+4. **Per-section user confirmation**: for each mapped section, present the section content to the user (with original heading text including any emoji) and request explicit confirmation before appending. Do NOT append any section the user does not confirm.
+5. **Append strategy**: append each confirmed section to the destination file under the labeled separator:
    `<!-- appended from .claude/<filename> YYYY-MM-DD -->`
    (Replace `<filename>` with the actual filename, e.g. `project.md`. Replace `YYYY-MM-DD` with the current date.)
    If the destination file does not exist, create it with the appended content.
-5. Source file is NEVER deleted or modified.
+6. Source file is NEVER deleted or modified.
+7. **Advisory — zero matches**: after processing all headings, if zero headings matched any signal list (even after emoji normalization), output:
+   `Advisory: no headings in <filename> matched any signal list after emoji normalization — file content was not distributed. Recommend manual migration.`
+   (Replace `<filename>` with the actual filename.)
+
+**5.7.2b — user-choice strategy (`readme.md`):**
+
+This step runs only when `readme.md` is present in `LEGACY_MIGRATIONS`.
+
+1. **Idempotency guard**: Check whether `PROJECT_ROOT/CLAUDE.md` already contains the string `<!-- .claude/readme.md -->`.
+   - **If the marker IS present**: record `readme.md — already integrated (skipped)`. Skip all remaining sub-steps. Do NOT present any options to the user.
+   - **If the marker is NOT present**: proceed to step 2.
+
+2. Present the following prompt to the user:
+
+   ```
+   readme.md migration — choose an option:
+     Option A: Append full content to PROJECT_ROOT/CLAUDE.md
+               (marker: <!-- .claude/readme.md --> will be added)
+     Option B: Copy to PROJECT_ROOT/docs/README-claude.md
+     Skip: leave readme.md in place (manual review recommended)
+   ```
+
+3. **If user selects Option A**:
+   - **Idempotency guard** (double-check at write time): re-verify that `PROJECT_ROOT/CLAUDE.md` does NOT already contain `<!-- .claude/readme.md -->`. If it does → record `readme.md — already integrated (skipped)` and stop.
+   - Append the following block to `PROJECT_ROOT/CLAUDE.md`:
+     ```
+     <!-- .claude/readme.md -->
+     <full content of readme.md>
+     ```
+     (If `PROJECT_ROOT/CLAUDE.md` does not exist, create it before appending.)
+   - Record: `readme.md — appended to CLAUDE.md (Option A)`.
+
+4. **If user selects Option B**:
+   - Ensure `PROJECT_ROOT/docs/` directory exists; create it if absent.
+   - Copy `readme.md` to `PROJECT_ROOT/docs/README-claude.md`.
+   - **If `PROJECT_ROOT/docs/README-claude.md` already exists**: record `readme.md — skipped (docs/README-claude.md already exists)`. Do NOT overwrite.
+   - **If it does not exist**: copy and record `readme.md — copied to docs/README-claude.md (Option B)`.
+
+5. **If user skips**: record `readme.md — skipped by user. Recommend manual review.` Do NOT write any file.
+
+6. **Source preservation**: The source file `.claude/readme.md` is NEVER deleted or modified as part of this step. Cleanup follows the standard cleanup prompt flow only when the migration was successful (Option A or Option B applied) AND the user explicitly confirms cleanup.
+
+7. **Cleanup prompt** (only when migration was successful — outcome recorded as "appended" or "copied"):
+   ```
+   Cleanup available for .claude/readme.md:
+     Will be deleted (successfully migrated): readme.md
+   Delete source file .claude/readme.md? (yes/no)
+   ```
+   - If user responds `yes`: delete `PROJECT_CLAUDE_DIR/readme.md`. Record `.claude/readme.md — deleted`.
+   - If user responds `no`: record `readme.md — cleanup declined by user`.
+
+> **Invariant**: Source file `.claude/readme.md` is NEVER deleted unless the migration step was successful AND the user explicitly confirmed the cleanup prompt above.
 
 **5.7.3 — copy strategy (`docs/` and `templates/`):**
 
@@ -847,8 +1215,9 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 <!-- List each legacy category processed with per-file outcome lines. -->
 <!-- Valid outcome labels: applied, skipped, advisory, non-qualifying, user-skipped -->
 
-**commands/** (strategy: delegate — advisory only):
-- `deploy.md` — qualifying workflow detected. Suggested skill name: deploy. To scaffold: /skill-create deploy
+**commands/** (strategy: scaffold):
+- `deploy.md` — scaffolded to .claude/skills/deploy/SKILL.md (format: procedural)
+- `auth.md` — already exists (not overwritten). Review .claude/skills/auth/SKILL.md manually.
 - `misc.md` — non-qualifying (no structured workflow detected). Recommend manual archival.
 
 **docs/** (strategy: copy):
@@ -872,10 +1241,52 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 - `## Tech Stack` section — appended to ai-context/stack.md
 - `## Architecture` section — appended to ai-context/architecture.md
 
+**readme.md** (strategy: user-choice):
+<!-- Omit this block entirely when readme.md was absent from the project's .claude/ for the run. -->
+<!-- One of the following outcome lines applies: -->
+<!-- - readme.md — appended to CLAUDE.md (Option A) -->
+<!-- - readme.md — copied to docs/README-claude.md (Option B) -->
+<!-- - readme.md — skipped by user. Recommend manual review. -->
+<!-- - readme.md — already integrated (skipped) -->
+- `readme.md` — appended to CLAUDE.md (Option A)
+
 <!-- Source-preservation footer — CONDITIONAL:
      - When NO files were deleted: display the preservation note below.
      - When files WERE deleted: omit the preservation note; the "Deleted from .claude/" subsection below serves as the deletion summary. -->
 > All source files in legacy categories were preserved — no files were deleted or moved
+
+### readme.md migration
+
+<!-- Omit this subsection entirely when readme.md was absent from the project's .claude/ for the run. -->
+<!-- One of the following outcome lines applies: -->
+<!-- Valid outcome labels: appended to CLAUDE.md (Option A), copied to docs/README-claude.md (Option B), skipped by user, already integrated (skipped) -->
+
+- `readme.md` — appended to CLAUDE.md (Option A)
+
+### Commands scaffolded
+
+<!-- Omit this subsection entirely when commands/ was absent from the project's .claude/ for the run. -->
+<!-- List per-file scaffold outcomes using the labels below. -->
+<!-- Valid outcome labels: scaffolded (format: <type>), [already exists — not overwritten], advisory only (no qualifying signals) -->
+
+- `deploy.md` — scaffolded to .claude/skills/deploy/SKILL.md (format: procedural)
+- `misc.md` — advisory only (no qualifying signals). Recommend manual archival.
+- `auth.md` — [already exists — not overwritten]. Review .claude/skills/auth/SKILL.md manually.
+
+### Skills audit
+
+<!-- Omit this subsection entirely when .claude/skills/ was absent for the run. -->
+<!-- When SKILL_AUDIT_FINDINGS is non-empty: render table below. -->
+<!-- When SKILL_AUDIT_FINDINGS is empty: write "No issues detected in .claude/skills/." -->
+
+| Skill | Finding | Severity |
+|-------|---------|----------|
+| `react-19` | scope_overlap — also referenced as `~/.claude/skills/react-19/` | HIGH |
+| `_draft-auth` | suspicious_name — name does not follow kebab-case convention (contains spaces, uppercase letters, or underscores) | LOW |
+| `my-broken-skill` | broken_shell — no SKILL.md found in directory | MEDIUM |
+
+> Findings are advisory only. No files were deleted or modified as part of skills audit.
+> Remediate scope_overlap findings by removing the local copy or de-registering the global path from CLAUDE.md.
 
 ### Deleted from .claude/
 
@@ -912,9 +1323,9 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 4. Project .claude/ structure is now aligned with the canonical SDD layout.
 
 <!-- Legacy migration conditional guidance — include only when the condition was true for this run: -->
-<!-- If commands/ delegate advisories were produced: -->
-5. Review the commands/ advisory list above — invoke /skill-create <name> for each qualifying
-   file to scaffold a new skill.
+<!-- If commands/ scaffold was run: -->
+5. Review the commands/ scaffold outcomes above — check generated .claude/skills/<name>/SKILL.md
+   files and populate content. For files already existing (not overwritten), compare and merge manually.
 <!-- If section-distribute applied to project.md or readme.md: -->
 6. Review the distributed sections in the destination ai-context/ files — verify content is
    correctly placed.
@@ -967,5 +1378,5 @@ Use the expanded absolute path (no tilde or relative segments).
 
 5. **Source files MUST NOT be deleted without BOTH conditions being true:**
    **(a)** The file was successfully migrated (copied, appended, scaffolded, or user-choice applied) AND **(b)** the user explicitly confirmed the deletion prompt for that category.
-   The `delegate` strategy (`commands/`) and the `section-distribute` strategy (`project.md`, `readme.md`) are permanently exempt from cleanup prompts — their source files are unconditionally preserved.
+   The `scaffold` strategy for `commands/` and the `section-distribute` strategy (`project.md`) are permanently exempt from cleanup prompts — their source files are unconditionally preserved. The `user-choice` strategy for `readme.md` offers cleanup only after successful migration AND explicit user confirmation.
    Any file whose migration outcome was "skipped", "failed", or "excluded" MUST NOT be offered for deletion regardless of user input.
