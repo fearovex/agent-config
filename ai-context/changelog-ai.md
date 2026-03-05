@@ -4,6 +4,28 @@
 
 ---
 
+## [2026-03-04] — project-claude-organizer-commands-conversion (apply phases 1–5)
+
+**Type**: SDD apply
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**Change**: Extended `skills/project-claude-organizer/SKILL.md` with active commands/ scaffold, Step 3c skills audit, updated report template, and metadata updates across CLAUDE.md and architecture.md.
+
+### Changes
+- **Active scaffold strategy for commands/**: `LEGACY_PATTERN_TABLE` row for `commands/` changed from `strategy: delegate` to `strategy: scaffold`. Step 3b now actively derives a skill name from the file stem (kebab-case), infers format type via a 4-signal heuristic (anti-pattern heading → `anti-pattern`; Patterns/Examples heading → `reference`; step-numbered or process heading or no signals → `procedural`), checks idempotency (skip if SKILL.md already exists), and writes SKILL.md skeleton to `.claude/skills/<stem>/SKILL.md`. Source files in commands/ are never modified or deleted.
+- **Step 3c skills audit**: New step inserted after Step 3b — enumerates all immediate subdirectories of `.claude/skills/`; applies three detection rules: scope-overlap (HIGH severity — skill present in both `.claude/skills/` and `~/.claude/skills/` per CLAUDE.md Skills Registry), broken-shell (MEDIUM severity — SKILL.md missing or empty), suspicious-name (LOW severity — directory name contains spaces, uppercase letters, or underscores). Findings accumulated in `SKILL_AUDIT_FINDINGS` list. Step skipped entirely when `.claude/skills/` is absent.
+- **Updated report template**: Added `### Commands scaffolded` subsection listing per-file outcomes (scaffolded with format type, already exists — not overwritten, advisory only); section omitted when commands/ was absent. Added `### Skills audit` subsection rendering SKILL_AUDIT_FINDINGS as a Skill | Finding | Severity table; shows "No issues detected" message when empty; section omitted when .claude/skills/ was absent.
+- **Emoji normalization in section-distribute strategy** (Phase 6, in progress): Step 5.7.2 will strip leading Unicode emoji characters and trailing whitespace before comparing headings against signal lists.
+- **readme.md as explicit LEGACY_MIGRATION** (Phase 6, in progress): `readme.md` will be removed from the shared `project.md / readme.md` section-distribute block and classified as its own `user-choice` strategy entry with Option A (append to CLAUDE.md under labeled marker) and Option B (copy to docs/README-claude.md).
+- **CLAUDE.md updated**: Skills Registry entry for `project-claude-organizer` in System Audits section updated to describe active scaffold and skills audit capabilities.
+- **ai-context/architecture.md updated**: `claude-organizer-report.md` artifact row extended to mention `### Commands scaffolded` and `### Skills audit` report subsections.
+
+### Decisions
+- Skills audit detection rules use severity levels consistent with `claude-folder-audit` (HIGH/MEDIUM/LOW) for consistency across audit tools.
+- Scope-overlap detection reads the project's own CLAUDE.md Skills Registry (not `~/.claude/CLAUDE.md`) and compares by directory name stem using case-sensitive string matching.
+- Idempotency guard (skip if SKILL.md already exists) is mandatory before any scaffold write — preserves the additive invariant (Rule 2 of the organizer).
+
+---
+
 ## [2026-03-04] — config-export-token-optimization (archive)
 
 **Type**: SDD cycle closure
