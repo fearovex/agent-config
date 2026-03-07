@@ -32,6 +32,7 @@ The generated report IS the specification that `/project-fix` implements. Withou
 ## Output artifact
 
 When finished, save the report at:
+
 ```
 [project_root]/.claude/audit-report.md
 ```
@@ -40,7 +41,52 @@ This file persists between sessions and is the input for `/project-fix`.
 
 ---
 
-## Audit Process — 10 Dimensions
+## Audit Kernel
+
+`project-audit` operates as a stable read-only kernel with three stages:
+
+| Stage             | Responsibility                                                      | Output                                                     |
+| ----------------- | ------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Discovery         | Gather structural facts from the project and runtime environment    | Presence/absence facts, path resolution, baseline metadata |
+| Evaluation        | Apply the dimension rules to the discovered facts and file contents | Findings, score, violations, required actions              |
+| Report generation | Render the audit state into a persistent artifact                   | `.claude/audit-report.md`                                  |
+
+The kernel is intentionally stable. Detailed dimension rules can evolve, but the command remains: discover, evaluate, report.
+
+---
+
+## Dimension Classes
+
+`project-audit` uses two dimension classes.
+
+| Class                    | Dimensions                 | Score impact                      | Role                                                              |
+| ------------------------ | -------------------------- | --------------------------------- | ----------------------------------------------------------------- |
+| Scored dimensions        | D1, D2, D3, D4, D6, D7, D8 | Contribute to the 100-point score | Determine operational health and SDD readiness                    |
+| Informational dimensions | D9, D10, D11, D12, D13     | No base-score impact              | Surface quality debt, coverage gaps, and internal inconsistencies |
+
+Notes:
+
+- D5 was intentionally removed in an earlier change and is not part of the current model.
+- Informational dimensions may still emit actionable findings, but they do not change the base 100-point score unless a dimension explicitly states otherwise.
+
+---
+
+## Compatibility Policy
+
+Compatibility behavior is a separate policy layer of `project-audit`, not an implicit side effect of individual dimensions.
+
+Compatibility rules currently include:
+
+- **Repo-shape compatibility**: global-config repos may use root `CLAUDE.md`, and local skill discovery may resolve to `skills/` instead of `.claude/skills/`.
+- **Structural compatibility**: procedural skills may satisfy the process contract with `## Process` or `### Step N`.
+- **Legacy heading compatibility**: `## Rules` is the canonical target; any acceptance of legacy `## Execution rules` must be treated as transitional compatibility, not as the preferred structure.
+- **Non-scored extension compatibility**: informational dimensions may evolve without changing the base scoring model.
+
+This policy MUST be explicit whenever compatibility behavior affects how a finding is evaluated.
+
+---
+
+## Audit Process
 
 I run all dimensions systematically, reading real files. Never assume.
 
@@ -53,28 +99,30 @@ I run all dimensions systematically, reading real files. Never assume.
 **Project type detection (run before checks):**
 
 Check if the project is a `global-config` repo:
+
 - Condition A: `install.sh` + `sync.sh` exist at project root, OR
 - Condition B: `openspec/config.yaml` contains `framework: "Claude Code SDD meta-system"`
 
 If detected as global-config:
+
 - Accept `CLAUDE.md` at root as equivalent to `.claude/CLAUDE.md`
 - Note in report header: `Project Type: global-config`
 - The CLAUDE.md path check passes without penalty
 
 **Checks to run:**
 
-| Check | How I verify | Severity if fails |
-|-------|--------------|-------------------|
-| Exists `.claude/CLAUDE.md` (or root `CLAUDE.md` for global-config repos) | Attempt to read it | ❌ CRITICAL |
-| Not empty (>50 lines) | Count lines | ❌ CRITICAL |
-| Has Stack section | Search for `## Tech Stack` or `## Stack` | ⚠️ HIGH |
-| Stack matches package.json/pyproject.toml | Read both, compare key versions | ⚠️ HIGH |
-| Has Architecture section | Search for `## Architecture` | ⚠️ HIGH |
-| Has Skills registry | Search for skills table | ⚠️ HIGH |
-| Has Unbreakable Rules | Search for `## Unbreakable Rules` or similar | ⚠️ MEDIUM |
-| Has Plan Mode Rules | Search for `## Plan Mode` | ℹ️ LOW |
-| Mentions SDD (`/sdd-new` or `/sdd-ff`) | Search for text `/sdd-` | ⚠️ HIGH |
-| References to ai-context/ are correct | Verify that mentioned paths exist | ⚠️ MEDIUM |
+| Check                                                                    | How I verify                                 | Severity if fails |
+| ------------------------------------------------------------------------ | -------------------------------------------- | ----------------- |
+| Exists `.claude/CLAUDE.md` (or root `CLAUDE.md` for global-config repos) | Attempt to read it                           | ❌ CRITICAL       |
+| Not empty (>50 lines)                                                    | Count lines                                  | ❌ CRITICAL       |
+| Has Stack section                                                        | Search for `## Tech Stack` or `## Stack`     | ⚠️ HIGH           |
+| Stack matches package.json/pyproject.toml                                | Read both, compare key versions              | ⚠️ HIGH           |
+| Has Architecture section                                                 | Search for `## Architecture`                 | ⚠️ HIGH           |
+| Has Skills registry                                                      | Search for skills table                      | ⚠️ HIGH           |
+| Has Unbreakable Rules                                                    | Search for `## Unbreakable Rules` or similar | ⚠️ MEDIUM         |
+| Has Plan Mode Rules                                                      | Search for `## Plan Mode`                    | ℹ️ LOW            |
+| Mentions SDD (`/sdd-new` or `/sdd-ff`)                                   | Search for text `/sdd-`                      | ⚠️ HIGH           |
+| References to ai-context/ are correct                                    | Verify that mentioned paths exist            | ⚠️ MEDIUM         |
 
 **For the stack**: I read `package.json` (or equivalent), extract the 5-10 most important dependencies, and compare with what is declared in CLAUDE.md. I report specific discrepancies with declared version vs real version.
 
@@ -86,6 +134,7 @@ If detected as global-config:
 4. Skip this check entirely if no `docs/templates/*.md` pattern is found in CLAUDE.md — no finding is emitted.
 
 **Scoring rule:**
+
 - For each missing template path: emit a MEDIUM finding — "Template path referenced in CLAUDE.md does not exist on disk: [path]"
 - Add each missing path to `required_actions.medium` in the FIX_MANIFEST with `type: create_file`, `target: [path]`, `reason: "Template path referenced in CLAUDE.md does not exist on disk"`
 - One finding per missing path (multiple missing paths produce multiple separate findings)
@@ -98,13 +147,13 @@ If detected as global-config:
 
 **Existence checks:**
 
-| File | Minimum acceptable lines |
-|---------|--------------------------|
-| `ai-context/stack.md` | > 30 lines |
-| `ai-context/architecture.md` | > 40 lines |
-| `ai-context/conventions.md` | > 30 lines |
+| File                         | Minimum acceptable lines                        |
+| ---------------------------- | ----------------------------------------------- |
+| `ai-context/stack.md`        | > 30 lines                                      |
+| `ai-context/architecture.md` | > 40 lines                                      |
+| `ai-context/conventions.md`  | > 30 lines                                      |
 | `ai-context/known-issues.md` | > 10 lines (can be brief if the project is new) |
-| `ai-context/changelog-ai.md` | > 5 lines (at least one entry) |
+| `ai-context/changelog-ai.md` | > 5 lines (at least one entry)                  |
 
 **Content checks** (for each file that exists):
 
@@ -119,10 +168,12 @@ If detected as global-config:
 **Placeholder phrase detection (D2 additive check):**
 
 While reading each `ai-context/*.md` file (already read for line-count and content checks), scan the full file content for the following placeholder phrases:
+
 - `[To be filled]`, `[empty]`, `[TBD]`, `[placeholder]`, `[To confirm]`, `[Empty]` — case-insensitive match on bracket-enclosed variants (e.g., `[todo]` and `[TODO]` both match)
 - `TODO` — plain text, case-sensitive (exact uppercase match)
 
 **Scoring rule — placeholder detection:**
+
 - For each `ai-context/*.md` file whose content contains one or more of the above phrases: emit a HIGH finding — "[filename] appears to contain unfilled placeholder content"
 - Treat such a file as functionally empty even if it passes the line-count check (do not award content/coherence points for that file)
 - Add the finding to `required_actions.high` in the FIX_MANIFEST with `type: update_file`, `target: [ai-context/filename]`, `reason: "File contains placeholder content and has not been filled in"`
@@ -130,11 +181,13 @@ While reading each `ai-context/*.md` file (already read for line-count and conte
 **stack.md technology version count (D2 additive check):**
 
 After reading `ai-context/stack.md` (already read for content checks), count the number of lines that contain a version-like string matching any of these patterns:
+
 - `x.y` (e.g., `3.4`, `19.0`)
 - `x.y.z` (e.g., `19.0.0`, `5.4.2`)
 - `vX` where X is a digit (e.g., `v3`, `v21`)
 
 **Scoring rule — version count:**
+
 - If the count is fewer than 3: emit a MEDIUM finding — "stack.md lists fewer than 3 technologies with concrete versions — minimum is 3"
 - Add to `required_actions.medium` in the FIX_MANIFEST with `type: update_file`, `target: ai-context/stack.md`, `reason: "stack.md lists fewer than 3 technologies with concrete versions — minimum is 3"`
 - Skip this check if `stack.md` does not exist or contains placeholder content (already caught by the placeholder check above)
@@ -142,10 +195,12 @@ After reading `ai-context/stack.md` (already read for content checks), count the
 **Additional sub-checks — User documentation freshness:**
 
 For each of the following files, apply identical logic:
+
 - `ai-context/scenarios.md`
 - `ai-context/quick-reference.md`
 
 Logic per file:
+
 1. If the file does NOT exist → emit LOW finding: `"[filename] missing — create via /project-onboard or manually following the template in ai-context/"`
 2. If the file exists → read first 10 lines and search for `^> Last verified: (\d{4}-\d{2}-\d{2})$`
    - Field absent or malformed → emit LOW: `"Last verified field not found or malformed in [filename]"`
@@ -163,7 +218,9 @@ Logic per file:
 **Sub-checks:**
 
 #### 3a. Global SDD skills (prerequisite for everything else)
+
 I read whether the 8 files exist in `~/.claude/skills/`:
+
 - `sdd-explore/SKILL.md`
 - `sdd-propose/SKILL.md`
 - `sdd-spec/SKILL.md`
@@ -176,23 +233,27 @@ I read whether the 8 files exist in `~/.claude/skills/`:
 If any is missing → ❌ CRITICAL (SDD cannot function without the phases).
 
 #### 3b. openspec/ in the project
-| Check | Severity |
-|-------|-----------|
-| `openspec/` exists | ❌ CRITICAL (SDD has nowhere to store artifacts) |
-| `openspec/config.yaml` exists | ❌ CRITICAL (orchestrator cannot start) |
-| `config.yaml` has `artifact_store.mode: openspec` | ⚠️ HIGH |
-| `config.yaml` has project name and stack | ℹ️ LOW |
+
+| Check                                             | Severity                                         |
+| ------------------------------------------------- | ------------------------------------------------ |
+| `openspec/` exists                                | ❌ CRITICAL (SDD has nowhere to store artifacts) |
+| `openspec/config.yaml` exists                     | ❌ CRITICAL (orchestrator cannot start)          |
+| `config.yaml` has `artifact_store.mode: openspec` | ⚠️ HIGH                                          |
+| `config.yaml` has project name and stack          | ℹ️ LOW                                           |
 
 #### 3c. CLAUDE.md mentions SDD
-| Check | Severity |
-|-------|-----------|
-| Contains `/sdd-new` or `/sdd-ff` | ⚠️ HIGH |
-| Has section explaining the SDD flow | ℹ️ LOW |
+
+| Check                               | Severity |
+| ----------------------------------- | -------- |
+| Contains `/sdd-new` or `/sdd-ff`    | ⚠️ HIGH  |
+| Has section explaining the SDD flow | ℹ️ LOW   |
 
 #### 3d. Orphaned changes
+
 I read `openspec/changes/` (if it exists). An orphaned change is a folder in `changes/` that is NOT in `changes/archive/` and whose last modification was >14 days ago.
 
 I list:
+
 ```
 Orphaned changes detected:
   - change-name: last completed phase "tasks" (X days inactive)
@@ -208,6 +269,7 @@ Orphaned changes detected:
 6. Skip this entire check (emit no finding) when no file that was read contains a `hooks` key.
 
 **Scoring rule — hook script existence:**
+
 - For each script path that does NOT exist on disk: emit a HIGH finding — "Hook script referenced in [filename] not found on disk: [path]"
 - Add each missing script to `required_actions.high` in the FIX_MANIFEST with `type: create_file`, `target: [path]`, `reason: "Hook script referenced in [filename] not found on disk"`
 - Emit no finding when no `hooks` key is present in any settings file
@@ -221,6 +283,7 @@ Orphaned changes detected:
 5. Skip this entire step (emit no finding) if fewer than two active changes have a `design.md`.
 
 **Scoring rule — conflict detection:**
+
 - Compute the set intersection of normalized file paths across all active changes that have a `design.md`.
 - For each file path that appears in two or more active changes: emit a MEDIUM finding — "Concurrent file modification conflict detected: [path] is targeted by both [change-A] and [change-B]"
 - Add each conflicting path to `violations[]` in the FIX_MANIFEST (NOT to `required_actions`) with `rule: "D3-active-changes-conflict"`, `severity: "medium"`, and `file: [path]`
@@ -237,28 +300,32 @@ Orphaned changes detected:
 **Checks:**
 
 #### 4a. Registry vs disk (bidirectional)
+
 - For each skill listed in CLAUDE.md → I verify that the file/directory exists in `.claude/skills/`
 - For each file in `.claude/skills/` → I verify that it is listed in CLAUDE.md
 - I report: skills in registry but not on disk / skills on disk but not in registry
 
 #### 4b. Minimum content
+
 For each skill file (`.md` or directory with `SKILL.md`):
+
 - Does it have more than 30 lines? → If not, it is probably a stub
 - **Format-aware structural check** (see `docs/format-types.md` for the authoritative contract):
   1. Parse YAML frontmatter block (content between the first `---` pair at the start of the file). Extract `format:` value. If no frontmatter or no `format:` key → treat as `procedural`.
   2. If `format:` value is not one of `procedural`, `reference`, `anti-pattern` → emit INFO finding: `"Unknown format value '[value]' in [skill-name] — defaulting to procedural check"` and treat as `procedural`.
   3. Apply the check for the resolved format:
 
-| Resolved format | Required section | Accepted headings | Finding if absent |
-|-----------------|-----------------|------------------|-------------------|
-| `procedural` (or absent/unknown) | Process section | `## Process`, `### Step N` | MEDIUM: "procedural skill [name] missing ## Process section" |
-| `reference` | Patterns or Examples | `## Patterns`, `## Examples` | MEDIUM: "reference skill [name] missing ## Patterns or ## Examples section" |
-| `anti-pattern` | Anti-patterns | `## Anti-patterns` | MEDIUM: "anti-pattern skill [name] missing ## Anti-patterns section" |
+| Resolved format                  | Required section     | Accepted headings            | Finding if absent                                                           |
+| -------------------------------- | -------------------- | ---------------------------- | --------------------------------------------------------------------------- |
+| `procedural` (or absent/unknown) | Process section      | `## Process`, `### Step N`   | MEDIUM: "procedural skill [name] missing ## Process section"                |
+| `reference`                      | Patterns or Examples | `## Patterns`, `## Examples` | MEDIUM: "reference skill [name] missing ## Patterns or ## Examples section" |
+| `anti-pattern`                   | Anti-patterns        | `## Anti-patterns`           | MEDIUM: "anti-pattern skill [name] missing ## Anti-patterns section"        |
 
-  4. Missing `**Triggers**` and missing `## Rules` remain MEDIUM findings for **all** format types (unchanged).
-  5. For a `reference` or `anti-pattern` skill: missing `## Process` is **not a finding**.
+4. Missing `**Triggers**` and missing `## Rules` remain MEDIUM findings for **all** format types (unchanged).
+5. For a `reference` or `anti-pattern` skill: missing `## Process` is **not a finding**.
 
 Add each missing-section finding to `required_actions.medium` in the FIX_MANIFEST with:
+
 ```
 type: skill_quality_action
 action_type: add_missing_section
@@ -267,27 +334,28 @@ missing_sections: ["[section heading]"]
 ```
 
 #### 4c. Relevant global tech skills coverage (scored: 0–10 pts)
+
 I read the project stack (package.json) and identify which global technology skills in `~/.claude/skills/` are applicable but not yet installed in the project:
 
 | If project uses | Available global skill |
-|-----------------|------------------------|
-| React 18+ | `react-19/SKILL.md` |
-| Next.js 14+ | `nextjs-15/SKILL.md` |
-| TypeScript | `typescript/SKILL.md` |
-| Zustand | `zustand-5/SKILL.md` |
-| Tailwind | `tailwind-4/SKILL.md` |
-| Zod | `zod-4/SKILL.md` |
-| Playwright | `playwright/SKILL.md` |
+| --------------- | ---------------------- |
+| React 18+       | `react-19/SKILL.md`    |
+| Next.js 14+     | `nextjs-15/SKILL.md`   |
+| TypeScript      | `typescript/SKILL.md`  |
+| Zustand         | `zustand-5/SKILL.md`   |
+| Tailwind        | `tailwind-4/SKILL.md`  |
+| Zod             | `zod-4/SKILL.md`       |
+| Playwright      | `playwright/SKILL.md`  |
 
 **Scoring rubric:**
 
-| Coverage | Points |
-|----------|--------|
-| No relevant global skills detected in stack, OR all applicable ones already added | 10 |
-| ≥ 75% of applicable global skills installed | 8 |
-| 50–74% installed | 5 |
-| 25–49% installed | 2 |
-| < 25% installed (relevant skills exist but none added) | 0 |
+| Coverage                                                                          | Points |
+| --------------------------------------------------------------------------------- | ------ |
+| No relevant global skills detected in stack, OR all applicable ones already added | 10     |
+| ≥ 75% of applicable global skills installed                                       | 8      |
+| 50–74% installed                                                                  | 5      |
+| 25–49% installed                                                                  | 2      |
+| < 25% installed (relevant skills exist but none added)                            | 0      |
 
 "Applicable" means: the project stack uses the technology AND a matching global skill exists in `~/.claude/skills/`. Projects with no matching global skills get full credit automatically.
 
@@ -301,13 +369,13 @@ I read the project stack (package.json) and identify which global technology ski
 
 **Checks:**
 
-| What I verify | Where I search for references |
-|-------------|------------------------|
-| Docs referenced in CLAUDE.md | Section `## Documentation` → `.claude/docs/` |
-| Templates referenced in CLAUDE.md | Templates section → `.claude/templates/` |
-| Paths mentioned in skills | Scan of skills searching for paths (`/lib/`, `/domain/`, `pages/api/`) |
-| Paths mentioned in ai-context/ | Verify that dirs documented in architecture.md exist |
-| Skill files mentioned in commands | If a command imports or references a skill |
+| What I verify                     | Where I search for references                                          |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| Docs referenced in CLAUDE.md      | Section `## Documentation` → `.claude/docs/`                           |
+| Templates referenced in CLAUDE.md | Templates section → `.claude/templates/`                               |
+| Paths mentioned in skills         | Scan of skills searching for paths (`/lib/`, `/domain/`, `pages/api/`) |
+| Paths mentioned in ai-context/    | Verify that dirs documented in architecture.md exist                   |
+| Skill files mentioned in commands | If a command imports or references a skill                             |
 
 For each broken reference: I report the source file, approximate line, and the path that does not exist.
 
@@ -320,33 +388,41 @@ For each broken reference: I report the source file, approximate line, and the p
 **Checks:**
 
 #### 8a. openspec/config.yaml has testing section
-| Check | Severity |
-|-------|-----------|
-| `config.yaml` has `testing:` block | ⚠️ HIGH |
-| Defines `minimum_score_to_archive` | ⚠️ HIGH |
-| Defines `required_artifacts_per_change` | ⚠️ MEDIUM |
-| Defines `verify_report_requirements` | ⚠️ MEDIUM |
-| Has `test_project` or documented testing strategy | ℹ️ LOW |
+
+| Check                                             | Severity  |
+| ------------------------------------------------- | --------- |
+| `config.yaml` has `testing:` block                | ⚠️ HIGH   |
+| Defines `minimum_score_to_archive`                | ⚠️ HIGH   |
+| Defines `required_artifacts_per_change`           | ⚠️ MEDIUM |
+| Defines `verify_report_requirements`              | ⚠️ MEDIUM |
+| Has `test_project` or documented testing strategy | ℹ️ LOW    |
 
 #### 8b. Archived changes have verify-report.md
+
 For each folder in `openspec/changes/archive/`:
+
 - Does `verify-report.md` exist? If not → ⚠️ HIGH
 - Does it have at least one `[x]` item in its checklist? If not → ⚠️ HIGH
 - Does it mention what project/context was used to verify? If not → ℹ️ LOW
 
 I report:
+
 ```
 Archived changes without verify-report.md: [list]
 Changes with empty verify-report.md or without [x]: [list]
 ```
 
 #### 8c. Active changes have verification criteria defined
+
 For each active folder in `openspec/changes/` (not archived):
+
 - If it has `tasks.md` → does it include a verification criteria section?
 - If it has `design.md` → does it define how the change will be tested?
 
 #### 8d. Verify rules in config.yaml are executable
+
 I read the `rules.verify` block of `openspec/config.yaml` and evaluate:
+
 - Are they objectively verifiable or empty phrases like "make sure it works"?
 - Does at least one rule mention `/project-audit` or a concrete metric?
 
@@ -360,13 +436,13 @@ I read the `rules.verify` block of `openspec/config.yaml` and evaluate:
 
 **Scoring table:**
 
-| Condition | Score | Severity | Message |
-|-----------|-------|----------|---------|
-| `analysis-report.md` absent | 0/5 | CRITICAL | "Run /project-analyze first, then re-run /project-audit." |
-| Present + `ai-context/architecture.md` absent | 2/5 | HIGH | "No architecture baseline to compare against." |
-| Drift summary = `none` | 5/5 | OK | |
-| Drift summary = `minor` | 3/5 | MEDIUM | List drift entries from `analysis-report.md` |
-| Drift summary = `significant` | 0/5 | HIGH | List drift entries from `analysis-report.md` |
+| Condition                                     | Score | Severity | Message                                                   |
+| --------------------------------------------- | ----- | -------- | --------------------------------------------------------- |
+| `analysis-report.md` absent                   | 0/5   | CRITICAL | "Run /project-analyze first, then re-run /project-audit." |
+| Present + `ai-context/architecture.md` absent | 2/5   | HIGH     | "No architecture baseline to compare against."            |
+| Drift summary = `none`                        | 5/5   | OK       |                                                           |
+| Drift summary = `minor`                       | 3/5   | MEDIUM   | List drift entries from `analysis-report.md`              |
+| Drift summary = `significant`                 | 0/5   | HIGH     | List drift entries from `analysis-report.md`              |
 
 **Staleness penalty (D7 additive scoring modifier):**
 
@@ -383,12 +459,12 @@ After computing the drift-based D7 score (using the scoring table above), apply 
 **Staleness scoring tiers:**
 
 | Age of analysis-report.md | Staleness deduction |
-|---------------------------|---------------------|
-| ≤ 30 days | None |
-| 31–60 days | −1 pt (floor: 0) |
-| > 60 days | −2 pts (floor: 0) |
+| ------------------------- | ------------------- |
+| ≤ 30 days                 | None                |
+| 31–60 days                | −1 pt (floor: 0)    |
+| > 60 days                 | −2 pts (floor: 0)   |
 
-*Staleness penalty stacks with drift penalty; floor is 0.*
+_Staleness penalty stacks with drift penalty; floor is 0._
 
 **Drift entries**: When drift summary is `minor` or `significant`, read the `## Architecture Drift` section of `analysis-report.md` and list each entry in the D7 output block.
 
@@ -405,9 +481,11 @@ After computing the drift-based D7 score (using the scoring table above), apply 
 Read `$LOCAL_SKILLS_DIR` from the Phase A output. Check whether `$LOCAL_SKILLS_DIR` exists in the target project.
 
 If it does NOT exist:
+
 ```
 No [value of $LOCAL_SKILLS_DIR] directory found — Dimension 9 skipped.
 ```
+
 No score deduction. Do not add `skill_quality_actions` to FIX_MANIFEST.
 
 If it exists, proceed with D9-2 through D9-5 for each subdirectory found.
@@ -417,6 +495,7 @@ If it exists, proceed with D9-2 through D9-5 for each subdirectory found.
 **D9-2. Duplicate detection**
 
 For each subdirectory `<name>` under `.claude/skills/`:
+
 - Check whether `~/.claude/skills/<name>/` exists (exact directory name match)
 - If it exists → candidate disposition: `move-to-global` (if local differs from global) or `delete` (if identical)
 - If the global catalog is unreadable → emit `Global catalog unreadable — duplicate check skipped` at INFO level; assign disposition `keep`
@@ -429,21 +508,23 @@ Read each local `.claude/skills/<name>/SKILL.md`. Apply the same format-aware ch
 2. If `format:` value is unrecognized → emit INFO finding and treat as `procedural`.
 3. Apply the format-to-required-section check:
 
-| Resolved format | Required section | Accepted headings | Finding if absent |
-|-----------------|-----------------|------------------|-------------------|
-| `procedural` (or absent/unknown) | Process section | `## Process`, `### Step N` | record as missing |
-| `reference` | Patterns or Examples | `## Patterns`, `## Examples` | record as missing |
-| `anti-pattern` | Anti-patterns | `## Anti-patterns` | record as missing |
+| Resolved format                  | Required section     | Accepted headings            | Finding if absent |
+| -------------------------------- | -------------------- | ---------------------------- | ----------------- |
+| `procedural` (or absent/unknown) | Process section      | `## Process`, `### Step N`   | record as missing |
+| `reference`                      | Patterns or Examples | `## Patterns`, `## Examples` | record as missing |
+| `anti-pattern`                   | Anti-patterns        | `## Anti-patterns`           | record as missing |
 
 4. Missing `**Triggers**` and `## Rules` are checked for **all** format types (unchanged).
 5. For `reference` or `anti-pattern` skills: missing `## Process` is **not a finding**.
 
 If any required section is absent:
+
 - Record missing sections per skill
 - Assign disposition: `update`
 - Action: `add_missing_section`
 
 If no `SKILL.md` exists in the directory:
+
 - Record as `SKILL.md missing`
 - Assign disposition: `update`
 - Action: `add_missing_section`
@@ -453,6 +534,7 @@ If no `SKILL.md` exists in the directory:
 Apply the D4e language-compliance heuristic (defined in Dimension 4) to the body text of each local `SKILL.md` outside fenced code blocks.
 
 If non-English prose is found:
+
 - Disposition: `update`
 - Action: `flag_language_violation`
 - Severity: INFO only — no score deduction
@@ -462,11 +544,13 @@ If non-English prose is found:
 Extract technology references from the trigger line and title of each local `SKILL.md`.
 
 If a technology name is absent from BOTH `ai-context/stack.md` AND `package.json`/`pyproject.toml`:
+
 - Disposition: `update`
 - Action: `flag_irrelevant`
 - Severity: INFO only
 
 If neither stack source (`stack.md` nor `package.json`/`pyproject.toml`) is found:
+
 ```
 Stack relevance check skipped — no stack source found
 ```
@@ -484,6 +568,7 @@ Stack relevance check skipped — no stack source found
 #### Config-driven detection
 
 If `openspec/config.yaml` contains a `feature_docs:` key:
+
 - Read the `convention` field (`skill` | `markdown` | `mixed`)
 - Read the `paths` list (directories to scan for feature docs)
 - Read the `feature_detection` block: `strategy` (`directory` | `prefix` | `explicit`), `root` (root directory whose subdirs are treated as features), and `exclude` list
@@ -527,21 +612,25 @@ if heuristic_sources is empty (after exclusions):
 #### D10 checks (run per detected feature)
 
 **D10-a Coverage**: Verify that each detected feature has a corresponding documentation file.
+
 - If `convention=skill`: PASS (✅) if `$LOCAL_SKILLS_DIR/<feature_name>/SKILL.md` exists; FAIL (⚠️) otherwise
 - If `convention=markdown`: PASS (✅) if at least one `.md` file in the configured paths references `feature_name`; FAIL (⚠️) otherwise
 - If `convention=mixed`: PASS (✅) if either a skill or a markdown doc is found; FAIL (⚠️) otherwise
 
 **D10-b Structural Quality**: Verify that the found documentation has proper structure.
-- If doc is a `SKILL.md`: PASS (✅) if frontmatter (`---` block) present AND `**Triggers**`/`## Triggers` defined AND `## Process`/`### Step` section AND `## Rules`/`## Execution rules` section; WARN (⚠️) if any of the above is missing
+
+- If doc is a `SKILL.md`: PASS (✅) if frontmatter (`---` block) present AND `**Triggers**`/`## Triggers` defined AND `## Process`/`### Step` section AND `## Rules` section; legacy `## Execution rules` MAY be accepted as transitional compatibility only; WARN (⚠️) if any of the above is missing
 - If doc is a `.md` file (not SKILL.md): PASS (✅) if has `# title` (H1) AND at least one `## section` (H2); WARN (⚠️) if missing either; N/A if doc not found
 
 **D10-c Code Freshness**: Scan the doc file for file path references and verify they still exist on disk.
+
 - Read the doc file content
 - Extract all path-like strings matching: `/src/[^\s]+`, `/lib/[^\s]+`, `/app/[^\s]+`
 - For each extracted path: check if `[project_root][path]` exists on disk; if NOT found → flag as stale (⚠️)
 - PASS (✅) if no stale paths found or no paths found in doc; N/A if doc not found
 
 **D10-d Registry Alignment**: If doc is a SKILL.md in `.claude/skills/` → verify it appears in the CLAUDE.md Skills Registry section.
+
 - Read CLAUDE.md (or `.claude/CLAUDE.md`)
 - Check if `feature_name` appears in the Skills Registry section
 - PASS (✅) if found; INFO (ℹ️) if not found (not a warning — projects may have features without skill entries by design); N/A if doc is not a SKILL.md
@@ -550,9 +639,9 @@ if heuristic_sources is empty (after exclusions):
 
 Emit a per-feature coverage table:
 
-| Feature | Doc found | Structure OK | Fresh | In Registry | Status |
-|---------|-----------|--------------|-------|-------------|--------|
-| [name]  | ✅/❌     | ✅/⚠️/N/A  | ✅/⚠️/N/A | ✅/ℹ️/N/A | ✅/⚠️/❌ |
+| Feature | Doc found | Structure OK | Fresh     | In Registry | Status   |
+| ------- | --------- | ------------ | --------- | ----------- | -------- |
+| [name]  | ✅/❌     | ✅/⚠️/N/A    | ✅/⚠️/N/A | ✅/ℹ️/N/A   | ✅/⚠️/❌ |
 
 **Status column logic**: ✅ if all applicable checks pass; ⚠️ if any check warns; ❌ if D10-a (coverage) fails.
 
@@ -579,6 +668,7 @@ CLAIM_PATTERN = /(\d+)\s+(Dimensions?|Steps?|Rules?|Phases?|Checks?|Sub-checks?)
 ```
 
 For each claim found:
+
 - Identify the keyword (e.g., "Dimensions", "Steps")
 - Count matching sections in the body: heading lines containing the same keyword (case-insensitive)
 - If declared count ≠ actual count → finding with severity INFO
@@ -598,6 +688,7 @@ SEQUENCE_PATTERNS:
 ```
 
 For each pattern:
+
 - Collect all matched numbers, sort ascending
 - **Gap**: a number N is missing where min..max is not contiguous
 - **Duplicate**: a number appears more than once
@@ -681,8 +772,9 @@ For each pattern:
 
 The report is saved in `.claude/audit-report.md` with this exact structure:
 
-```markdown
+````markdown
 # Audit Report — [Project Name]
+
 Generated: [YYYY-MM-DD HH:MM]
 Score: [XX/100]
 SDD Ready: [YES|NO|PARTIAL]
@@ -690,8 +782,10 @@ SDD Ready: [YES|NO|PARTIAL]
 ---
 
 ## FIX_MANIFEST
+
 <!-- This block is consumed by /project-fix — DO NOT modify manually -->
-```yaml
+
+````yaml
 score: [XX]
 sdd_ready: [true|false|partial]
 generated_at: "[timestamp]"
@@ -1008,29 +1102,31 @@ Drift entries: (when drift is present)
 
 *To implement these corrections: run `/project-fix`*
 *This report was generated by `/project-audit` — do not modify the FIX_MANIFEST block manually*
-```
+````
+````
 
 ---
 
 ## Detailed Scoring
 
-| Dimension | Criterion | Max points |
-|-----------|---------|------------|
-| **CLAUDE.md** | Exists + complete structure + accurate stack + SDD refs | 20 |
-| **Memory — existence** | All 5 files exist | 15 |
-| **Memory — quality** | Substantial content + coherent with code | 10 |
-| **SDD Orchestrator** | Global skills + openspec/ + config.yaml + CLAUDE.md refs | 20 |
-| **Skills** | Registry accuracy + content depth = 10 pts; global tech skills coverage (D4c) = 10 pts | 20 |
-| **Cross-references** | No broken references | 5 |
-| **Architecture** | No critical violations in samples | 5 |
-| **Testing & Verification** | config.yaml has testing block + archived changes have verify-report.md | 5 |
-| **Project Skills Quality** | Informational only — no score deduction in iteration 1. Flags duplicates, structural gaps, language violations, stack relevance issues. | N/A |
-| **Feature Docs Coverage** | Informational only — no score deduction. Detects feature/skill documentation gaps. | N/A |
-| **Internal Coherence** | Informational only — no score deduction. Validates count claims, section numbering, and frontmatter consistency within individual skill files. | N/A |
-| **ADR Coverage** | Informational only — no score deduction. Activated when CLAUDE.md references docs/adr/. Verifies README.md exists and each ADR file has a status field. HIGH/MEDIUM findings are actionable by /project-fix. | N/A |
-| **Spec Coverage** | Informational only — no score deduction. Activated when openspec/specs/ exists and is non-empty. Verifies spec.md exists per domain and spec path references are valid on disk. MEDIUM findings are actionable by /project-fix. | N/A |
+| Dimension                  | Criterion                                                                                                                                                                                                                       | Max points |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **CLAUDE.md**              | Exists + complete structure + accurate stack + SDD refs                                                                                                                                                                         | 20         |
+| **Memory — existence**     | All 5 files exist                                                                                                                                                                                                               | 15         |
+| **Memory — quality**       | Substantial content + coherent with code                                                                                                                                                                                        | 10         |
+| **SDD Orchestrator**       | Global skills + openspec/ + config.yaml + CLAUDE.md refs                                                                                                                                                                        | 20         |
+| **Skills**                 | Registry accuracy + content depth = 10 pts; global tech skills coverage (D4c) = 10 pts                                                                                                                                          | 20         |
+| **Cross-references**       | No broken references                                                                                                                                                                                                            | 5          |
+| **Architecture**           | No critical violations in samples                                                                                                                                                                                               | 5          |
+| **Testing & Verification** | config.yaml has testing block + archived changes have verify-report.md                                                                                                                                                          | 5          |
+| **Project Skills Quality** | Informational only — no score deduction in iteration 1. Flags duplicates, structural gaps, language violations, stack relevance issues.                                                                                         | N/A        |
+| **Feature Docs Coverage**  | Informational only — no score deduction. Detects feature/skill documentation gaps.                                                                                                                                              | N/A        |
+| **Internal Coherence**     | Informational only — no score deduction. Validates count claims, section numbering, and frontmatter consistency within individual skill files.                                                                                  | N/A        |
+| **ADR Coverage**           | Informational only — no score deduction. Activated when CLAUDE.md references docs/adr/. Verifies README.md exists and each ADR file has a status field. HIGH/MEDIUM findings are actionable by /project-fix.                    | N/A        |
+| **Spec Coverage**          | Informational only — no score deduction. Activated when openspec/specs/ exists and is non-empty. Verifies spec.md exists per domain and spec path references are valid on disk. MEDIUM findings are actionable by /project-fix. | N/A        |
 
 **Interpretation:**
+
 - 90-100: SDD fully operational, excellent maintenance
 - 75-89: Ready to use SDD, minor improvements pending
 - 50-74: SDD partially configured, needs `/project-fix`
@@ -1048,6 +1144,7 @@ Drift entries: (when drift is present)
 6. **If I cannot read a file**, I report it as ❌ with the exact error, I do not assume it does not exist
 7. **When finished**, I notify the user: "Report saved in `.claude/audit-report.md`. To implement the corrections: `/project-fix`"
 8. **All shell-based discovery MUST be consolidated into a single Bash script call (Phase A). Maximum 3 Bash calls per audit run. Never issue individual `ls`, `grep`, `wc -l`, or `find` calls per dimension.**
+9. **Compatibility behavior must be explicit** — if a legacy or repo-specific structure is accepted, the skill documents it as compatibility policy rather than leaving it implicit in a dimension.
 
    Use the following reference script template for Phase A discovery:
 
@@ -1115,7 +1212,6 @@ Drift entries: (when drift is present)
    ```
 
    **Output key schema** (each key is a `key=value` line in stdout):
-
    - `CLAUDE_MD_EXISTS` — 1 if `.claude/CLAUDE.md` exists, 0 if absent
    - `ROOT_CLAUDE_MD_EXISTS` — 1 if root `CLAUDE.md` exists, 0 if absent
    - `OPENSPEC_EXISTS` — 1 if `openspec/` directory exists, 0 if absent
