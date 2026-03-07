@@ -25,6 +25,54 @@ format: procedural
 
 ---
 
+## Organizer Kernel
+
+`project-claude-organizer` operates as a stable organizer kernel with four stages:
+
+| Stage                     | Responsibility                                                                                         | Output                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| Detect                    | Read the live `.claude/` folder shape and resolve the target paths                                     | Observed items, resolved project-local target           |
+| Classify                  | Split observed items into canonical, legacy-migration, documentation-candidate, and unexpected buckets | Buckets that define the possible organizer actions      |
+| Propose                   | Present a dry-run plan before any writes                                                               | Explicit user-visible plan and confirmation gate        |
+| Apply additive migrations | Perform the allowed create/copy/append/scaffold operations after confirmation                          | Updated project files plus `claude-organizer-report.md` |
+
+The kernel is intentionally stable. Migration strategies may evolve, but they operate inside this detect, classify, propose, apply-additive flow rather than redefining the command.
+
+---
+
+## Scope Boundaries
+
+`project-claude-organizer` uses three behavior classes.
+
+| Class                      | Typical examples                                                                         | Mutation scope                                                 | Confirmation model                            |
+| -------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------- |
+| Core additive migrations   | create missing required items, copy docs/templates, append routed content                | Additive writes only                                           | Runs inside the approved plan                 |
+| Explicit opt-in operations | commands/ scaffolding, readme.md user-choice migration, cleanup deletion prompts         | Limited writes after explicit category or cleanup confirmation | Requires explicit user choice or confirmation |
+| Advisory-only outcomes     | unexpected items, skills-audit findings, ambiguous routing, non-qualifying command files | No automatic mutation                                          | Report only                                   |
+
+Notes:
+
+- The organizer is not a generalized transformation engine. If an item does not map cleanly to a supported path, it remains advisory-only.
+- Cleanup deletion is a follow-up path after successful migration, not part of the organizer kernel itself.
+- Skills audit findings may be important, but they do not expand the organizer's write authority automatically.
+
+---
+
+## Compatibility Policy
+
+Compatibility behavior is a separate policy layer of `project-claude-organizer`, not an implicit side effect of individual migration handlers.
+
+Compatibility rules currently include:
+
+- **Legacy-shape compatibility**: known legacy directories and files are treated as migration candidates so projects can be normalized incrementally.
+- **Advisory compatibility**: unsupported or ambiguous structures remain manual-review outcomes instead of forcing speculative organizer mutations.
+- **Opt-in compatibility**: scaffolding, user-choice branches, and cleanup deletion remain explicit opt-in paths even when they are available.
+- **Audit-adjacent compatibility**: skills audit may surface organizer-relevant findings, but those findings remain diagnostic rather than granting organizer permission to rewrite `.claude/skills/` automatically.
+
+This policy MUST be explicit whenever compatibility behavior affects whether an item is migrated, preserved, or only reported.
+
+---
+
 ## Process
 
 ### Step 1 — Resolve paths
@@ -55,21 +103,25 @@ Use the following priority chain (same as `install.sh` and `claude-folder-audit`
 Check whether `PROJECT_CLAUDE_DIR` exists as a directory.
 
 If it does NOT exist:
+
 ```
 No .claude/ folder found at <PROJECT_ROOT>.
 This skill targets project .claude/ folders only — not the ~/.claude/ runtime.
 It requires a project with an existing .claude/ directory.
 Exiting without changes.
 ```
+
 Stop. Do not write any files.
 
 **1.5 — Guard: prevent targeting `~/.claude/`:**
 
 If `PROJECT_CLAUDE_DIR` resolves to the same path as `HOME_DIR/.claude`, output:
+
 ```
 This skill targets project .claude/ folders only — not the ~/.claude/ runtime.
 Exiting without changes.
 ```
+
 Stop.
 
 ---
@@ -80,6 +132,7 @@ List all items (files and directories) **one level deep** under `PROJECT_CLAUDE_
 Do not recurse into subdirectories.
 
 Record each item as:
+
 - `<name>` — for files
 - `<name>/` — for directories
 
@@ -149,12 +202,14 @@ For each `.md` file currently in `UNEXPECTED`:
 
 **(a) Signal 1 — Filename stem match (case-insensitive):**
 Extract the file's stem (filename without `.md` extension). If the stem matches any entry in `KNOWN_AI_CONTEXT_TARGETS` (case-insensitive):
+
 - Add to `DOCUMENTATION_CANDIDATES` with `source = PROJECT_CLAUDE_DIR/<filename>.md`, `destination = PROJECT_ROOT/ai-context/<filename>.md`, `reason = "filename-match"`.
 - Remove from `UNEXPECTED`.
 - Do NOT apply Signal 2 for this file.
 
 **(b) Signal 2 — Content heading match (for remaining `.md` files in UNEXPECTED only):**
 Read the file's content. If any line starts with one of the `KNOWN_HEADING_PATTERNS` entries (case-sensitive, line-starts-with match):
+
 - Add to `DOCUMENTATION_CANDIDATES` with `source = PROJECT_CLAUDE_DIR/<filename>.md`, `destination = PROJECT_ROOT/ai-context/<filename>.md`, `reason = "heading-match"`.
 - Remove from `UNEXPECTED`.
 
@@ -182,21 +237,22 @@ destination paths), `strategy` (see table below), and `confirmation_required = t
 
 **LEGACY_PATTERN_TABLE** — quick-scan index (match order top-to-bottom, name match first):
 
-| Pattern name | Match condition | Migration strategy | Destination summary |
-|---|---|---|---|
-| `commands/` | Directory named `commands` (case-insensitive) | `scaffold` — active SKILL.md generation | For each qualifying `.md` file: derive skill name from stem (kebab-case), infer format type via 4-signal heuristic, check idempotency (skip if `.claude/skills/<stem>/SKILL.md` already exists), write SKILL.md skeleton to `.claude/skills/<stem>/SKILL.md`; non-qualifying files receive advisory notes only; source files NEVER modified or deleted |
-| `docs/` | Directory named `docs` (case-insensitive) | `copy` — per `.md` file | `ai-context/features/<name>.md` for each `.md` at immediate `docs/` level |
-| `system/` | Directory named `system` (case-insensitive) | `append` — route by filename | `architecture.md` → `ai-context/architecture.md`; `database.md` + `api-overview.md` → `ai-context/stack.md` |
-| `plans/` | Directory named `plans` (case-insensitive) | `copy` — route by status | Active plans → `openspec/changes/<plan-name>/`; archived plans → `openspec/changes/archive/<plan-name>/` |
-| `requirements/` | Directory named `requirements` (case-insensitive) | `scaffold` — idempotent | `openspec/changes/<YYYY-MM-DD>-<slug>/proposal.md` per `.md` file at immediate level |
-| `sops/` | Directory named `sops` (case-insensitive) | `user-choice` — per file | Option A: append section to `ai-context/conventions.md`; Option B: copy to `docs/sops/<filename>` |
-| `templates/` | Directory named `templates` (case-insensitive) | `copy` | `docs/templates/<filename>` for each file at immediate `templates/` level |
-| `project.md` | Root-level `.md` file named `project.md` (case-insensitive) | `section-distribute` | Sections routed to `ai-context/stack.md`, `ai-context/architecture.md`, `ai-context/known-issues.md` by heading signal |
-| `readme.md` | Root-level `.md` file named `readme.md` (case-insensitive) | `user-choice` | Option A: append full content to `PROJECT_ROOT/CLAUDE.md` under marker `<!-- .claude/readme.md -->`; Option B: copy to `PROJECT_ROOT/docs/README-claude.md`; idempotency: if marker already present in CLAUDE.md → record "already integrated (skipped)" |
+| Pattern name    | Match condition                                             | Migration strategy                      | Destination summary                                                                                                                                                                                                                                                                                                                                    |
+| --------------- | ----------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `commands/`     | Directory named `commands` (case-insensitive)               | `scaffold` — active SKILL.md generation | For each qualifying `.md` file: derive skill name from stem (kebab-case), infer format type via 4-signal heuristic, check idempotency (skip if `.claude/skills/<stem>/SKILL.md` already exists), write SKILL.md skeleton to `.claude/skills/<stem>/SKILL.md`; non-qualifying files receive advisory notes only; source files NEVER modified or deleted |
+| `docs/`         | Directory named `docs` (case-insensitive)                   | `copy` — per `.md` file                 | `ai-context/features/<name>.md` for each `.md` at immediate `docs/` level                                                                                                                                                                                                                                                                              |
+| `system/`       | Directory named `system` (case-insensitive)                 | `append` — route by filename            | `architecture.md` → `ai-context/architecture.md`; `database.md` + `api-overview.md` → `ai-context/stack.md`                                                                                                                                                                                                                                            |
+| `plans/`        | Directory named `plans` (case-insensitive)                  | `copy` — route by status                | Active plans → `openspec/changes/<plan-name>/`; archived plans → `openspec/changes/archive/<plan-name>/`                                                                                                                                                                                                                                               |
+| `requirements/` | Directory named `requirements` (case-insensitive)           | `scaffold` — idempotent                 | `openspec/changes/<YYYY-MM-DD>-<slug>/proposal.md` per `.md` file at immediate level                                                                                                                                                                                                                                                                   |
+| `sops/`         | Directory named `sops` (case-insensitive)                   | `user-choice` — per file                | Option A: append section to `ai-context/conventions.md`; Option B: copy to `docs/sops/<filename>`                                                                                                                                                                                                                                                      |
+| `templates/`    | Directory named `templates` (case-insensitive)              | `copy`                                  | `docs/templates/<filename>` for each file at immediate `templates/` level                                                                                                                                                                                                                                                                              |
+| `project.md`    | Root-level `.md` file named `project.md` (case-insensitive) | `section-distribute`                    | Sections routed to `ai-context/stack.md`, `ai-context/architecture.md`, `ai-context/known-issues.md` by heading signal                                                                                                                                                                                                                                 |
+| `readme.md`     | Root-level `.md` file named `readme.md` (case-insensitive)  | `user-choice`                           | Option A: append full content to `PROJECT_ROOT/CLAUDE.md` under marker `<!-- .claude/readme.md -->`; Option B: copy to `PROJECT_ROOT/docs/README-claude.md`; idempotency: if marker already present in CLAUDE.md → record "already integrated (skipped)"                                                                                               |
 
 **Classification loop:**
 
 For each item in `UNEXPECTED`:
+
 - Match item name (case-insensitive) against `LEGACY_PATTERN_TABLE` (top-to-bottom):
   - **On hit**: add entry to `LEGACY_MIGRATIONS` (`source`, `destination(s)`, `strategy`, `confirmation_required = true`); remove item from `UNEXPECTED`.
   - **On miss**: item stays in `UNEXPECTED` — "review manually" behavior unchanged.
@@ -237,6 +293,7 @@ For each item in `UNEXPECTED`:
    - **(4d) Generate SKILL.md skeleton** based on inferred format type. Create directory `PROJECT_CLAUDE_DIR/skills/<stem>/` if absent. Write the appropriate skeleton to `PROJECT_CLAUDE_DIR/skills/<stem>/SKILL.md`:
 
      **For `procedural` format:**
+
      ```markdown
      ---
      name: <stem>
@@ -265,6 +322,7 @@ For each item in `UNEXPECTED`:
      ```
 
      **For `reference` format:**
+
      ```markdown
      ---
      name: <stem>
@@ -293,6 +351,7 @@ For each item in `UNEXPECTED`:
      ```
 
      **For `anti-pattern` format:**
+
      ```markdown
      ---
      name: <stem>
@@ -321,6 +380,7 @@ For each item in `UNEXPECTED`:
      ```
 
    - **(4e) Record outcome**: `<filename>.md → .claude/skills/<stem>/SKILL.md — scaffolded (format: <format>)`.
+
 5. **Non-qualifying file** (no marker matched):
    Record: `<filename>.md — advisory only (no qualifying signals)`.
    Do NOT create or modify any file.
@@ -428,6 +488,7 @@ For each item in `UNEXPECTED`:
      ```
 
    - Record: `<slug> — scaffolded to openspec/changes/<date>-<slug>/proposal.md`.
+
 3. Source files are NEVER deleted, moved, or modified.
 
 ---
@@ -510,6 +571,7 @@ For each item in `UNEXPECTED`:
   - **Option B**: Copy `readme.md` to `PROJECT_ROOT/docs/README-claude.md`. Create `docs/` directory if absent.
 
 **Idempotency guard**: Before presenting options to the user, check whether `PROJECT_ROOT/CLAUDE.md` already contains the string `<!-- .claude/readme.md -->`.
+
 - If the marker IS present → record `readme.md — already integrated (skipped)` and skip this pattern entirely. Do NOT present options.
 - If the marker is NOT present → proceed to present Option A and Option B.
 
@@ -572,6 +634,7 @@ SKILL_AUDIT_FINDINGS.append({
 
 **Detection Rule 3 — suspicious_name (LOW):**
 If `D.name` does NOT match the kebab-case convention — i.e., it contains at least one of:
+
 - An uppercase letter (`A`–`Z`)
 - A space character
 - An underscore character (`_`)
@@ -589,12 +652,12 @@ SKILL_AUDIT_FINDINGS.append({
 
 > **SKILL_AUDIT_FINDINGS entry structure:**
 >
-> | Field | Type | Description |
-> |-------|------|-------------|
-> | `skill_name` | string | The immediate subdirectory name under `.claude/skills/` |
-> | `finding_type` | `"scope_overlap"` \| `"broken_shell"` \| `"suspicious_name"` | Which detection rule fired |
-> | `severity` | `"HIGH"` \| `"MEDIUM"` \| `"LOW"` | Severity corresponding to finding type |
-> | `detail` | string | Human-readable explanation of the finding |
+> | Field          | Type                                                         | Description                                             |
+> | -------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+> | `skill_name`   | string                                                       | The immediate subdirectory name under `.claude/skills/` |
+> | `finding_type` | `"scope_overlap"` \| `"broken_shell"` \| `"suspicious_name"` | Which detection rule fired                              |
+> | `severity`     | `"HIGH"` \| `"MEDIUM"` \| `"LOW"`                            | Severity corresponding to finding type                  |
+> | `detail`       | string                                                       | Human-readable explanation of the finding               |
 >
 > Findings are advisory only — this step NEVER modifies, deletes, or moves any file.
 
@@ -607,6 +670,7 @@ Build the reorganization plan from the three categories above.
 **If `MISSING_REQUIRED` is empty AND `UNEXPECTED` is empty AND `DOCUMENTATION_CANDIDATES` is empty AND `LEGACY_MIGRATIONS` is empty:**
 
 Output:
+
 ```
 No reorganization needed — .claude/ already matches the canonical SDD structure.
 ```
@@ -685,11 +749,13 @@ comment in the report only.
 Omit any category that has zero items (applies to all four categories).
 
 **Skills audit rendering rules (applies to the `Skills audit:` section in the plan):**
+
 - If `PROJECT_CLAUDE_DIR/skills/` does NOT exist → omit the `Skills audit:` section entirely from the plan display.
 - If `PROJECT_CLAUDE_DIR/skills/` exists AND `SKILL_AUDIT_FINDINGS` is non-empty → render the table with one row per finding.
 - If `PROJECT_CLAUDE_DIR/skills/` exists AND `SKILL_AUDIT_FINDINGS` is empty → display: `Skills audit: no issues detected.` (no table).
 
 After displaying the plan, prompt:
+
 ```
 Apply this plan? (yes/no)
 ```
@@ -712,6 +778,7 @@ Apply ONLY the operations listed in the plan. No additional operations.
 **5.1 — Create missing `skills/` directory:**
 
 If `skills/` is in `MISSING_REQUIRED`:
+
 - Create an empty directory at `PROJECT_CLAUDE_DIR/skills/`.
 - Do NOT place any files inside it.
 - Record: `skills/ — directory created`.
@@ -719,12 +786,14 @@ If `skills/` is in `MISSING_REQUIRED`:
 **5.2 — Create missing `hooks/` directory:**
 
 If `hooks/` is in `MISSING_REQUIRED` (hooks/ is optional, but if explicitly listed in plan):
+
 - Create an empty directory at `PROJECT_CLAUDE_DIR/hooks/`.
 - Record: `hooks/ — directory created`.
 
 **5.3 — Create missing `CLAUDE.md` stub:**
 
 If `CLAUDE.md` is in `MISSING_REQUIRED`:
+
 - Verify `PROJECT_CLAUDE_DIR/CLAUDE.md` does NOT already exist (idempotency guard).
   If it already exists → skip this operation, record as `CLAUDE.md — already exists (skipped)`.
 - Write the following minimal stub to `PROJECT_CLAUDE_DIR/CLAUDE.md`:
@@ -766,6 +835,7 @@ Process each file in `DOCUMENTATION_CANDIDATES`:
 If the directory does not exist, create it before attempting any copy.
 
 **(b) For each file NOT excluded by the user:**
+
 - Check whether the destination (`PROJECT_ROOT/ai-context/<filename>.md`) already exists.
   - If destination **exists**: do not write anything. Record: `<filename>.md — skipped (destination exists — review manually)`. Leave both source and destination untouched.
   - If destination **does not exist**: copy source to destination. After the copy, verify that the source file still exists at `PROJECT_CLAUDE_DIR/<filename>.md`.
@@ -774,6 +844,7 @@ If the directory does not exist, create it before attempting any copy.
   - On any other copy failure: record `<filename>.md — failed — <error reason>` and continue processing remaining candidates.
 
 **(c) For each file excluded by the user:**
+
 - Do NOT copy or modify the file.
 - Record: `<filename>.md — excluded by user`.
 
@@ -782,12 +853,14 @@ If the directory does not exist, create it before attempting any copy.
 **5.5 — Flag unexpected items:**
 
 For each item in `UNEXPECTED`:
+
 - Do NOT touch the file or directory in any way.
 - Record it as `<name> — unexpected item flagged in report (not modified)`.
 
 **5.6 — Acknowledge already-correct items:**
 
 For each item in `PRESENT`:
+
 - No operation performed.
 - Record it as `<name> — already correct (no change)`.
 
@@ -796,6 +869,7 @@ For each item in `PRESENT`:
 Process categories in strategy execution order: scaffold (commands/) → section-distribute (project.md) → user-choice (readme.md) → copy → append → scaffold (requirements/) → user-choice (sops/).
 
 For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the order above):
+
 1. Present the full list of files in the category and their proposed destinations.
 2. Prompt: `Apply <category> migrations? (yes/no/all)`
 3. If the user responds `no`: skip the category entirely; record `<category> — skipped by user (no files written)`. Do NOT write any files for this category.
@@ -824,6 +898,7 @@ For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the 
    - **(4d) Generate SKILL.md skeleton** based on inferred format type. Create directory `PROJECT_CLAUDE_DIR/skills/<stem>/` if absent. Write the appropriate skeleton to `PROJECT_CLAUDE_DIR/skills/<stem>/SKILL.md`:
 
      **For `procedural` format:**
+
      ```markdown
      ---
      name: <stem>
@@ -852,6 +927,7 @@ For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the 
      ```
 
      **For `reference` format:**
+
      ```markdown
      ---
      name: <stem>
@@ -880,6 +956,7 @@ For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the 
      ```
 
      **For `anti-pattern` format:**
+
      ```markdown
      ---
      name: <stem>
@@ -908,6 +985,7 @@ For each category in `LEGACY_MIGRATIONS` (grouped by strategy, processed in the 
      ```
 
    - **(4e) Record outcome**: `<filename>.md — scaffolded to .claude/skills/<stem>/SKILL.md (format: <format>)`.
+
 5. **Non-qualifying file** (no marker matched):
    Record: `<filename>.md — non-qualifying (no structured workflow detected). Recommend manual archival.`
    Do NOT create or modify any file.
@@ -981,6 +1059,7 @@ This step runs only when `readme.md` is present in `LEGACY_MIGRATIONS`.
      Will be deleted (successfully migrated): readme.md
    Delete source file .claude/readme.md? (yes/no)
    ```
+
    - If user responds `yes`: delete `PROJECT_CLAUDE_DIR/readme.md`. Record `.claude/readme.md — deleted`.
    - If user responds `no`: record `readme.md — cleanup declined by user`.
 
@@ -989,6 +1068,7 @@ This step runs only when `readme.md` is present in `LEGACY_MIGRATIONS`.
 **5.7.3 — copy strategy (`docs/` and `templates/`):**
 
 For **`docs/`**:
+
 1. List all `.md` files at the **immediate** `docs/` level only (no recursion).
 2. Ensure `PROJECT_ROOT/ai-context/features/` directory exists; create it if absent before copying.
 3. For each `.md` file:
@@ -998,6 +1078,7 @@ For **`docs/`**:
 4. Source files are NEVER deleted, moved, or modified.
 
 For **`templates/`**:
+
 1. List all files at the **immediate** `templates/` level only (no recursion).
 2. Ensure `PROJECT_ROOT/docs/templates/` directory exists; create it if absent before copying.
 3. For each file:
@@ -1088,6 +1169,7 @@ For each category processed by 5.7.3 (`docs/` and `templates/`):
      ```
 
    - Record: `<slug> — scaffolded to openspec/changes/<date>-<slug>/proposal.md`.
+
 3. Source files are NEVER deleted, moved, or modified.
 
 **5.7.5-cleanup — source file cleanup after scaffold strategy (`requirements/`):**
@@ -1194,6 +1276,7 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 ### Created
 
 <!-- List items created, or state "Nothing to create — no required items were missing." -->
+
 - `skills/` — empty directory created
 - `CLAUDE.md` — stub file created with 5 section headings (Tech Stack, Architecture, Unbreakable Rules, Plan Mode Rules, Skills Registry)
 
@@ -1205,6 +1288,7 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 
 <!-- Omit this subsection entirely when DOCUMENTATION_CANDIDATES was empty for the run. -->
 <!-- List each candidate with its outcome: -->
+
 - `stack.md` — copied to ai-context/stack.md
 - `architecture.md` — skipped (destination exists — review manually)
 - `notes.md` — excluded by user
@@ -1216,43 +1300,53 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 <!-- Valid outcome labels: applied, skipped, advisory, non-qualifying, user-skipped -->
 
 **commands/** (strategy: scaffold):
+
 - `deploy.md` — scaffolded to .claude/skills/deploy/SKILL.md (format: procedural)
 - `auth.md` — already exists (not overwritten). Review .claude/skills/auth/SKILL.md manually.
 - `misc.md` — non-qualifying (no structured workflow detected). Recommend manual archival.
 
 **docs/** (strategy: copy):
+
 - `auth.md` — copied to ai-context/features/auth.md
 - `payments.md` — skipped (destination exists)
 
 **system/** (strategy: append):
+
 - `architecture.md` — appended to ai-context/architecture.md (separator added)
 - `database.md` — appended to ai-context/stack.md (separator added)
 
 **requirements/** (strategy: scaffold):
+
 - `auth-requirements` — scaffolded to openspec/changes/2026-03-04-auth-requirements/proposal.md
 
 **sops/** (strategy: user-choice):
+
 - `deployment.md` — copied to docs/sops/deployment.md (Option B)
 
 **templates/** (strategy: copy):
+
 - `prd-template.md` — copied to docs/templates/prd-template.md
 
 **project.md** (strategy: section-distribute):
+
 - `## Tech Stack` section — appended to ai-context/stack.md
 - `## Architecture` section — appended to ai-context/architecture.md
 
 **readme.md** (strategy: user-choice):
+
 <!-- Omit this block entirely when readme.md was absent from the project's .claude/ for the run. -->
 <!-- One of the following outcome lines applies: -->
 <!-- - readme.md — appended to CLAUDE.md (Option A) -->
 <!-- - readme.md — copied to docs/README-claude.md (Option B) -->
 <!-- - readme.md — skipped by user. Recommend manual review. -->
 <!-- - readme.md — already integrated (skipped) -->
+
 - `readme.md` — appended to CLAUDE.md (Option A)
 
 <!-- Source-preservation footer — CONDITIONAL:
      - When NO files were deleted: display the preservation note below.
      - When files WERE deleted: omit the preservation note; the "Deleted from .claude/" subsection below serves as the deletion summary. -->
+
 > All source files in legacy categories were preserved — no files were deleted or moved
 
 ### readme.md migration
@@ -1279,11 +1373,11 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 <!-- When SKILL_AUDIT_FINDINGS is non-empty: render table below. -->
 <!-- When SKILL_AUDIT_FINDINGS is empty: write "No issues detected in .claude/skills/." -->
 
-| Skill | Finding | Severity |
-|-------|---------|----------|
-| `react-19` | scope_overlap — also referenced as `~/.claude/skills/react-19/` | HIGH |
-| `_draft-auth` | suspicious_name — name does not follow kebab-case convention (contains spaces, uppercase letters, or underscores) | LOW |
-| `my-broken-skill` | broken_shell — no SKILL.md found in directory | MEDIUM |
+| Skill             | Finding                                                                                                           | Severity |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- | -------- |
+| `react-19`        | scope_overlap — also referenced as `~/.claude/skills/react-19/`                                                   | HIGH     |
+| `_draft-auth`     | suspicious_name — name does not follow kebab-case convention (contains spaces, uppercase letters, or underscores) | LOW      |
+| `my-broken-skill` | broken_shell — no SKILL.md found in directory                                                                     | MEDIUM   |
 
 > Findings are advisory only. No files were deleted or modified as part of skills audit.
 > Remediate scope_overlap findings by removing the local copy or de-registering the global path from CLAUDE.md.
@@ -1299,12 +1393,14 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 ### Unexpected items (not modified)
 
 <!-- List unexpected items, or state "None." -->
+
 - `commands/` — This item is not part of the canonical SDD .claude/ structure.
   Review manually — it was NOT deleted or moved.
 
 ### Already correct
 
 <!-- List items that were already present and expected, or state "None." -->
+
 - `hooks/`
 - `ai-context/`
 - `openspec/`
@@ -1324,14 +1420,15 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 
 <!-- Legacy migration conditional guidance — include only when the condition was true for this run: -->
 <!-- If commands/ scaffold was run: -->
+
 5. Review the commands/ scaffold outcomes above — check generated .claude/skills/<name>/SKILL.md
-   files and populate content. For files already existing (not overwritten), compare and merge manually.
+files and populate content. For files already existing (not overwritten), compare and merge manually.
 <!-- If section-distribute applied to project.md or readme.md: -->
 6. Review the distributed sections in the destination ai-context/ files — verify content is
-   correctly placed.
+correctly placed.
 <!-- If append applied to system/: -->
 7. Review the appended content in the ai-context/ destination file(s) — merge or deduplicate
-   manually if the appended section overlaps with existing content.
+manually if the appended section overlaps with existing content.
 <!-- If scaffold produced proposals from requirements/: -->
 8. Populate the scaffold proposals in openspec/changes/ before running /sdd-apply.
 <!-- If sops/ was processed: -->
@@ -1347,6 +1444,7 @@ Summary: <N> item(s) created, <N> documentation file(s) copied, <N> legacy migra
 ```
 
 After writing the report, emit:
+
 ```
 Report written to: <PROJECT_CLAUDE_DIR>/claude-organizer-report.md
 ```
@@ -1380,3 +1478,12 @@ Use the expanded absolute path (no tilde or relative segments).
    **(a)** The file was successfully migrated (copied, appended, scaffolded, or user-choice applied) AND **(b)** the user explicitly confirmed the deletion prompt for that category.
    The `scaffold` strategy for `commands/` and the `section-distribute` strategy (`project.md`) are permanently exempt from cleanup prompts — their source files are unconditionally preserved. The `user-choice` strategy for `readme.md` offers cleanup only after successful migration AND explicit user confirmation.
    Any file whose migration outcome was "skipped", "failed", or "excluded" MUST NOT be offered for deletion regardless of user input.
+
+6. **Unexpected, unsupported, or ambiguous items remain advisory-first.**
+   If an observed item does not map cleanly to the canonical expected set, a supported legacy strategy, or a safe additive migration path, the organizer MUST report it for manual review instead of inventing a mutation.
+
+7. **Skills audit does not expand organizer mutation scope.**
+   Findings from `SKILL_AUDIT_FINDINGS` are diagnostic only — even HIGH-severity findings such as scope overlap MUST NOT trigger automatic rewrites, deletions, or relocations under `.claude/skills/`.
+
+8. **Cleanup deletion is a follow-up opt-in step, not core organizer behavior.**
+   The organizer's kernel ends at successful additive migration and report writing. Any deletion prompt is a post-migration choice applied only to explicitly eligible files after explicit user confirmation.
