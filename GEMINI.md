@@ -43,7 +43,7 @@ No standard package manifests — expected for a Markdown/YAML/Bash meta-system.
 ### Three-layer structure
 
 1. **Orchestrator** — global instruction file: defines how the AI coordinates SDD phases
-2. **Skills catalog** — `skills/`: one directory per skill, `SKILL.md` entry point (~47 skills)
+2. **Skills catalog** — `skills/`: one directory per skill, `SKILL.md` entry point (49 skills)
 3. **Memory layer** — `ai-context/`: stack, architecture, conventions, known-issues, changelog
 
 ### Two-tier skill placement model
@@ -284,11 +284,9 @@ sync.sh: line 4: $'\r': command not found
 sed -i 's/\r$//' sync.sh install.sh
 ```
 
-### rsync not available on Windows
+### sync.sh is memory-only and cross-platform
 
-The memory sync script uses `rsync` which is not installed by default on Windows/Git Bash.
-**Workaround**: Use `cp -r` manually for the memory directory.
-**Fix needed**: Update the script to use `cp -r` with a delete step, or detect OS and use the right tool.
+The memory sync script copies only `~/.claude/memory/` back into the repo and uses `cp -r`, so the old Windows/Git Bash `rsync` limitation no longer applies.
 
 ### Deploy script is one-directional
 

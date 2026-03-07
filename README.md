@@ -9,8 +9,8 @@ It serves two roles:
 2. **SDD Orchestrator** — executes specification-driven development cycles by delegating to
    specialized sub-agents
 
-Changes made here are synced to `~/.claude/` (the Claude Code runtime directory) via `install.sh`
-and captured back via `sync.sh`.
+Changes made here are deployed to `~/.claude/` (the Claude Code runtime directory) via `install.sh`.
+Only Claude's auto-memory is captured back via `sync.sh`.
 
 For the canonical reference on all commands, flow, and rules, read [CLAUDE.md](./CLAUDE.md).
 
@@ -24,8 +24,8 @@ claude-config/
 ├── settings.json          # Claude Code user-level settings (MCP servers, permissions)
 ├── settings.local.json    # Machine-local overrides — NOT committed
 ├── install.sh             # One-way: repo → ~/.claude/  (new machine setup)
-├── sync.sh                # One-way: ~/.claude/ → repo  (capture session changes)
-├── skills/                # Skill catalog (~38 skills)
+├── sync.sh                # One-way: ~/.claude/memory/ → repo/memory/  (capture auto-memory)
+├── skills/                # Skill catalog
 │   ├── sdd-*/             # SDD phase skills (8 phases)
 │   ├── project-*/         # Meta-tool skills (setup, audit, fix, update)
 │   ├── memory-init/       # Memory initialization (ai-context/ from scratch)
@@ -154,19 +154,17 @@ filesystem MCP servers. This is a one-way operation: repo → `~/.claude/`.
 
 ### Capturing Changes Made During a Session
 
-When a Claude Code session modifies files in `~/.claude/` (skills, CLAUDE.md, etc.), those
-changes must be synced back to the repo before committing:
+When Claude writes auto-memory during a session, that memory can be synced back to the repo:
 
 ```bash
 bash sync.sh
-git add -A
-git commit -m "chore: sync session changes"
+git add memory/
+git commit -m "chore: sync user memory"
 ```
 
-`sync.sh` is a one-way operation: `~/.claude/` → repo.
+`sync.sh` is a one-way operation: `~/.claude/memory/` → `repo/memory/`.
 
-> Warning: on Windows/Git Bash, `rsync` may not be available. Use the manual `cp -r` fallback
-> documented in [ai-context/known-issues.md](./ai-context/known-issues.md).
+It does not sync skills, hooks, `CLAUDE.md`, `ai-context/`, or `openspec/`.
 
 ### Making Changes to Skills or CLAUDE.md
 
@@ -263,8 +261,8 @@ SDD artifacts are stored in `openspec/changes/<change-name>/` and archived to
 3. **SDD compliance** — every skill modification requires at minimum `/sdd-ff` before apply.
    Every archived change must have a `verify-report.md` with at least one checked criterion.
 
-4. **Sync discipline** — always run `sync.sh` before committing. Never edit `~/.claude/`
-   directly without syncing back to the repo.
+4. **Sync discipline** — use `install.sh` for config changes and `sync.sh` only for
+   `memory/`. Never edit `~/.claude/` directly.
 
 ### Meta-SDD cycle for this repo
 
@@ -277,8 +275,8 @@ SDD artifacts are stored in `openspec/changes/<change-name>/` and archived to
 # 3. Implement
 /sdd-apply <change-name>
 
-# 4. Sync and commit
-bash sync.sh
+# 4. Deploy and commit
+bash install.sh
 git add -A
 git commit -m "feat: <description>"
 ```
