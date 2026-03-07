@@ -1,4 +1,4 @@
-# Spec: project-claude-organizer (memory-layer extension)
+# Spec: project-claude-organizer
 
 Change: project-claude-organizer-memory-layer
 Date: 2026-03-04
@@ -379,3 +379,247 @@ omitted, or included as empty — either is acceptable.
 - **GIVEN** the user declined all cleanup prompts during the run
 - **WHEN** the report is written
 - **THEN** the "Deleted from .claude/" subsection MAY be omitted from the report
+
+---
+
+### Requirement: Active scaffold strategy for qualifying commands/ files
+
+The skill MUST replace the advisory-only `delegate` strategy for `commands/` with an active
+`scaffold` strategy. For each `.md` file in `.claude/commands/` that passes the existing
+qualification signals, the skill MUST generate a minimal but valid `SKILL.md` under
+`.claude/skills/<stem>/SKILL.md` without requiring any additional user commands.
+
+**Qualification signals:**
+- Signal 1 — step-numbered sections: the source file contains at least one heading matching
+  `### Step N` or `## Step N` (where N is a digit)
+- Signal 2 — patterns/examples headings: the source file contains a heading starting with
+  `## Patterns` or `## Examples`
+- Signal 3 — anti-pattern headings: the source file contains a heading starting with
+  `## Anti-patterns` or `# Anti-patterns`
+- Default: infer `procedural` when no signal matches
+
+**Scaffold generation rules:**
+1. Derive the skill name from the filename stem using kebab-case normalization.
+2. Infer the format type from the qualification signals.
+3. Generate a `SKILL.md` that includes valid frontmatter with `name`, `description`, and `format`; `**Triggers**`; `## Rules`; and the format-required main section.
+4. Copy recognizable source content into the format-required main section.
+5. Write the generated skeleton to `.claude/skills/<stem>/SKILL.md`.
+
+**Idempotency invariant:** If `.claude/skills/<stem>/SKILL.md` already exists, the skill MUST skip generation and record `[already exists — not overwritten]`. The source file MUST NOT be modified or deleted.
+
+**Non-qualifying files:** Files that do not pass any qualification signal MUST remain advisory-only in the report and are NOT scaffolded.
+
+#### Scenario: Qualifying file is scaffolded as a procedural skill
+
+- **GIVEN** `.claude/commands/deploy-review.md` exists and contains a `### Step 1` heading
+- **WHEN** the scaffold strategy runs
+- **THEN** `.claude/skills/deploy-review/SKILL.md` is created
+- **AND** the generated skill contains `format: procedural`
+- **AND** the generated skill contains `**Triggers**`, `## Process`, and `## Rules`
+
+#### Scenario: Qualifying file is scaffolded as a reference skill
+
+- **GIVEN** `.claude/commands/api-patterns.md` exists and contains `## Patterns`
+- **WHEN** the scaffold strategy runs
+- **THEN** `.claude/skills/api-patterns/SKILL.md` is created
+- **AND** the generated skill contains `format: reference`
+- **AND** the generated skill contains `**Triggers**`, `## Patterns`, and `## Rules`
+
+#### Scenario: Qualifying file is scaffolded as an anti-pattern skill
+
+- **GIVEN** `.claude/commands/react-antipatterns.md` exists and contains `## Anti-patterns`
+- **WHEN** the scaffold strategy runs
+- **THEN** `.claude/skills/react-antipatterns/SKILL.md` is created
+- **AND** the generated skill contains `format: anti-pattern`
+- **AND** the generated skill contains `**Triggers**`, `## Anti-patterns`, and `## Rules`
+
+#### Scenario: Non-qualifying file remains advisory-only
+
+- **GIVEN** `.claude/commands/notes.md` exists and contains no qualifying signal
+- **WHEN** the scaffold strategy runs
+- **THEN** `.claude/skills/notes/SKILL.md` is NOT created
+- **AND** the report lists `notes.md` as advisory-only
+
+#### Scenario: Existing generated target is not overwritten
+
+- **GIVEN** `.claude/commands/deploy-review.md` qualifies for scaffolding
+- **AND** `.claude/skills/deploy-review/SKILL.md` already exists
+- **WHEN** the scaffold strategy runs
+- **THEN** `.claude/skills/deploy-review/SKILL.md` is not modified
+- **AND** the report records `[already exists — not overwritten]`
+
+---
+
+### Requirement: Skills audit for project-local skills
+
+The skill MUST execute a skills-audit pass over immediate subdirectories of `.claude/skills/`
+and collect findings into `SKILL_AUDIT_FINDINGS`.
+
+**Detection rules:**
+- Scope-tier overlap — HIGH severity when a project-local skill directory name also appears in the project's CLAUDE.md Skills Registry as `~/.claude/skills/<name>/SKILL.md`
+- Broken shell — MEDIUM severity when a project-local skill directory exists without `SKILL.md`
+- Suspicious name — LOW severity when a project-local skill directory begins with `_`, `test-`, or `draft-`
+
+Each finding MUST record skill name, rule triggered, severity, and a short human-readable reason.
+If `.claude/skills/` does not exist, the step is skipped and `SKILL_AUDIT_FINDINGS` remains empty.
+Multiple rules MAY fire for the same directory, producing multiple findings.
+
+#### Scenario: Scope-tier overlap detected
+
+- **GIVEN** `.claude/skills/react-19/SKILL.md` exists
+- **AND** the project CLAUDE.md references `~/.claude/skills/react-19/SKILL.md`
+- **WHEN** the skills audit runs
+- **THEN** a HIGH-severity finding is recorded for `react-19`
+
+#### Scenario: Broken shell detected
+
+- **GIVEN** `.claude/skills/my-tool/` exists without `SKILL.md`
+- **WHEN** the skills audit runs
+- **THEN** a MEDIUM-severity finding is recorded for `my-tool`
+
+#### Scenario: Suspicious name detected
+
+- **GIVEN** `.claude/skills/test-util/SKILL.md` exists
+- **WHEN** the skills audit runs
+- **THEN** a LOW-severity finding is recorded for `test-util`
+
+#### Scenario: Multiple rules produce multiple findings
+
+- **GIVEN** `.claude/skills/draft-react-19/` exists without `SKILL.md`
+- **AND** the project CLAUDE.md references `~/.claude/skills/draft-react-19/SKILL.md`
+- **WHEN** the skills audit runs
+- **THEN** separate HIGH, MEDIUM, and LOW findings may be recorded for the same directory
+
+---
+
+### Requirement: Skills audit report section
+
+When `.claude/skills/` exists in the project, `claude-organizer-report.md` MUST include a
+`### Skills audit` section.
+
+- If `SKILL_AUDIT_FINDINGS` is non-empty, the section MUST list each finding with skill name, severity, rule, and reason.
+- If `SKILL_AUDIT_FINDINGS` is empty, the section MUST contain `No issues detected in .claude/skills/.`
+- If `.claude/skills/` does not exist, the section MUST be omitted.
+
+#### Scenario: Report includes skills audit findings
+
+- **GIVEN** `SKILL_AUDIT_FINDINGS` contains findings for `react-19` and `test-util`
+- **WHEN** the report is written
+- **THEN** the report contains `### Skills audit`
+- **AND** it lists both findings with severity and reason
+
+#### Scenario: Report includes a no-issues message
+
+- **GIVEN** `.claude/skills/` exists and `SKILL_AUDIT_FINDINGS` is empty
+- **WHEN** the report is written
+- **THEN** the report contains `No issues detected in .claude/skills/.`
+
+---
+
+### Requirement: Commands scaffold outcomes appear in the report
+
+When `.claude/commands/` existed during the run, the report MUST include a
+`### Commands scaffolded` section listing every processed source file with one of these outcomes:
+
+- `<filename>.md -> .claude/skills/<stem>/SKILL.md — scaffolded (format: <format>)`
+- `<filename>.md — [already exists — not overwritten]`
+- `<filename>.md — advisory only (no qualifying signals)`
+
+When `.claude/commands/` was absent, the section MUST be omitted.
+
+#### Scenario: Report lists scaffold outcomes per file
+
+- **GIVEN** `.claude/commands/` contained `deploy-review.md`, `notes.md`, and `ci-helper.md`
+- **WHEN** the report is written
+- **THEN** the report contains `### Commands scaffolded`
+- **AND** it lists scaffolded, advisory-only, and already-exists outcomes as applicable
+
+#### Scenario: Commands scaffolded section omitted when commands/ is absent
+
+- **GIVEN** no `.claude/commands/` directory exists
+- **WHEN** the report is written
+- **THEN** `### Commands scaffolded` is absent
+
+---
+
+### Requirement: commands/ source preservation remains unconditional after scaffold
+
+The source preservation invariant MUST continue to apply to the `commands/` category even
+when the scaffold strategy generates output. No deletion prompt or source modification is ever
+allowed for files under `.claude/commands/`.
+
+#### Scenario: commands/ files remain after scaffold
+
+- **GIVEN** qualifying files in `.claude/commands/` were scaffolded to `.claude/skills/`
+- **WHEN** the scaffold operation completes
+- **THEN** the source files under `.claude/commands/` still exist
+- **AND** no deletion prompt is issued for `commands/`
+
+---
+
+### Requirement: Emoji-normalized heading matching in section-distribute strategy
+
+The `section-distribute` strategy used for `project.md` MUST normalize heading text before
+matching against route signal lists. Normalization strips leading and trailing emoji characters
+and surrounding whitespace from the heading text used for comparison, but the original heading
+text is preserved in prompts and source content.
+
+If zero routeable headings are found after normalization, the organizer MUST emit a clear
+advisory recommending manual migration.
+
+#### Scenario: Emoji-prefixed heading matches a stack signal
+
+- **GIVEN** a `project.md` heading `## 🎯 Tech Stack`
+- **WHEN** section-distribute runs
+- **THEN** the normalized heading matches the stack signal list
+- **AND** the section is routed to `ai-context/stack.md`
+
+#### Scenario: Original heading text remains visible to the user
+
+- **GIVEN** a `project.md` heading `## 🏗️ Architecture`
+- **WHEN** the organizer presents the routing confirmation prompt
+- **THEN** the prompt shows the original heading text including the emoji
+
+---
+
+### Requirement: readme.md is an explicit legacy migration category
+
+`readme.md` found at the immediate `.claude/` level MUST be recognized as a
+`LEGACY_MIGRATION` candidate with strategy `user-choice` rather than being classified as
+`UNEXPECTED`.
+
+Two migration options MUST be presented:
+- Option A: append the file's content to `CLAUDE.md` under the marker `<!-- .claude/readme.md -->`
+- Option B: copy the file to `docs/README-claude.md`
+
+If the user skips the category, the report MUST record `readme.md — skipped by user. Recommend manual review.`
+If `CLAUDE.md` already contains the marker, the organizer MUST record `readme.md — already integrated (skipped)`.
+The source file MUST NOT be deleted unless the standard cleanup flow is later offered and explicitly confirmed.
+
+#### Scenario: readme.md classified as legacy migration
+
+- **GIVEN** `.claude/readme.md` exists at the immediate `.claude/` level
+- **WHEN** classification runs
+- **THEN** `readme.md` is classified as `LEGACY_MIGRATION`
+- **AND** it is not classified as `UNEXPECTED`
+
+#### Scenario: Option A appends content to CLAUDE.md
+
+- **GIVEN** `.claude/readme.md` exists
+- **AND** the user selects Option A
+- **WHEN** the migration is applied
+- **THEN** the file content is appended to `CLAUDE.md` under the marker `<!-- .claude/readme.md -->`
+
+#### Scenario: Option B copies file to docs/README-claude.md
+
+- **GIVEN** `.claude/readme.md` exists
+- **AND** the user selects Option B
+- **WHEN** the migration is applied
+- **THEN** `docs/README-claude.md` is created from the source content
+
+## Rules
+
+- `commands/` scaffolding is additive only; source files under `.claude/commands/` MUST never be modified or deleted
+- Skills audit findings are advisory diagnostics; this change does not grant organizer permission to delete or rewrite project-local skills automatically
+- `readme.md` is handled as an explicit user-choice migration, not as generic unexpected content
+- Emoji normalization affects heading matching only; it MUST NOT alter source content or user-visible heading text in prompts
