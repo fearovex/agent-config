@@ -6,39 +6,39 @@
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Language | Markdown + YAML + Bash |
-| Framework | Claude Code SDD meta-system |
-| Entry point | SKILL.md per skill directory |
-| Package manager | N/A (skill files, not code) |
-| Testing | Manual validation via project-audit |
-| Version control | Git |
-| Hooks runtime | Node.js (hooks/smart-commit-context.js) |
-| Build tool | Bash deploy script (install.sh) |
+| Category        | Technology                              |
+| --------------- | --------------------------------------- |
+| Language        | Markdown + YAML + Bash                  |
+| Framework       | Claude Code SDD meta-system             |
+| Entry point     | SKILL.md per skill directory            |
+| Package manager | N/A (skill files, not code)             |
+| Testing         | Manual validation via project-audit     |
+| Version control | Git                                     |
+| Hooks runtime   | Node.js (hooks/smart-commit-context.js) |
+| Build tool      | Bash deploy script (install.sh)         |
 
 ### File types
 
-| Type | Purpose |
-|------|---------|
-| `SKILL.md` | Skill entry point — instructions read and executed by the assistant |
-| `config.yaml` | SDD openspec project configuration |
-| `*.md` | Memory layer, plans, SDD artifacts |
-| `*.yaml` | SDD config |
-| `*.sh` | Bash scripts (deploy, sync) |
-| `settings.json` | Claude Code user-level settings |
+| Type            | Purpose                                                             |
+| --------------- | ------------------------------------------------------------------- |
+| `SKILL.md`      | Skill entry point — instructions read and executed by the assistant |
+| `config.yaml`   | SDD openspec project configuration                                  |
+| `*.md`          | Memory layer, plans, SDD artifacts                                  |
+| `*.yaml`        | SDD config                                                          |
+| `*.sh`          | Bash scripts (deploy, sync)                                         |
+| `settings.json` | Claude Code user-level settings                                     |
 
 ### Skill categories
 
-| Category | Count | Examples |
-|----------|-------|---------|
-| SDD phases | 8 | sdd-propose, sdd-spec, sdd-design, sdd-tasks, sdd-apply, sdd-verify, sdd-archive, sdd-explore |
-| Meta-tools | 10 | project-setup, project-onboard, project-audit, project-analyze, project-fix, project-update, memory-init, memory-update, skill-creator, skill-add |
-| Tech — Frontend | 8 | react-19, nextjs-15, typescript, zustand-5, zod-4, tailwind-4, ai-sdk-5, react-native |
-| Tech — Backend | 4 | django-drf, spring-boot-3, hexagonal-architecture-java, java-21 |
-| Tech — Testing | 2 | playwright, pytest |
-| Tech — Tooling | 5 | github-pr, jira-task, jira-epic, elixir-antipatterns, electron |
-| Misc | 3 | claude-code-expert, excel-expert, image-ocr |
+| Category        | Count | Examples                                                                                                                                          |
+| --------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SDD phases      | 8     | sdd-propose, sdd-spec, sdd-design, sdd-tasks, sdd-apply, sdd-verify, sdd-archive, sdd-explore                                                     |
+| Meta-tools      | 10    | project-setup, project-onboard, project-audit, project-analyze, project-fix, project-update, memory-init, memory-update, skill-creator, skill-add |
+| Tech — Frontend | 8     | react-19, nextjs-15, typescript, zustand-5, zod-4, tailwind-4, ai-sdk-5, react-native                                                             |
+| Tech — Backend  | 4     | django-drf, spring-boot-3, hexagonal-architecture-java, java-21                                                                                   |
+| Tech — Testing  | 2     | playwright, pytest                                                                                                                                |
+| Tech — Tooling  | 5     | github-pr, jira-task, jira-epic, elixir-antipatterns, electron                                                                                    |
+| Misc            | 3     | claude-code-expert, excel-expert, image-ocr                                                                                                       |
 
 ---
 
@@ -58,7 +58,7 @@
 claude-config/
 ├── CLAUDE.md              # Global orchestrator instructions
 ├── settings.json          # Claude Code user settings
-├── skills/                # Skill catalog (~47 skills)
+├── skills/                # Skill catalog (49 skills)
 │   ├── sdd-*/             # SDD phase skills (8 phases + orchestrators)
 │   ├── project-*/         # Meta-tools (setup, audit, fix, update)
 │   ├── memory-*/          # Memory management (init, update)
@@ -85,15 +85,15 @@ Every skill is a directory with a `SKILL.md` entry point. A `SKILL.md` must decl
 name: skill-name
 description: >
   One-line description.
-format: procedural   # valid values: procedural | reference | anti-pattern
+format: procedural # valid values: procedural | reference | anti-pattern
 ---
 ```
 
-| `format:` value | Required main section | Used for |
-|-----------------|----------------------|---------|
-| `procedural` (default when absent) | `## Process` | SDD phases, meta-tools |
-| `reference` | `## Patterns` or `## Examples` | Technology and library skills |
-| `anti-pattern` | `## Anti-patterns` | Anti-pattern catalog skills |
+| `format:` value                    | Required main section          | Used for                      |
+| ---------------------------------- | ------------------------------ | ----------------------------- |
+| `procedural` (default when absent) | `## Process`                   | SDD phases, meta-tools        |
+| `reference`                        | `## Patterns` or `## Examples` | Technology and library skills |
+| `anti-pattern`                     | `## Anti-patterns`             | Anti-pattern catalog skills   |
 
 All formats always require `**Triggers**` and `## Rules`.
 
@@ -101,14 +101,14 @@ All formats always require `**Triggers**` and `## Rules`.
 
 Skills pass state to each other exclusively through file artifacts — never through in-memory context:
 
-| Artifact | Producer | Consumer | Location |
-|----------|---------|---------|----------|
-| `audit-report.md` | project-audit | project-fix | `.claude/audit-report.md` in project |
-| `analysis-report.md` | project-analyze | project-audit, user | project root |
-| `openspec/config.yaml` | project-setup / project-fix | all SDD phases | `openspec/` in project |
-| `openspec/changes/*/proposal.md` | sdd-propose | sdd-spec, sdd-design | `openspec/changes/<name>/` |
-| `openspec/changes/*/tasks.md` | sdd-tasks | sdd-apply | `openspec/changes/<name>/` |
-| `ai-context/*.md` | memory-init / memory-update | all skills | `ai-context/` in project |
+| Artifact                         | Producer                    | Consumer             | Location                             |
+| -------------------------------- | --------------------------- | -------------------- | ------------------------------------ |
+| `audit-report.md`                | project-audit               | project-fix          | `.claude/audit-report.md` in project |
+| `analysis-report.md`             | project-analyze             | project-audit, user  | project root                         |
+| `openspec/config.yaml`           | project-setup / project-fix | all SDD phases       | `openspec/` in project               |
+| `openspec/changes/*/proposal.md` | sdd-propose                 | sdd-spec, sdd-design | `openspec/changes/<name>/`           |
+| `openspec/changes/*/tasks.md`    | sdd-tasks                   | sdd-apply            | `openspec/changes/<name>/`           |
+| `ai-context/*.md`                | memory-init / memory-update | all skills           | `ai-context/` in project             |
 
 ### Key architectural decisions
 
@@ -133,17 +133,17 @@ Write ALL content in English. This includes SKILL.md files, config.yaml, ai-cont
 
 ### Naming
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Skill directories | kebab-case | `project-audit/`, `sdd-propose/` |
-| Skill entry point | UPPER | `SKILL.md` |
-| SDD phase skills | `sdd-[phase]` prefix | `sdd-propose`, `sdd-apply` |
-| Meta-tool skills | `project-[action]` prefix | `project-audit`, `project-fix` |
-| Tech skills | `[tech]-[version]` | `react-19`, `nextjs-15`, `zustand-5` |
-| SDD change names | kebab-case descriptive | `improve-project-audit`, `add-wallet-skill` |
-| openspec changes | `openspec/changes/[name]/` | `openspec/changes/add-project-fix/` |
-| Archived changes | `YYYY-MM-DD-[name]` | `2026-02-23-add-project-fix` |
-| Bash functions | snake_case | `copy_dir` |
+| Element           | Convention                 | Example                                     |
+| ----------------- | -------------------------- | ------------------------------------------- |
+| Skill directories | kebab-case                 | `project-audit/`, `sdd-propose/`            |
+| Skill entry point | UPPER                      | `SKILL.md`                                  |
+| SDD phase skills  | `sdd-[phase]` prefix       | `sdd-propose`, `sdd-apply`                  |
+| Meta-tool skills  | `project-[action]` prefix  | `project-audit`, `project-fix`              |
+| Tech skills       | `[tech]-[version]`         | `react-19`, `nextjs-15`, `zustand-5`        |
+| SDD change names  | kebab-case descriptive     | `improve-project-audit`, `add-wallet-skill` |
+| openspec changes  | `openspec/changes/[name]/` | `openspec/changes/add-project-fix/`         |
+| Archived changes  | `YYYY-MM-DD-[name]`        | `2026-02-23-add-project-fix`                |
+| Bash functions    | snake_case                 | `copy_dir`                                  |
 
 ### SKILL.md structure
 
@@ -208,6 +208,7 @@ docs/
 **Propose** — Define the problem statement, proposed solution, and verifiable success criteria. Produces `proposal.md`. For user-facing or product-level changes, also create `prd.md` from the template at `docs/templates/prd-template.md` before writing `proposal.md`.
 
 **Spec + Design (parallel)** — These two phases run concurrently and both must complete before proceeding to tasks.
+
 - Spec writes delta specifications capturing the behavioral contract of the change into `specs/{domain}/spec.md`.
 - Design produces `design.md` covering the technical approach, component interactions, and any significant architectural decisions. When a decision is architecturally significant, create a corresponding `docs/adr/NNN-<slug>.md` and update `docs/adr/README.md`.
 
@@ -258,6 +259,7 @@ If the developer agrees, guide them through these steps in order:
 6. **Archive** — Once verify is complete and the developer confirms, move all artifacts to `openspec/changes/archive/YYYY-MM-DD-<change-name>/`. Remind the developer to update `ai-context/changelog-ai.md` to record the session decisions.
 
 **Additional coaching reminders:**
+
 - Every SKILL.md modification must include a proposal — do not edit skills without first writing `proposal.md`.
 - Every archived change must have a `verify-report.md` with at least one `[x]` criterion.
 - After any config change (skills, CLAUDE.md, hooks, ai-context, openspec), deploy the changes and commit.
@@ -281,23 +283,23 @@ If the developer agrees, guide them through these steps in order:
 
 Each project has its memory layer in `ai-context/`:
 
-| File | Content |
-|------|---------|
-| `stack.md` | Tech stack, versions, key tools |
-| `architecture.md` | Architecture decisions and their rationale |
-| `conventions.md` | Code conventions, naming, team patterns |
-| `known-issues.md` | Known bugs, gotchas, current limitations |
-| `changelog-ai.md` | Log of changes made by AI |
+| File                       | Content                                                                                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stack.md`                 | Tech stack, versions, key tools                                                                                                                     |
+| `architecture.md`          | Architecture decisions and their rationale                                                                                                          |
+| `conventions.md`           | Code conventions, naming, team patterns                                                                                                             |
+| `known-issues.md`          | Known bugs, gotchas, current limitations                                                                                                            |
+| `changelog-ai.md`          | Log of changes made by AI                                                                                                                           |
 | `ai-context/features/*.md` | Feature-level domain knowledge: business rules, invariants, data model summary, integration points, decision log, known gotchas per bounded context |
 
 ### When to update ai-context/
 
-| Intent | Which file(s) to update |
-|--------|------------------------|
-| First-time setup with no ai-context/ | Create all 5 core files from scratch |
-| After significant codebase changes | Re-scan and update `[auto-updated]` sections in stack.md, architecture.md, conventions.md |
-| End of a work session | Record session decisions and changes in changelog-ai.md; update the relevant features/*.md with domain knowledge acquired |
-| After adding/removing skills | Sync CLAUDE.md Skills Registry and stack.md |
+| Intent                               | Which file(s) to update                                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| First-time setup with no ai-context/ | Create all 5 core files from scratch                                                                                       |
+| After significant codebase changes   | Re-scan and update `[auto-updated]` sections in stack.md, architecture.md, conventions.md                                  |
+| End of a work session                | Record session decisions and changes in changelog-ai.md; update the relevant features/\*.md with domain knowledge acquired |
+| After adding/removing skills         | Sync CLAUDE.md Skills Registry and stack.md                                                                                |
 
 Read the relevant `ai-context/` files at the start of each session. After completing significant work, update the corresponding files to record what changed and why.
 
@@ -313,9 +315,9 @@ Shell scripts committed with Windows CRLF line endings produce errors like `sync
 sed -i 's/\r$//' install.sh sync.sh
 ```
 
-### rsync not available on Windows
+### sync.sh is memory-only and cross-platform
 
-The memory sync script uses `rsync`, which is not installed by default on Windows or Git Bash. As a workaround, use `cp -r` manually to copy the memory directory back to the repo. A permanent fix would detect the OS and use the appropriate copy tool.
+The memory sync script copies only `~/.claude/memory/` back into the repo and now uses `cp -r`, so the old Windows/Git Bash `rsync` limitation no longer applies.
 
 ### GITHUB_TOKEN dependency
 
