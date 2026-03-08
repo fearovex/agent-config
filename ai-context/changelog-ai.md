@@ -4,6 +4,43 @@
 
 ---
 
+## [2026-03-08] — clean-skill-template-noise (apply)
+
+**Type**: SDD apply
+**Agent**: GitHub Copilot (GPT-5.4)
+**Change**: Reduced low-priority template noise in the active skill catalog by balancing the `project-audit` report example fences and replacing raw scaffold `TODO` markers with explicit scaffold wording.
+
+### Changes
+- `skills/project-audit/SKILL.md` — rebalanced the nested fenced example in `## Report Format` so the outer Markdown fence and inner YAML fence now close cleanly once each.
+- `skills/project-fix/SKILL.md` — replaced raw `TODO` placeholder text in the active stub templates with explicit scaffold wording.
+- `skills/project-claude-organizer/SKILL.md` — replaced raw `TODO` placeholder text in the generated-skill scaffold examples with explicit scaffold wording.
+- `openspec/changes/clean-skill-template-noise/` — created proposal, design, tasks, delta spec, and verify artifacts for the active cleanup change.
+
+### Decisions
+- The cleanup stayed in-place inside the existing skills instead of moving templates into dedicated files, because the goal was to reduce audit noise without enlarging scope.
+- Placeholder language now states explicitly that scaffold text must be replaced, but it no longer uses generic `TODO` markers in the targeted active examples.
+- `bash install.sh` completed successfully after the cleanup; MCP registration remained skipped because the `claude` CLI is not in PATH.
+
+---
+
+## [2026-03-08] — clean-skill-template-noise (archive)
+
+**Type**: SDD archive
+**Agent**: GitHub Copilot (GPT-5.4)
+**Change**: Archived the low-priority skill-template cleanup after promoting its requirements into the active master specs and moving the change into `openspec/changes/archive/`.
+
+### Changes
+- `openspec/specs/skill-template-noise/spec.md` — created as the master spec for balanced nested report fences and explicit scaffold placeholder wording.
+- `openspec/changes/archive/2026-03-08-clean-skill-template-noise/` — archived change folder created.
+- `openspec/changes/archive/2026-03-08-clean-skill-template-noise/CLOSURE.md` — created.
+
+### Decisions
+- The cleanup remains purely non-functional: it reduces active skill-template noise without changing command flow, mutation scope, or trigger behavior.
+- The verify report remained `PASS WITH WARNINGS` because the known external `format:` validator mismatch and the missing `claude` CLI in `PATH` are outside the scope of this change.
+- No user-facing workflow docs required updates because the change only touched active skill examples and report formatting.
+
+---
+
 ## [2026-03-06] — normalize-skill-contract-debt (apply)
 
 **Type**: SDD apply
