@@ -66,6 +66,18 @@ The repository MUST define a `project-audit-core` spec domain that describes `pr
 - **AND** it describes the audit kernel, dimension classification, and compatibility policy
 - **AND** it complements rather than replaces `audit-execution`, `audit-dimensions`, and `audit-scoring`
 
+### Requirement: project-audit uses canonical headings for active skill validation
+
+The `project-audit` compatibility policy MAY acknowledge historical terminology, but the live validation contract MUST use canonical `## Process` and `## Rules` headings for active procedural skills.
+
+#### Scenario: Compatibility policy keeps history separate from active validation
+
+- **GIVEN** a developer reads `skills/project-audit/SKILL.md`
+- **WHEN** they compare the compatibility policy with the skill-structure checks
+- **THEN** the compatibility policy may mention historical terminology
+- **AND** the active validation logic still requires `## Process` and `## Rules` for procedural skills
+- **AND** the skill does not present `## Execution rules` as a passing equivalent for the live catalog
+
 ## Rules
 
 - This change is structural and contractual; it MUST NOT alter the command name `/project-audit`

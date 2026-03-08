@@ -77,14 +77,14 @@ The `project-audit` skill MUST consolidate all shell-based discovery (file exist
 
 ---
 
-### Requirement: Batching rule documented in SKILL.md Execution Rules
+### Requirement: Batching rule documented in SKILL.md Rules section
 
-The `project-audit` SKILL.md MUST contain an explicit rule in its Execution Rules section stating that all shell-based discovery MUST be batched.
+The `project-audit` SKILL.md MUST contain an explicit rule in its `## Rules` section stating that all shell-based discovery MUST be batched.
 
-#### Scenario: Execution Rules section contains the batching constraint
+#### Scenario: Rules section contains the batching constraint
 
 - **GIVEN** a developer or Claude reads `skills/project-audit/SKILL.md`
-- **WHEN** they read the Execution Rules section
+- **WHEN** they read the `## Rules` section
 - **THEN** they find a rule that explicitly states shell discovery must be consolidated into a single Bash script call
 - **AND** the rule states the maximum number of Bash calls allowed per audit run (≤ 3)
 - **AND** the rule prohibits issuing individual `ls`/`grep`/`wc` calls separately

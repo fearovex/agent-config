@@ -37,6 +37,14 @@ skill format types with their formal names and required section contracts.
   meta-tool, and SDD phase skills
 - **AND** the document states that `procedural` is the default when `format:` is absent
 
+#### Scenario: docs/format-types.md uses canonical active headings
+
+- **GIVEN** `docs/format-types.md` exists
+- **WHEN** the required sections for live skills are listed
+- **THEN** `procedural` lists `## Process` as its required main section
+- **AND** all formats list `## Rules` as the required terminal rules heading
+- **AND** the document does not present `## Execution rules` as an equivalent active heading for live catalog validation
+
 #### Scenario: docs/format-types.md defines Format B (Reference) with required sections
 
 - **GIVEN** `docs/format-types.md` exists
@@ -140,6 +148,10 @@ accurately reflects the catalog's actual conventions.
   to `procedural` for backwards compatibility
 - Accepted values for `format:` are: `procedural`, `reference`, `anti-pattern`
   (any other value MUST be treated as `procedural` by tooling, with an INFO finding)
+- Active procedural skills use a literal `## Process` heading; nested `### Step N` headings
+  are step content within that section, not a replacement for it
+- Active catalog validation uses `## Rules` as the canonical terminal rules heading;
+  historical mentions of `## Execution rules` do not redefine the live contract
 - Format declarations are advisory for skills with no frontmatter; tooling MUST NOT
   hard-block a skill from being used solely because `format:` is absent
 - Adding `format:` declarations to all 44 existing skills is out of scope for this
