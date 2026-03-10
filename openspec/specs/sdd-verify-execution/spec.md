@@ -164,10 +164,12 @@ The `sdd-verify` skill MUST produce a Spec Compliance Matrix that cross-referenc
 #### Scenario: Matrix includes UNTESTED status
 
 - **GIVEN** a spec scenario that has no corresponding test
-- **AND** no test runner was detected OR no test covers this scenario
+- **AND** a test runner was detected but no test covers this scenario
 - **WHEN** `sdd-verify` produces the Spec Compliance Matrix
 - **THEN** the scenario row has status UNTESTED
 - **AND** the Evidence column states "No test coverage found"
+- **AND** code inspection confidence MUST NOT elevate the status to COMPLIANT
+*(Modified in: 2026-03-10 by change "sdd-verify-enforcement" — UNTESTED now applies whenever a test runner exists but no test covers the scenario, regardless of code inspection confidence.)*
 
 #### Scenario: Matrix includes PARTIAL status
 
@@ -231,6 +233,99 @@ The `sdd-verify` verify-report.md template MUST include new sections for Build, 
 
 ---
 
+### Requirement: Tool execution section in verify-report.md
+*(Added in: 2026-03-10 by change "sdd-verify-enforcement")*
+
+The `sdd-verify` skill MUST include a `## Tool Execution` section in `verify-report.md` that records the command run, its exit code, and a summary of test output (pass count, failure count, error messages). This section is always written — even when test execution is skipped.
+
+#### Scenario: Tool execution section written after successful test run
+
+- **GIVEN** a test runner was detected and executed successfully (exit code 0)
+- **WHEN** `sdd-verify` writes `verify-report.md`
+- **THEN** the file MUST include a `## Tool Execution` section
+- **AND** the section MUST record the command run (e.g., `npm test`)
+- **AND** the section MUST record the exit code (e.g., `0`)
+- **AND** the section MUST record a summary of output: pass count, failure count, and any error messages
+
+#### Scenario: Tool execution section written after failing test run
+
+- **GIVEN** a test runner was detected and the tests failed (exit code non-zero)
+- **WHEN** `sdd-verify` writes `verify-report.md`
+- **THEN** the file MUST include a `## Tool Execution` section
+- **AND** the section MUST record the command run and the non-zero exit code
+- **AND** the section MUST list failing test names if parseable from output
+
+#### Scenario: Tool execution section written when test runner is not detected
+
+- **GIVEN** no test runner was detected in the project
+- **WHEN** `sdd-verify` writes `verify-report.md`
+- **THEN** the file MUST still include a `## Tool Execution` section
+- **AND** the section MUST state: "Test Execution: SKIPPED — no test runner detected"
+
+#### Scenario: verify_commands key takes priority over auto-detection
+
+- **GIVEN** `openspec/config.yaml` contains a `verify_commands` key with one or more commands
+- **WHEN** `sdd-verify` begins the tool execution step
+- **THEN** it MUST use the configured commands instead of the auto-detected test runner
+- **AND** it MUST NOT run auto-detected commands when `verify_commands` is present
+
+---
+
+### Requirement: Criteria in verify-report.md may only be marked [x] with evidence
+*(Added in: 2026-03-10 by change "sdd-verify-enforcement")*
+
+A criterion in `verify-report.md` MUST only be marked `[x]` (checked) when it is verified by actual tool output or an explicit user-provided evidence statement. Abstract reasoning or code inspection alone MUST NOT suffice to check a criterion `[x]`.
+
+#### Scenario: Criterion checked based on passing tool output
+
+- **GIVEN** a test runner was executed and its output confirms a specific criterion is met
+- **WHEN** `sdd-verify` produces `verify-report.md`
+- **THEN** that criterion MAY be marked `[x]`
+- **AND** the corresponding tool output or evidence MUST appear in the `## Tool Execution` section
+
+#### Scenario: Criterion not checked when tool execution is skipped
+
+- **GIVEN** no test runner was detected and no `verify_commands` are configured
+- **WHEN** `sdd-verify` produces `verify-report.md`
+- **THEN** no criterion MUST be marked `[x]` solely on the basis of code inspection
+- **AND** criteria requiring execution evidence MUST be marked `[ ]` with a note: "Manual confirmation required — no tool output available"
+
+#### Scenario: Criterion checked based on explicit user evidence
+
+- **GIVEN** the user provides an explicit evidence statement alongside a criterion
+  (e.g., a paste of test output, a screenshot reference, or a direct confirmation)
+- **WHEN** `sdd-verify` writes `verify-report.md`
+- **THEN** that criterion MAY be marked `[x]`
+- **AND** the evidence statement MUST be recorded adjacent to the criterion entry
+
+---
+
+### Requirement: verify_commands optional key in openspec/config.yaml
+*(Added in: 2026-03-10 by change "sdd-verify-enforcement")*
+
+The `openspec/config.yaml` file MUST support an optional `verify_commands` key that overrides auto-detection with a user-specified list of verification commands. When absent, auto-detection behavior is unchanged.
+
+#### Scenario: verify_commands runs each command in sequence
+
+- **GIVEN** `openspec/config.yaml` contains:
+  ```yaml
+  verify_commands:
+    - "npm test"
+    - "npm run lint"
+  ```
+- **WHEN** `sdd-verify` runs the tool execution step
+- **THEN** it MUST run `npm test` first, then `npm run lint`
+- **AND** it MUST capture the exit code and output for each command separately
+- **AND** the `## Tool Execution` section MUST list each command and its result
+
+#### Scenario: verify_commands absent — auto-detection applies unchanged
+
+- **GIVEN** `openspec/config.yaml` does NOT contain a `verify_commands` key
+- **WHEN** `sdd-verify` runs the tool execution step
+- **THEN** it MUST use auto-detection as defined in the base spec (package.json, pyproject.toml, etc.)
+
+---
+
 ## Rules
 
 - These specs describe observable outcomes only -- not how detection or execution is implemented internally
@@ -239,3 +334,7 @@ The `sdd-verify` verify-report.md template MUST include new sections for Build, 
 - The Spec Compliance Matrix is always produced, even if test execution was skipped -- it can use code inspection evidence
 - Coverage validation is strictly optional and advisory -- it MUST NOT block verification or produce CRITICAL status
 - Skipped dimensions (no runner, no build, no coverage config) MUST degrade gracefully without affecting the verdict
+- The `## Tool Execution` section is mandatory in every `verify-report.md` — even when skipped *(added: 2026-03-10)*
+- A `[x]` criterion MUST have verifiable evidence (tool output or explicit user statement) *(added: 2026-03-10)*
+- `verify_commands` in config overrides auto-detection entirely when present — they are not additive *(added: 2026-03-10)*
+- Commands listed under `verify_commands` are assumed non-destructive — the user is responsible for this *(added: 2026-03-10)*
