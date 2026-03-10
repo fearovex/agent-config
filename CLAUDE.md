@@ -123,6 +123,7 @@ When working on a skill change in plan mode:
 | `/skill-add <name>` | Adds a skill from the global catalog to the current project |
 | `/memory-init` | Generates ai-context/ files by reading the project from scratch |
 | `/memory-update` | Updates ai-context/ with the work done in the current session |
+| `/codebase-teach` | Analyzes project bounded contexts, extracts domain knowledge, and writes ai-context/features/ files with coverage report |
 | `/project-claude-organizer` | Reads the project .claude/ folder, compares against canonical SDD structure, and applies reorganization after user confirmation |
 
 ### SDD Phases — Development Cycle
@@ -354,6 +355,7 @@ Each project has its memory layer in `ai-context/`:
 - `~/.claude/skills/skill-add/SKILL.md` — adds an existing global skill to the current project's CLAUDE.md registry
 - `~/.claude/skills/memory-init/SKILL.md` — generates all 5 ai-context/ files from scratch by reading the project
 - `~/.claude/skills/memory-update/SKILL.md` — updates ai-context/ with decisions and changes from the current session
+- `~/.claude/skills/codebase-teach/SKILL.md` — analyzes bounded contexts, extracts business rules and data models from source code, writes ai-context/features/<context>.md files, and produces teach-report.md with coverage metrics
 
 ### Technology Skills (global catalog — extracted from Gentleman-Skills)
 

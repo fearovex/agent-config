@@ -4,6 +4,95 @@
 
 ---
 
+## [2026-03-10] — sdd-verify-enforcement
+
+**Type**: SDD apply + archive
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `sdd-verify-enforcement`
+
+**What changed**:
+- `skills/sdd-verify/SKILL.md`: Step 6 now checks for `verify_commands` key in `openspec/config.yaml` before auto-detection; when present, runs each listed command in sequence and skips auto-detection entirely. Step 10 mandates `## Tool Execution` section in every `verify-report.md` (even when skipped). Evidence rule added: a criterion may only be marked `[x]` when backed by tool output or explicit user-provided evidence. Two new rules added to `## Rules` section.
+- `skills/sdd-apply/SKILL.md`: Output to Orchestrator block no longer suggests `/commit` or `git commit`; replaced with `/sdd-verify <change-name>` as the only permitted next-step suggestion.
+- `openspec/config.yaml`: Added `verify_commands` documentation block (commented, mirroring the `diagnosis_commands` pattern).
+- `ai-context/changelog-ai.md`: This entry.
+- `ai-context/architecture.md`: New architectural decision entry.
+
+**Files modified**:
+- `skills/sdd-verify/SKILL.md`
+- `skills/sdd-apply/SKILL.md`
+- `openspec/config.yaml`
+- `openspec/specs/sdd-verify-execution/spec.md` (3 requirements added, 1 modified)
+- `openspec/specs/sdd-apply-execution/spec.md` (1 requirement added)
+
+**Decisions made**:
+- `verify_commands` key is a `list[string]` at top level of `openspec/config.yaml` — mirrors `diagnosis_commands` pattern; not additive with auto-detection.
+- `[x]` evidence rule enforced as prose (SKILL.md Rules + Step 10 inline instruction), not as a hard code guard — consistent with all other SDD constraint enforcement.
+- `/commit` suggestion removed (not disclaimered) from `sdd-apply` to eliminate the temptation entirely.
+
+---
+
+## [2026-03-10] — codebase-teach-skill
+
+**Type**: SDD apply + archive
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `codebase-teach-skill`
+
+**What changed**:
+- `skills/codebase-teach/SKILL.md`: New procedural meta-tool skill. Five-step pipeline: Step 0 loads project context (non-blocking); Step 1 scans bounded context candidates via directory heuristics (depth ≤ 2 on `src/`, `app/`, `features/`, `domain/`, `openspec/specs/`); Step 2 reads up to `teach_max_files_per_context` key files per context sequentially (default 10); Step 3 writes or updates `ai-context/features/<slug>.md` using six-section format with `[auto-updated]` markers, preserving human-authored content; Step 4 evaluates coverage and writes `teach-report.md`.
+- `CLAUDE.md`: `/codebase-teach` added to Available Commands (Meta-tools table) and Skills Registry (Meta-tool Skills subsection).
+- `openspec/specs/codebase-teach/spec.md`: New master spec created (was new domain with no prior master spec).
+
+**Files modified**:
+- `skills/codebase-teach/SKILL.md` (new)
+- `CLAUDE.md`
+- `openspec/specs/codebase-teach/spec.md` (new master spec, promoted from delta)
+
+**Decisions made**:
+- Directory heuristic context detection (consistent with `project-analyze`); no AST parsing required.
+- Sequential context processing to prevent context window saturation.
+- `teach_max_files_per_context` key in `openspec/config.yaml` (optional, default 10).
+- `[auto-updated]` marker convention reused from `project-analyze`; human content preserved byte-for-byte.
+- `_template.md` and all `_`-prefixed files excluded at all steps.
+- Manual-only invocation — never auto-triggered by any other skill.
+
+---
+
+## [2026-03-10] — sdd-parallelism-adr
+
+**Type**: SDD apply + archive
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `sdd-parallelism-adr`
+
+**What changed**:
+- `docs/adr/028-sdd-parallelism-model.md`: New ADR documenting the SDD parallelism model — maximum 2 parallel Tasks, file conflict boundary rule, and evaluation of bounded-context parallel apply.
+- `docs/adr/README.md`: ADR 028 registered in the index table.
+- `openspec/specs/sdd-parallelism/spec.md`: New master spec created from delta (was a new domain with no prior master spec).
+
+**Files modified**:
+- `docs/adr/028-sdd-parallelism-model.md` (new)
+- `docs/adr/README.md`
+- `openspec/specs/sdd-parallelism/spec.md` (new master spec, promoted from delta)
+
+---
+
+## [2026-03-10] — sdd-verify-enforcement
+
+**Type**: SDD apply
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**Change**: `sdd-verify-enforcement`
+
+**What changed**:
+- `skills/sdd-verify/SKILL.md`: Step 6 now checks `verify_commands` in `openspec/config.yaml` before auto-detection; when present, `verify_commands` overrides auto-detection entirely. Step 10 now mandates a `## Tool Execution` section in every `verify-report.md` (even when skipped); added `[x]` evidence rule — a criterion may only be marked `[x]` when backed by tool output or explicit user evidence. Two new rules added to `## Rules` enforcing the Tool Execution section and the evidence gate.
+- `skills/sdd-apply/SKILL.md`: Output to Orchestrator block updated — `/commit` suggestion removed; replaced with `/sdd-verify <change-name>` as the only permitted next-step suggestion after implementation is complete.
+- `openspec/config.yaml`: added `verify_commands` optional key documentation block (commented, mirrors `diagnosis_commands` pattern).
+
+**Files modified**:
+- `skills/sdd-verify/SKILL.md`
+- `skills/sdd-apply/SKILL.md`
+- `openspec/config.yaml`
+
+---
+
 ## [2026-03-10] — sdd-apply-diagnose-first
 
 **Type**: SDD apply + archive
