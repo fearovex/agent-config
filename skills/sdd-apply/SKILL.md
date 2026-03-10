@@ -179,38 +179,83 @@ I implement ONLY those tasks. I do not advance to the next ones without confirma
 
 ### Step 4 — Implement task by task
 
+#### Step 4a — Check for warnings before executing each task
+
+Before executing any task, I inspect the task entry in `tasks.md` for a `[WARNING: MUST_RESOLVE]` or `[WARNING: ADVISORY]` marker.
+
+**If `[WARNING: MUST_RESOLVE]` is present and no `Answer:` has been recorded yet:**
+
+I MUST stop and present the following blocking gate to the user:
+
+```
+⛔ BLOCKED — Task X.Y has an unresolved MUST_RESOLVE warning:
+  [warning text from tasks.md]
+
+You must answer before implementation can proceed:
+  → [Question from tasks.md or derived from warning]
+
+Type your answer to continue.
+```
+
+I MUST NOT continue to the next step until an answer is received. I MUST NOT offer "Ready to continue?" or any other prompt that allows bypassing the answer.
+
+**Answer recording:** Once the user provides an answer, I MUST append the following block to the task entry in `tasks.md`, immediately after the `Question:` line:
+
+```markdown
+  Answer: [exact text of the user's answer]
+  Answered: [ISO 8601 timestamp, e.g., 2026-03-10T14:35:00Z]
+```
+
+After recording the answer, I proceed with task execution.
+
+**If `[WARNING: MUST_RESOLVE]` is present AND an `Answer:` is already recorded:**
+
+The warning has already been resolved. I proceed with task execution without presenting the blocking gate again.
+
+**If `[WARNING: ADVISORY]` is present:**
+
+I log the advisory warning to the progress output in the format:
+
+```
+ℹ️ ADVISORY — Task X.Y: [warning text]
+```
+
+I MUST NOT request user input. I continue execution of the task immediately after logging.
+
 #### If TDD mode is NOT active (standard flow):
 
 For each assigned task:
 
-1. **I read the task** in tasks.md
-2. **I consult the specs** for the affected domain (success criteria)
-3. **I consult the design** (interfaces, decisions, patterns)
-4. **I read existing code** in related files (to follow the pattern)
-5. **I write the code** following all of the above
-6. **I mark the task as complete** in tasks.md: `- [x]`
+1. **I check for warnings** per Step 4a (MUST_RESOLVE blocks; ADVISORY is logged and continues)
+2. **I read the task** in tasks.md
+3. **I consult the specs** for the affected domain (success criteria)
+4. **I consult the design** (interfaces, decisions, patterns)
+5. **I read existing code** in related files (to follow the pattern)
+6. **I write the code** following all of the above
+7. **I mark the task as complete** in tasks.md: `- [x]`
 
 #### If TDD mode is active (RED-GREEN-REFACTOR flow):
 
 For each assigned task:
 
-1. **I read the task** in tasks.md
-2. **I consult the specs** for the affected domain — identify the Given/When/Then scenarios this task covers
-3. **I consult the design** (interfaces, decisions, patterns)
-4. **I read existing code** in related files (to follow the pattern)
-5. **RED — Write a failing test:**
+1. **I check for warnings** per Step 4a (MUST_RESOLVE blocks; ADVISORY is logged and continues)
+2. **I read the task** in tasks.md
+3. **I consult the specs** for the affected domain — identify the Given/When/Then scenarios this task covers
+4. **I consult the design** (interfaces, decisions, patterns)
+5. **I read existing code** in related files (to follow the pattern)
+6. **RED — Write a failing test:**
    - I write a test that captures the expected behavior from the spec scenario(s)
    - The test name or description SHOULD reference the spec scenario name
    - I run the test to confirm it fails. If it passes unexpectedly, I report a DEVIATION noting the behavior was already implemented
-6. **GREEN — Write minimum code to pass:**
+7. **GREEN — Write minimum code to pass:**
    - I write only the minimum code necessary to make the test pass
    - I do NOT add extra features, optimizations, or abstractions in this phase
    - I run the test to confirm it passes
-7. **REFACTOR — Clean up while tests stay green:**
+8. **REFACTOR — Clean up while tests stay green:**
    - I clean up the code (remove duplication, improve naming, etc.)
    - I run the tests after refactoring to confirm they still pass
    - If a test breaks during refactoring, I fix the code (not the test) to restore the green state
-8. **I mark the task as complete** in tasks.md: `- [x]` — only after REFACTOR is done
+9. **I mark the task as complete** in tasks.md: `- [x]` — only after REFACTOR is done
 
 ### Step 5 — Respect the design
 
@@ -308,3 +353,5 @@ Before marking any code task `[x]`, I evaluate each criterion below. For each it
 - I do not implement tasks outside my assigned scope
 - I do not modify specs or design during implementation
 - If something in the spec is ambiguous, I ask before assuming
+- `MUST_RESOLVE` warnings MUST block execution until the user provides an explicit answer — there is no skip option
+- `ADVISORY` warnings MUST be logged to output but MUST NOT interrupt the execution flow or request user input

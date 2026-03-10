@@ -77,6 +77,60 @@ Phase 5 — Cleanup: remove temporary code, update docs
 
 ### Step 4 — Create tasks.md
 
+#### Step 4a — Warning Classification Rules
+
+While analyzing each task, I MUST identify ambiguities, risks, or open decisions that could affect implementation. For each one found, I classify it as one of:
+
+- **`MUST_RESOLVE`** — A warning that blocks implementation until the user provides an explicit answer. Use this when:
+  - The task involves a business rule decision that has multiple valid interpretations
+  - The task depends on an external system behavior that is ambiguous (e.g., which field to use in an API response)
+  - The task cannot be implemented correctly without knowing the user's intent
+  - Example reason: `"business rule decision — external system behavior is ambiguous"`
+
+- **`ADVISORY`** — A warning that is logged for awareness but does not block implementation. Use this when:
+  - The concern is a performance consideration that does not affect functional correctness
+  - The concern is a style or naming preference with no impact on task completion
+  - The concern is informational and the implementer can safely proceed without further input
+  - Example reason: `"performance consideration — does not affect correctness"`
+  - Example reason: `"style or naming preference — no impact on current task"`
+
+Each warning classification MUST include a reason statement explaining why it belongs in its category.
+
+#### Step 4b — Record warnings in tasks.md
+
+Every warning identified in Step 4a MUST be recorded inline with the affected task in `tasks.md`, using the following formats:
+
+**MUST_RESOLVE format:**
+
+```markdown
+- [ ] X.Y Task description [WARNING: MUST_RESOLVE]
+  Warning: [human-readable warning text]
+  Reason: [classification reason, e.g., "business rule decision — external system field ambiguous"]
+  Question: [clarifying question derived from the warning]
+```
+
+**ADVISORY format:**
+
+```markdown
+- [ ] X.Y Task description [WARNING: ADVISORY]
+  Warning: [human-readable warning text]
+  Reason: [classification reason, e.g., "performance consideration — does not affect correctness"]
+```
+
+Placement rules:
+- Warnings appear immediately below their task entry, indented with two spaces
+- A task may have at most one warning entry (combine multiple concerns into one if needed)
+- Tasks without warnings have no indented block below them
+
+**Example task with MUST_RESOLVE warning:**
+
+```markdown
+- [ ] 2.1 Create `src/services/payment.service.ts` with method `processPayment(dto: PaymentDto): Promise<PaymentResult>` [WARNING: MUST_RESOLVE]
+  Warning: Stripe invoice field for failure date is ambiguous — `status_transitions.marked_uncollectible_at` vs `status_transitions.voided_at` may both apply depending on invoice state.
+  Reason: business rule decision — external system behavior is ambiguous
+  Question: Which Stripe invoice field should be used to record the payment failure date?
+```
+
 I create `openspec/changes/<change-name>/tasks.md`:
 
 ```markdown
