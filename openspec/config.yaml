@@ -177,6 +177,24 @@ testing:
 #   - "cat ai-context/known-issues.md"
 
 # ---------------------------------------------------------------------------
+# verify_commands (optional) — Custom verification commands for /sdd-verify
+# ---------------------------------------------------------------------------
+# Uncomment and configure to supply project-specific verification commands
+# that sdd-verify runs during the tool execution step (Step 6).
+# When present, this key overrides auto-detection entirely — it is NOT additive.
+# When absent, auto-detection applies unchanged (package.json, pytest, etc.).
+#
+# Commands are expected to be NON-DESTRUCTIVE (read-only). The user is responsible
+# for ensuring configured commands do not modify project state.
+# Commands run in listed order; each captures exit code + output independently.
+# A command that exits non-zero is recorded in ## Tool Execution and contributes
+# to the verdict via existing WARNING/CRITICAL logic — it does NOT block sdd-verify.
+#
+# verify_commands:
+#   - "npm test"
+#   - "npm run lint"
+
+# ---------------------------------------------------------------------------
 # coverage (optional) — Coverage threshold for /sdd-verify
 # ---------------------------------------------------------------------------
 # Uncomment and configure to enable coverage validation in /sdd-verify.

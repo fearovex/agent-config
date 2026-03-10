@@ -506,12 +506,19 @@ Before marking any code task `[x]`, I evaluate each criterion below. For each it
     "openspec/changes/<name>/tasks.md — updated"
   ],
   "deviations": ["DEVIATION in task 2.1: [description and reason]"],
-  "next_recommended": ["sdd-apply (Phase 2)"],
+  "next_recommended": ["sdd-apply (Phase 2) — if more phases remain", "/sdd-verify <change-name> — verify against specs before committing (run after all phases are complete)"],
   "risks": []
 }
 ```
 
 > The `tdd_mode` field is `true` when TDD mode was active, `false` otherwise. When `true`, the `summary` field mentions that TDD mode was used.
+
+> **Implementation complete — next step:** When all phases are done, the only permitted next-step suggestion is:
+> ```
+> Implementation complete. Next step:
+>   /sdd-verify <change-name>  — verify against specs before committing
+> ```
+> The summary MUST NOT suggest `/commit` or `git commit` at any phase.
 
 ---
 

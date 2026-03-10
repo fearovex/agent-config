@@ -112,9 +112,27 @@ I verify that the design decisions were followed:
 
 ### Step 6 — Run Tests
 
-I detect the project's test runner and execute the test suite:
+I first check `openspec/config.yaml` for a `verify_commands` key:
 
-**Test runner detection (prioritized — use the first match):**
+**`verify_commands` config key (checked before auto-detection):**
+
+```
+if openspec/config.yaml exists and has key verify_commands:
+    → use the listed commands in order
+    → do NOT run auto-detection
+    → for each command:
+         run the command via Bash tool
+         capture exit code + stdout/stderr
+         record in ## Tool Execution section
+    → skip the auto-detection table below entirely
+else:
+    → proceed to auto-detection
+```
+
+When `verify_commands` is present, it overrides auto-detection entirely — it is NOT additive.
+Commands are assumed non-destructive; the user is responsible for this.
+
+**Auto-detection (only when `verify_commands` is absent — prioritized — use the first match):**
 
 | Priority | File to check                                 | Condition                 | Command                                                                                   |
 | -------- | --------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
@@ -227,6 +245,17 @@ The matrix MUST include scenarios from ALL spec domains affected by the change.
 
 ### Step 10 — Create verify-report.md
 
+**Evidence rule — applies to every criterion in `verify-report.md`:**
+
+A criterion MUST only be marked `[x]` when:
+1. A tool command was run and its output confirms the criterion, OR
+2. The user provided an explicit evidence statement
+
+When neither condition is met: leave `[ ]` with note: "Manual confirmation required — no tool output available".
+Abstract reasoning or code inspection alone MUST NOT suffice to mark a criterion `[x]`.
+
+**The `## Tool Execution` section is mandatory in every `verify-report.md` — even when tool execution was skipped.** When skipped, the section MUST still appear with: "Test Execution: SKIPPED — no test runner detected".
+
 I create `openspec/changes/<change-name>/verify-report.md`:
 
 ```markdown
@@ -267,6 +296,14 @@ Verifier: sdd-verify
 ## Detail: Testing
 
 [tables from Step 5]
+
+## Tool Execution
+
+| Command | Exit Code | Result |
+|---------|-----------|--------|
+| [command run] | [0/non-zero] | [PASS — N passed, 0 failed / FAIL — N failed / ERROR — message] |
+
+[If skipped: "Test Execution: SKIPPED — no test runner detected"]
 
 ## Detail: Test Execution
 
@@ -391,3 +428,5 @@ Verifier: sdd-verify
 - If there are deviations documented in tasks.md, I evaluate them with context
 - A FAIL is not personal — it is information for improvement
 - I run tests if possible (via Bash tool): I report the actual results
+- The `## Tool Execution` section is mandatory in every `verify-report.md` — even when skipped; when skipped it MUST state "Test Execution: SKIPPED — no test runner detected"
+- A criterion marked `[x]` MUST have verifiable evidence: tool output or an explicit user evidence statement; abstract reasoning or code inspection alone MUST NOT suffice
