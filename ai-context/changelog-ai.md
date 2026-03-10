@@ -4,6 +4,40 @@
 
 ---
 
+## [2026-03-10] — sdd-project-context-awareness
+
+**Type**: SDD apply + archive
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `sdd-project-context-awareness`
+
+**What changed**:
+- Added mandatory Step 0 — Load project context block to all six SDD phase skills (`sdd-explore`, `sdd-propose`, `sdd-spec`, `sdd-design`, `sdd-tasks`, `sdd-apply`). Step 0 reads `ai-context/stack.md`, `ai-context/architecture.md`, `ai-context/conventions.md`, and the project Skills Registry before any phase output.
+- `sdd-propose` and `sdd-spec` use a dual sub-step structure: Step 0a (global context) + Step 0b (domain feature preload, unchanged).
+- `sdd-apply` inserts Step 0a (global context load) inside its existing Step 0 (Technology Skill Preload), before the scope guard.
+- `sdd-design` now cross-references the project Skills Registry; unregistered skills are marked `[optional — not registered in project]`.
+- Created `docs/sdd-context-injection.md` — canonical reference and Step 0 template for future skill authors.
+- All changes verified (8/8 criteria passed).
+
+**Files modified**:
+- `skills/sdd-explore/SKILL.md` — Step 0 added
+- `skills/sdd-propose/SKILL.md` — Step 0a + 0b structure added
+- `skills/sdd-spec/SKILL.md` — Step 0a + 0b structure added
+- `skills/sdd-design/SKILL.md` — Step 0 + Skills Registry cross-reference added
+- `skills/sdd-tasks/SKILL.md` — Step 0 added
+- `skills/sdd-apply/SKILL.md` — Step 0a sub-step added inside Step 0
+- `docs/sdd-context-injection.md` — created
+- `openspec/specs/sdd-phase-context-loading/spec.md` — ADDED and MODIFIED requirements merged from delta
+- `openspec/specs/skill-authoring-conventions/spec.md` — new master spec created from delta
+- `ai-context/architecture.md` — decision #11 added
+- `ai-context/changelog-ai.md` — this entry
+
+**Decisions made**:
+- Step 0 is unconditionally non-blocking: absent `ai-context/` files never abort or fail the skill
+- Staleness check: warn if `Last updated:` date is older than 7 days (non-blocking)
+- Dual-block naming (Step 0a / Step 0b) chosen to avoid conflicting with existing step numbering in `sdd-propose` and `sdd-spec`
+
+---
+
 ## [2026-03-10] — sdd-feedback-persistence
 
 **Type**: Config + Documentation
