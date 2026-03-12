@@ -13,6 +13,7 @@ Changes made here are deployed to `~/.claude/` (the Claude Code runtime director
 Only Claude's auto-memory is captured back via `sync.sh`.
 
 For the canonical reference on all commands, flow, and rules, read [CLAUDE.md](./CLAUDE.md).
+For a user-focused guide, see [User Guide](./docs/user-guide.md).
 
 ---
 
