@@ -24,6 +24,20 @@ The design defines **HOW to implement** what the specs say the system MUST do. I
 
 ## Process
 
+### Skill Resolution
+
+When the orchestrator launches this sub-agent, it resolves the skill path using:
+
+```
+1. .claude/skills/sdd-design/SKILL.md     (project-local — highest priority)
+2. openspec/config.yaml skill_overrides   (explicit redirect)
+3. ~/.claude/skills/sdd-design/SKILL.md   (global catalog — fallback)
+```
+
+Project-local skills override the global catalog. See `docs/SKILL-RESOLUTION.md` for the full algorithm.
+
+---
+
 ### Step 0 — Load project context
 
 This step is **non-blocking**: any failure (missing file, unreadable file) MUST produce

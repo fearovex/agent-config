@@ -17,6 +17,20 @@ model: haiku
 
 ## Process
 
+### Skill Resolution (Orchestrator)
+
+Before launching each sub-agent, I resolve the skill path using:
+
+```
+1. .claude/skills/<skill-name>/SKILL.md     (project-local — highest priority)
+2. openspec/config.yaml skill_overrides     (explicit redirect)
+3. ~/.claude/skills/<skill-name>/SKILL.md   (global catalog — fallback)
+```
+
+I pass the resolved path in the sub-agent prompt. See `docs/SKILL-RESOLUTION.md` for the full algorithm.
+
+---
+
 ### Step 0 — Infer slug from description
 
 `$ARGUMENTS` must be a non-empty description of the change (e.g. `add payment flow`).

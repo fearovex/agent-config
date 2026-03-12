@@ -36,6 +36,20 @@ Archiving is the **final step** of the SDD cycle. It integrates the learnings fr
 
 ## Process
 
+### Skill Resolution
+
+When the orchestrator launches this sub-agent, it resolves the skill path using:
+
+```
+1. .claude/skills/sdd-archive/SKILL.md     (project-local — highest priority)
+2. openspec/config.yaml skill_overrides    (explicit redirect)
+3. ~/.claude/skills/sdd-archive/SKILL.md   (global catalog — fallback)
+```
+
+Project-local skills override the global catalog. See `docs/SKILL-RESOLUTION.md` for the full algorithm.
+
+---
+
 ### Step 1 — Verify it is archivable
 
 I read `openspec/changes/<change-name>/verify-report.md` if it exists.

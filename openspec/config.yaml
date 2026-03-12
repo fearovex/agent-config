@@ -16,6 +16,22 @@ artifact_store:
   changes_dir: openspec/changes
   archive_dir: openspec/changes/archive
 
+# ---------------------------------------------------------------------------
+# skill_overrides (optional) — Redirect specific skills to custom paths
+# ---------------------------------------------------------------------------
+# Allows project-local or custom skill paths to override the global catalog
+# for specific skills. Paths may be absolute or relative to the project root.
+# Relative paths are resolved from the directory containing this config file.
+#
+# Resolution order (without overrides): project-local → global catalog
+# Resolution order (with overrides):    override path → project-local → global catalog
+#
+# See docs/SKILL-RESOLUTION.md for the full resolution algorithm.
+#
+# skill_overrides:
+#   sdd-explore: ".claude/skills/custom-explore/SKILL.md"
+#   sdd-apply:   "/absolute/path/to/my-apply/SKILL.md"
+
 rules:
   proposal:
     - "Every modification to an existing skill requires a proposal with justification"

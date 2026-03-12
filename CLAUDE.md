@@ -144,6 +144,17 @@ When working on a skill change in plan mode:
 
 ---
 
+## Agent Discovery
+
+All sub-agents are formally documented in `agents.md` (canonical registry) with per-agent I/O specs, capability boundaries, and dependency graph. Quick references:
+
+- **Skill resolution order**: project-local (`.claude/skills/`) → config override (`openspec/config.yaml skill_overrides`) → global catalog (`~/.claude/skills/`). See `docs/SKILL-RESOLUTION.md`.
+- **Sub-agent I/O contract**: see `openspec/agent-execution-contract.md` — defines input fields, return format, status semantics, and artifact locations.
+- **Orchestration architecture**: see `docs/ORCHESTRATION.md` — hub-and-spoke model, phase DAG, artifact flow, error handling protocol.
+- **Skill authoring guide**: see `skills/README.md` — SKILL.md format, format types, invocation pattern.
+
+---
+
 ## How I Execute Commands
 
 ### Meta-tools
@@ -327,7 +338,12 @@ Each project has its memory layer in `ai-context/`:
 
 <!-- Skills Registry: paths starting with .claude/skills/ are local copies (versioned in this repo).
      Paths starting with ~/.claude/skills/ are global references (machine-local, not in this repo).
-     .claude/skills/ MUST NOT be excluded by .gitignore — local copies must be committed. -->
+     .claude/skills/ MUST NOT be excluded by .gitignore — local copies must be committed.
+
+     Skill resolution order: .claude/skills/<name>/ (project-local, highest priority)
+                              → openspec/config.yaml skill_overrides (explicit redirect)
+                              → ~/.claude/skills/<name>/ (global catalog, fallback)
+     See docs/SKILL-RESOLUTION.md for the full algorithm. -->
 
 ### SDD Orchestrator Skills
 - `~/.claude/skills/sdd-ff/SKILL.md` — fast-forward: propose → spec+design (parallel) → tasks, then asks before apply
