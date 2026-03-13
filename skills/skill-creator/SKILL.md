@@ -10,7 +10,7 @@ format: procedural
 
 > Creates new skills, either generic for the global catalog or specific to the current project.
 
-**Triggers**: skill:create, skill:add, create skill, new skill, generate skill, add skill to project
+**Triggers**: skill:create, create skill, new skill, generate skill
 
 ---
 
@@ -289,33 +289,6 @@ Show the content to be created and confirm with the user before writing.
 1. Create the file at the corresponding path
 2. If it is a project skill, suggest adding it to the project `CLAUDE.md` in the skills section
 3. If it is a generic skill, add it to the registry in `~/.claude/CLAUDE.md`
-
----
-
-## Process: /skill-add
-
-When the user runs `/skill-add <name>`:
-
-### Verify it exists in the global catalog
-```
-~/.claude/skills/<name>/SKILL.md
-```
-
-If it does not exist:
-```
-The skill "<name>" is not in the global catalog.
-Similar available skills: [list of similar skills]
-
-Do you want to create a new one with /skill-create <name>?
-```
-
-### Verify the project has `.claude/skills/`
-If it does not exist, create it.
-
-### Update project CLAUDE.md
-
-The addition strategy (local copy vs. global reference) is fully owned by `skill-add/SKILL.md`.
-`skill-creator` delegates to that skill for all copy-vs-reference decisions and registry updates.
 
 ---
 

@@ -25,7 +25,7 @@ Load this skill when:
 
 ---
 
-## Critical Patterns
+## Anti-patterns
 
 Quick reference to the 8 core patterns:
 

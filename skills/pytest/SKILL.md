@@ -48,7 +48,7 @@ from myapp.db import Database
 def db():
     database = Database.create_test_db()
     yield database  # Setup
-    database.cleanup()  # Teardown automático
+    database.cleanup()  # Automatic teardown
 
 @pytest.fixture(scope="function")  # New for each test (default)
 def user_service(db):
