@@ -46,7 +46,13 @@ at most an INFO-level note. This step MUST NOT produce `status: blocked` or `sta
 1. Read `ai-context/stack.md` — tech stack, versions, key tools.
 2. Read `ai-context/architecture.md` — architectural decisions and their rationale.
 3. Read `ai-context/conventions.md` — naming patterns, code conventions.
-4. Read the project's `CLAUDE.md` (at project root) and extract the `## Skills Registry` section.
+4. Read the full project `CLAUDE.md` (at project root). Extract and log:
+   - Count of items listed under `## Unbreakable Rules`
+   - Value of the primary language from `## Tech Stack`
+   - Whether `intent_classification:` is `disabled` (check for Override section)
+   Output a single governance log line:
+   `Governance loaded: [N] unbreakable rules, tech stack: [language], intent classification: [enabled|disabled]`
+   If CLAUDE.md is absent: log `INFO: project CLAUDE.md not found — governance falls back to global defaults.`
 
 For each file:
 - If absent: log `INFO: [filename] not found — proceeding without it.`

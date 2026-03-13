@@ -4,6 +4,39 @@
 
 ---
 
+## [2026-03-12] — fix-subagent-project-context (SDD archive)
+
+**Type**: SDD full cycle (explore + propose + spec + design + tasks + apply + verify + archive)
+**Agent**: Claude Sonnet 4.6 (sdd-archive inline)
+**Change**: `fix-subagent-project-context`
+
+**What changed**:
+- `skills/sdd-ff/SKILL.md`: Added `Project governance` CONTEXT line to all 5 sub-agent Task prompts; corrected model to `sonnet` for explore, propose, and tasks sub-agents
+- `skills/sdd-new/SKILL.md`: Same changes as sdd-ff
+- `skills/sdd-explore/SKILL.md`: Expanded Step 0a with full CLAUDE.md read and governance logging
+- `skills/sdd-propose/SKILL.md`: Expanded Step 0a with full CLAUDE.md read and governance logging
+- `skills/sdd-spec/SKILL.md`: Expanded Step 0a with full CLAUDE.md read and governance logging
+- `skills/sdd-design/SKILL.md`: Expanded Step 0a with full CLAUDE.md read and governance logging
+- `skills/sdd-tasks/SKILL.md`: Expanded Step 0a with full CLAUDE.md read and governance logging
+- `skills/sdd-apply/SKILL.md`: Expanded Step 0a with full CLAUDE.md read and governance logging
+- `openspec/agent-execution-contract.md`: Added Project governance field documentation
+- `docs/sdd-context-injection.md`: Updated Step 0 template with canonical governance loading wording
+- `openspec/specs/sub-agent-governance-injection/spec.md`: New master spec (created from delta)
+- `openspec/specs/step-0a-governance-discovery/spec.md`: New master spec (created from delta)
+- `openspec/specs/sub-agent-execution-contract-update/spec.md`: New master spec (created from delta)
+
+**Decisions made**:
+- Governance path injected as file path in CONTEXT block (not inlined content) — sub-agents read it themselves during Step 0a
+- Governance loading is non-blocking; missing CLAUDE.md emits INFO note and execution continues
+- Canonical governance log line: `Governance loaded: [N] unbreakable rules, tech stack: [stack], intent classification: [enabled|disabled]`
+
+**Warnings from verify report** (non-blocking, accepted at archive):
+- CONTEXT field order in prompts uses `Project → Change → Previous artifacts → Project governance` (spec requires governance second); functional impact nil
+- `docs/sdd-context-injection.md` "Governance Logging" subsection (task 3.4) not added as standalone section; wording present inline in Step 0 template
+- tasks.md checkbox tracking not updated during apply (all `[ ]` despite 17/17 progress header)
+
+---
+
 ## [2026-03-12] — project-user-docs (SDD archive)
 
 **Type**: SDD full cycle (explore + propose + spec + design + tasks + apply + verify + archive)

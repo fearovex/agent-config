@@ -25,9 +25,15 @@ at most an INFO-level note. This step MUST NOT produce `status: blocked` or `sta
 1. Read `ai-context/stack.md` — tech stack, versions, key tools.
 2. Read `ai-context/architecture.md` — architectural decisions and their rationale.
 3. Read `ai-context/conventions.md` — naming patterns, code conventions.
-4. Read the project's `CLAUDE.md` (at project root) and extract the `## Skills Registry` section.
+4. Read the full project `CLAUDE.md` (at project root). Extract and log:
+   - Count of items listed under `## Unbreakable Rules`
+   - Value of the primary language from `## Tech Stack`
+   - Whether `intent_classification:` is `disabled` (check for Override section)
+   Output a single governance log line:
+   `Governance loaded: [N] unbreakable rules, tech stack: [language], intent classification: [enabled|disabled]`
+   If CLAUDE.md is absent: log `INFO: project CLAUDE.md not found — governance falls back to global defaults.`
 
-For each file:
+For each file (items 1–3):
 - If absent: log `INFO: [filename] not found — proceeding without it.`
 - If present: extract `Last updated:` or `Last analyzed:` date. If date is older than 7 days:
   log `NOTE: [filename] last updated [date] — context may be stale. Consider running /memory-update or /project-analyze.`
@@ -79,11 +85,34 @@ In `sdd-apply`, Step 0 is already named "Technology Skill Preload". The global c
 
 ---
 
+## Governance Logging
+
+After reading `CLAUDE.md` in Step 0 item 4, the sub-agent outputs a single structured log line:
+
+```
+Governance loaded: [N] unbreakable rules, tech stack: [language], intent classification: [enabled|disabled]
+```
+
+Where:
+- `[N]` = count of items listed under `## Unbreakable Rules`
+- `[language]` = primary language value from `## Tech Stack`
+- `[enabled|disabled]` = `disabled` if an `intent_classification: disabled` override is present, otherwise `enabled`
+
+**Fallback when CLAUDE.md is absent:**
+
+```
+INFO: project CLAUDE.md not found — governance falls back to global defaults.
+```
+
+This log line is non-blocking. Its absence does not affect subsequent steps.
+
+---
+
 ## Graceful Degradation Rules
 
 1. **Missing file** — log `INFO: [filename] not found — proceeding without it.` Continue immediately to the next file.
 2. **All four sources absent** — log a single INFO note: `"ai-context/ not found — proceeding with global defaults."` Continue to Step 1.
-3. **Missing project CLAUDE.md** — log `INFO: project CLAUDE.md not found — skill recommendations fall back to global catalog.` Subsequent steps treat the Skills Registry as empty.
+3. **Missing project CLAUDE.md** — log `INFO: project CLAUDE.md not found — governance falls back to global defaults.` Subsequent steps treat governance as empty (no unbreakable rules loaded).
 4. **Unreadable or malformed file** — treat as absent; log same INFO note as (1).
 5. **This step MUST NOT produce `status: blocked` or `status: failed` under any circumstance.** All failure modes degrade to INFO or skip.
 
@@ -116,7 +145,7 @@ The skill MUST continue and use the stale data rather than aborting.
 | `ai-context/stack.md` | Technology choices in proposals, designs, tasks; skill preload in sdd-apply |
 | `ai-context/architecture.md` | Architectural decisions referenced in design.md; layer separation checks in sdd-apply |
 | `ai-context/conventions.md` | Naming, file structure, patterns in all output artifacts |
-| Project `CLAUDE.md` Skills Registry | Skill references in design.md (registered vs. optional); sdd-design cross-reference requirement |
+| Project `CLAUDE.md` (full) | Governance priming: unbreakable rules, tech stack language, intent classification status; logged in Step 0 governance line |
 
 The loaded context enriches output — it does NOT replace explicit content in a `proposal.md` or `design.md` already written for the change.
 

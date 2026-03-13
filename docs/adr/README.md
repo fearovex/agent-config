@@ -81,3 +81,4 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [027](027-codebase-teach-skill-convention.md) | Codebase Teach Skill Convention — Manual Domain Knowledge Extraction into ai-context/features/ | Proposed | 2026-03-10 |
 | [028](028-sdd-parallelism-model.md) | SDD Parallelism Model — maximum 2 parallel Tasks, file conflict boundary rule, and bounded-context apply evaluation | Accepted | 2026-03-10 |
 | [029](029-orchestrator-always-on-intent-classification.md) | Always-On Intent Classification — cross-cutting orchestration layer for routing every user message through SDD discipline | Accepted | 2026-03-12 |
+| [030](030-fix-subagent-project-context-cross-cutting.md) | Sub-Agent Governance Injection as a Cross-Cutting Pattern — full CLAUDE.md read in Step 0 across all phase skills and governance path in orchestrator prompts | Proposed | 2026-03-12 |

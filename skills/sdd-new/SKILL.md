@@ -77,7 +77,7 @@ Launch the explore sub-agent unconditionally:
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: haiku
+  model: sonnet
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -86,6 +86,7 @@ Task tool:
 
     CONTEXT:
     - Project: [absolute path of current working directory]
+    - Project governance: [absolute path of current working directory]/CLAUDE.md
     - Change: [inferred-slug]
     - Previous artifacts: none
 
@@ -108,7 +109,7 @@ Wait for result. Present the exploration summary to the user. If status is `bloc
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: haiku
+  model: sonnet
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -117,6 +118,7 @@ Task tool:
 
     CONTEXT:
     - Project: [absolute path of current working directory]
+    - Project governance: [absolute path of current working directory]/CLAUDE.md
     - Change: [inferred-slug]
     - Previous artifacts: openspec/changes/[inferred-slug]/exploration.md
 
@@ -165,6 +167,7 @@ Task tool:
 
     CONTEXT:
     - Project: [absolute path of current working directory]
+    - Project governance: [absolute path of current working directory]/CLAUDE.md
     - Change: [inferred-slug]
     - Previous artifacts: openspec/changes/[inferred-slug]/proposal.md
 
@@ -193,6 +196,7 @@ Task tool:
 
     CONTEXT:
     - Project: [absolute path of current working directory]
+    - Project governance: [absolute path of current working directory]/CLAUDE.md
     - Change: [inferred-slug]
     - Previous artifacts: openspec/changes/[inferred-slug]/proposal.md
 
@@ -231,7 +235,7 @@ If user says N, stop gracefully.
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: haiku
+  model: sonnet
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -240,6 +244,7 @@ Task tool:
 
     CONTEXT:
     - Project: [absolute path of current working directory]
+    - Project governance: [absolute path of current working directory]/CLAUDE.md
     - Change: [inferred-slug]
     - Previous artifacts: openspec/changes/[inferred-slug]/proposal.md, openspec/changes/[inferred-slug]/specs/, openspec/changes/[inferred-slug]/design.md
 

@@ -22,6 +22,7 @@ STEP 2: Follow its instructions exactly
 
 CONTEXT:
 - Project: <absolute-path-to-project-root>
+- Project governance: <absolute-path-to-project-root>/CLAUDE.md
 - Change: <change-slug>
 - Previous artifacts: <comma-separated list of artifact paths, or "none">
 
@@ -42,6 +43,7 @@ Return:
 | `Project` | absolute path | yes | Root directory of the project being worked on |
 | `Change` | string (slug) | yes | The change slug (e.g., `2026-03-12-agent-registry`) |
 | `Previous artifacts` | list of paths | no | Artifacts from prior phases; `"none"` when this is the first phase |
+| `Project governance` | absolute path | no | Path to the project's `CLAUDE.md`; absent when orchestrator does not inject it (non-breaking) |
 | `TASK` | string | yes | Precise description of the work to be done |
 
 ---
