@@ -4,6 +4,63 @@
 
 ---
 
+## [2026-03-14] — orchestrator-visibility (SDD archive)
+
+**Type**: SDD archive phase
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `orchestrator-visibility`
+
+**What changed**:
+- `openspec/specs/orchestrator-behavior/spec.md`: Merged delta specs — "Four intent classes" requirement updated with visibility signal requirement; 3 new requirements added (session banner, intent signal, `/orchestrator-status` skill)
+- `openspec/changes/archive/2026-03-14-orchestrator-visibility/CLOSURE.md`: Created closure note
+- Change folder moved from `openspec/changes/` to `openspec/changes/archive/`
+
+**Decisions made**:
+- PASS WITH WARNINGS verdict accepted for archiving; all warnings are runtime behavioral tests that cannot be automated on Markdown + YAML + Bash stack
+- No ADR generated — visibility signals are implementation-level refinements of existing orchestrator-always-on pattern
+
+---
+
+## [2026-03-14] — orchestrator-visibility (SDD apply)
+
+**Type**: SDD apply phase
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**Change**: `orchestrator-visibility`
+
+**What changed**:
+- `CLAUDE.md`: Added "### Orchestrator Session Banner" section with blockquote banner confirming orchestrator is active and explaining the four intent classes
+- `CLAUDE.md`: Added "### Orchestrator Response Signal" section documenting the `**Intent classification: [Class]**` prefix format and scope (free-form messages only)
+- `CLAUDE.md`: Added `/orchestrator-status` entry to "Meta-tools — Project Management" commands table
+- `CLAUDE.md`: Added `/orchestrator-status` to "How I Execute Commands" mapping table pointing to `~/.claude/skills/orchestrator-status/SKILL.md`
+- `CLAUDE.md`: Added `orchestrator-status` to Skills Registry under "SDD Orchestrator Skills"
+- `skills/orchestrator-status/SKILL.md`: Created new procedural skill for on-demand orchestrator state queries (returns JSON + prose interpretation)
+- `~/.claude/skills/orchestrator-status/SKILL.md`: Deployed to runtime
+
+**Decisions made**:
+- Banner implemented as a static H3 section in CLAUDE.md — no dynamic generation needed; orchestrator already reads CLAUDE.md at session start
+- Signal injection is the orchestrator's runtime responsibility; this change documents the format and scope only
+- `/orchestrator-status` skill follows the procedural format contract with read-only semantics
+
+---
+
+## [2026-03-14] — orchestrator-classification-edge-cases (SDD archive)
+
+**Type**: SDD full cycle (explore + propose + spec + design + tasks + apply + verify + archive)
+**Agent**: Claude Sonnet 4.6 (sdd-archive inline)
+**Change**: `orchestrator-classification-edge-cases`
+
+**What changed**:
+- `CLAUDE.md`: Extended Classification Decision Table with 13 edge case examples across 4 new categories; updated Change Request trigger pattern to include implicit breakage signals
+- `~/.claude/CLAUDE.md`: Runtime copy deployed via install.sh
+- `openspec/specs/orchestrator-behavior/spec.md`: Master spec updated with 5 new requirements (implicit change intent, investigative phrasing, questions about broken behavior, single-word defaults, compound intent priority), 18 new scenarios, and 6 new validation criteria
+
+**Decisions made**:
+- Implicit breakage signals ("is broken", "doesn't work", "is wrong", "is missing") added as Change Request triggers without removing existing keyword-based triggers — additive, non-breaking
+- Compound-intent example row deliberately omitted from decision table; structural priority ordering (Change Request > Exploration > Question) covers it without adding redundancy
+- 13 new edge case examples added (27 total ✓/✗ lines in table) — satisfies the ≥10/≥2-per-category spec requirement
+
+---
+
 ## [2026-03-14] — skills-catalog-analysis (SDD archive)
 
 **Type**: SDD full cycle (explore + propose + spec + design + tasks + apply + verify + archive)
