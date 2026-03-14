@@ -58,6 +58,34 @@ Signals appear as a single bold line before main response content.
 
 **Default (ambiguous):** Classify as Question and append: *"If you'd like me to implement this, I can start with `/sdd-ff <slug>`."*
 
+### Ambiguity Detection Heuristics
+
+An input is **ambiguous** if it matches one or more of the following four patterns. Ambiguous inputs trigger the clarification gate (see Classification Decision Table below) instead of defaulting directly to Question.
+
+**Heuristic 1 — Single-word input:** Exactly one word with no punctuation, modifiers, or context.
+- Examples: `"auth"`, `"login"`, `"refactor"`, `"help"`
+- Exception: natural response words (`"yes"`, `"no"`, `"true"`, `"false"`) are NOT ambiguous — they are contextual replies, not intent signals.
+
+**Heuristic 2 — Standalone action verb with no object:** A single change-class verb from the list (refactor, fix, improve, build, deploy, implement, add, remove, update, migrate, create) with no clear target following it.
+- Examples: `"refactor"`, `"fix"`, `"improve"`, `"build"`
+- Exception: when an object follows the verb (`"refactor everything"`, `"fix the bug"`), the input is NOT ambiguous — earlier branches will catch it.
+
+**Heuristic 3 — Vague noun phrase:** A phrase that references something but provides no context or verb.
+- Criterion: phrase length ≤ 4 words AND no action verb present.
+- Examples: `"the system"`, `"the flow"`, `"the layer"`, `"improve the system"`
+- Exception: if the phrase contains a clear intent verb (fix, review, explain), earlier branches will catch it.
+
+**Heuristic 4 — Compound phrase with weak binding:** A phrase where multiple intent interpretations are equally plausible because the connecting word provides no directional intent.
+- Criterion: contains weak-binding phrases (`"with"`, `"about"`, `"deal with"`, `"look into"`) without a clear intent verb.
+- Examples: `"help with auth"`, `"something about the payment flow"`, `"deal with retries"`
+- Exception: if a strong intent verb is present alongside the weak binding phrase (`"fix the issue with auth"`), earlier branches will catch it.
+
+**Regex pattern for single-word detection:** `^[a-z0-9-]+$` (lowercase, no spaces, no special chars, length 1–50 after trimming).
+
+**Reserved exclusion list (single-word, never ambiguous):** `yes`, `no`, `true`, `false`, `ok`, `done`, `sure`, `thanks`, `stop`, `cancel`.
+
+---
+
 ### Classification Decision Table
 
 ```
@@ -96,6 +124,44 @@ ELSE IF message contains investigative intent
       ✓ "go through the retry logic"      → Exploration (walk-me-through intent)
       ✗ "fix what you find in the auth module" → Change Request (explicit fix directive)
 
+ELSE IF message matches ambiguity pattern (per 4 heuristics above)
+  → Ambiguous: present clarification prompt with 3 options, wait for user response
+    Ambiguity heuristics (any one match triggers the gate):
+      H1: single-word input matching ^[a-z0-9-]+$ (not in reserved exclusion list)
+      H2: standalone action verb with no object (refactor, fix, improve, build, etc.)
+      H3: vague noun phrase — ≤ 4 words, no action verb present
+      H4: compound phrase with weak binding (help with X, something about Y, deal with Z)
+    Examples:
+      ✓ "auth"                        → Ambiguous (H1: single-word noun)
+      ✓ "refactor"                    → Ambiguous (H1+H2: single-word standalone verb)
+      ✓ "improve the system"          → Ambiguous (H3: vague noun phrase, weak verb)
+      ✓ "help with auth"              → Ambiguous (H4: weak binding, no clear intent verb)
+      ✗ "fix the auth bug"            → Change Request (caught by earlier branch — not ambiguous)
+      ✗ "review the auth module"      → Exploration (caught by earlier branch — not ambiguous)
+      ✗ "auth?"                       → Question (ends with ? — punctuation is strong signal)
+      ✗ "auth module audit"           → Question/default (multi-word, no match — falls through)
+      ✗ "yes"                         → Not ambiguous (reserved exclusion list)
+      ✗ "/sdd-ff fix-bug"             → Meta-Command (caught by first branch — never reaches gate)
+
+  Clarification prompt template (substitute [INPUT] with original message):
+
+    I'm not sure what you'd like me to do with "[INPUT]".
+    Are you looking to:
+      1. Make a change (fix, add, update, etc.) — I'll recommend /sdd-ff  (change request)
+      2. Explore or review something — I'll analyze and explain  (exploration)
+      3. Learn or ask a question — I'll answer directly  (question)
+
+    Just reply with 1, 2, 3, or clarify in your own words.
+
+  Routing after clarification (parse user's response in order):
+    If reply == "1"   → treat as Change Request → recommend /sdd-ff <inferred-slug from original input>
+    If reply == "2"   → treat as Exploration → auto-launch sdd-explore via Task tool
+    If reply == "3"   → treat as Question → answer directly
+    If reply is text  → re-apply standard classification rules to the clarification text
+                         check change intent keywords (fix, add, implement, etc.) → Change Request
+                         check investigative keywords (review, analyze, show me, etc.) → Exploration
+                         otherwise → Question (safe default)
+
 ELSE
   → Question: answer directly — no SDD delegation
     Examples:
@@ -105,9 +171,7 @@ ELSE
       ✓ "why does login fail?"            → Question (interrogative + ends with ?)
       ✓ "what's wrong with the retry logic?" → Question (what-is pattern)
       ✓ "is the payment system broken?"   → Question (interrogative — not a directive)
-      ✓ "login"                           → Question/Default (single ambiguous noun — no intent signal)
-      ✓ "auth"                            → Question/Default (single ambiguous label)
-      ✓ "refactor"                        → Question/Default (change verb without target — ask clarification)
+      ✓ "auth module audit"               → Question/Default (multi-word, no ambiguity match)
 ```
 
 ### Unbreakable Rules

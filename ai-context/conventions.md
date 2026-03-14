@@ -93,6 +93,14 @@ All formats always require `**Triggers**` and `## Rules`.
 [constraints]
 ```
 
+### CLAUDE.md — Intent Classification and Clarification Gate
+
+The orchestrator's intent classification pipeline (defined in `CLAUDE.md` Classification Decision Table) includes a **clarification gate** for ambiguous inputs. When a user message does not clearly map to any of the first three intent classes (Meta-Command, Change Request, Exploration), and it matches one of the four ambiguity detection heuristics (single-word, standalone verb, vague noun phrase, compound phrase with weak binding), the orchestrator presents a 3-option clarification prompt before defaulting to Question. Non-ambiguous inputs with strong signals (explicit intent verbs, punctuation `?`, slash commands) bypass the gate. This gate is inline procedural logic in CLAUDE.md — no separate skill is required.
+
+See: `openspec/specs/orchestrator-behavior/spec.md` for the full requirement spec.
+
+---
+
 ### Orchestrator skills
 
 Some skills are **orchestrators**: they use the Task tool directly inside the SKILL.md to delegate work to sub-agents. This is the correct pattern for skills that coordinate multiple SDD phases.

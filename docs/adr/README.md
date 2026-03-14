@@ -83,3 +83,4 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [029](029-orchestrator-always-on-intent-classification.md) | Always-On Intent Classification — cross-cutting orchestration layer for routing every user message through SDD discipline | Accepted | 2026-03-12 |
 | [030](030-fix-subagent-project-context-cross-cutting.md) | Sub-Agent Governance Injection as a Cross-Cutting Pattern — full CLAUDE.md read in Step 0 across all phase skills and governance path in orchestrator prompts | Proposed | 2026-03-12 |
 | [031](031-orchestrator-classification-edge-cases-pattern.md) | Orchestrator Classification Edge Cases Pattern — inline example extension convention for ambiguous intent inputs | Proposed | 2026-03-14 |
+| [032](032-orchestrator-clarification-gate-pattern.md) | Orchestrator Clarification Gate Pattern — pre-processing gate for disambiguating single-word and bare-verb inputs via 3-option prompt | Proposed | 2026-03-14 |

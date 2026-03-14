@@ -4,6 +4,42 @@
 
 ---
 
+## [2026-03-14] — add-clarification-gate-for-ambiguous-inputs (SDD archive)
+
+**Type**: SDD archive phase
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `add-clarification-gate-for-ambiguous-inputs`
+
+**What changed**:
+- `openspec/specs/orchestrator-behavior/spec.md`: Merged delta spec — MODIFIED the "Ambiguous single-word messages" requirement (now triggers clarification gate instead of defaulting to Question); ADDED 5 new requirements: ambiguous input detection and clarification gate, clarification prompt structure, routing after clarification response, ambiguity detection heuristics (H1–H4), gate bypass for slash commands/strong signals. Validation criteria updated with 6 new checked items.
+- `openspec/changes/archive/2026-03-14-add-clarification-gate-for-ambiguous-inputs/`: Change folder archived. CLOSURE.md created.
+- `openspec/changes/2026-03-14-add-clarification-gate-for-ambiguous-inputs/`: Removed (archived).
+
+**Decisions made**:
+- Verification status was PASS WITH WARNINGS (1 warning: manual session testing criterion unverified by tool output). No CRITICAL issues. Archive proceeded per skill rules.
+
+---
+
+## [2026-03-14] — add-clarification-gate-for-ambiguous-inputs (SDD apply)
+
+**Type**: SDD apply phase
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**Change**: `add-clarification-gate-for-ambiguous-inputs`
+
+**What changed**:
+- `CLAUDE.md`: Added "Ambiguity Detection Heuristics" subsection documenting 4 heuristics (H1: single-word, H2: standalone verb, H3: vague noun phrase, H4: compound phrase with weak binding) + reserved exclusion list + regex pattern for single-word detection.
+- `CLAUDE.md` Classification Decision Table: Inserted new `ELSE IF message matches ambiguity pattern` branch before the final `ELSE` (Question default). Branch includes heuristic summary, examples, clarification prompt template (3-option format), and post-clarification routing logic.
+- `CLAUDE.md` final ELSE examples: Updated to remove ambiguous single-word examples ("login", "auth", "refactor") that now route to the gate, replaced with "auth module audit" (multi-word, no ambiguity match) as a valid Question/default.
+- `ai-context/conventions.md`: Added "CLAUDE.md — Intent Classification and Clarification Gate" subsection documenting that the clarification gate is part of the intent classification process.
+- `ai-context/architecture.md`: Added key decision #21 documenting the clarification gate — ambiguity heuristics, gate behavior, routing logic, and architectural context.
+
+**Decisions made**:
+- Gate is pure inline CLAUDE.md logic — no new skill created (per design.md decision table)
+- Reserved exclusion list includes: yes, no, true, false, ok, done, sure, thanks, stop, cancel
+- Post-clarification free-text routing re-applies standard classification rules (safe default: Question)
+
+---
+
 ## [2026-03-14] — orchestrator-visibility (SDD archive)
 
 **Type**: SDD archive phase
