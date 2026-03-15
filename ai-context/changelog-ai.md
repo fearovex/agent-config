@@ -4,6 +4,31 @@
 
 ---
 
+## [2026-03-14] — specs-search-optimization (SDD archive)
+
+**Type**: SDD archive phase
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `specs-search-optimization`
+
+**What changed**:
+- `openspec/specs/index.yaml` — created (56-entry flat YAML spec index; 55 initial entries + 1 added for `spec-index` domain during this archive via Step 3a)
+- `openspec/specs/spec-index/spec.md` — created (new master spec: structure, correctness invariants, and index-based sub-agent selection algorithm)
+- `openspec/specs/sdd-archive-execution/spec.md` — requirement appended (index maintenance on new domain creation)
+- `skills/sdd-archive/SKILL.md` — Step 3a added during apply (index maintenance when new domain created)
+- `docs/SPEC-CONTEXT.md` — "Using the spec index" section added during apply
+- `docs/adr/034-specs-search-optimization-architecture.md` — created during apply (ADR status: Proposed)
+- `openspec/changes/archive/2026-03-14-specs-search-optimization/` — archived; CLOSURE.md created
+
+**Decisions made**:
+- Flat YAML over SQLite for the initial implementation; 100+ domain threshold triggers SQLite/FTS5 migration consideration (ADR 034)
+- 3-file hard cap is preserved with index-based selection
+- Index maintenance in sdd-archive is non-blocking (failure → WARNING, never failed)
+- sdd-archive Step 3a is self-applying: this archive run added the `spec-index` entry to index.yaml
+
+**Notes**: Verification PASS, no critical or warning issues. User docs review confirmed not needed (no user-facing skill or command changes).
+
+---
+
 ## [2026-03-14] — specs-as-subagent-background (SDD apply)
 
 **Type**: SDD apply phase
