@@ -132,6 +132,42 @@ _(Modified in: 2026-02-23 by change "add-csv-export")_
 
 I copy the delta file to `openspec/specs/<domain>/spec.md` (it becomes the full spec).
 
+### Step 3a — Update spec index
+
+**Condition:** This step runs only if a new domain directory was created under `openspec/specs/` during Step 3 (i.e., the delta spec had no corresponding master spec and was copied as a new domain).
+
+If the condition is met:
+
+1. **If `openspec/specs/index.yaml` does not exist:** create it with the standard header and `domains:` root key:
+
+   ```yaml
+   # openspec/specs/index.yaml
+   # Spec domain index — maintained by sdd-archive.
+   # Each entry: domain (directory name), summary, keywords (3–8), related (optional).
+
+   domains:
+   ```
+
+2. **Append one entry** under the `domains:` key using the following field derivation rules:
+
+   | Field | Derivation |
+   |-------|-----------|
+   | `domain` | The new directory name exactly as created under `openspec/specs/` |
+   | `summary` | Derived from the spec file title (first `#` heading after the frontmatter/header block) or, if absent, the first requirement sentence |
+   | `keywords` | Derived from the domain name tokens (split on `-`) plus key nouns found in the spec title and first requirement; 3–8 terms; use change-slug vocabulary (lowercase, hyphen-separated) |
+   | `related` | Omit the key entirely if no cross-references are detectable; otherwise include domain names that appear as references in the proposal or other specs for this change — ONLY include values that exist as `domain` entries in the current `index.yaml` |
+
+3. **Format constraint:** the new entry MUST follow the existing YAML format exactly — no schema changes. Omit `related` entirely (do not write `related: []`) when there are no cross-references.
+
+   ```yaml
+     - domain: <new-domain-name>
+       summary: "<one-line description>"
+       keywords: [<term>, <term>, ...]
+       related: [<domain>, ...]   # omit if empty
+   ```
+
+4. **Non-blocking:** if `index.yaml` cannot be written (permission error, parse error), log a warning and continue. This step MUST NOT block the archive operation.
+
 ### Step 4 — Move to archive
 
 I move the change folder:
