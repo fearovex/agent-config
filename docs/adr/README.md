@@ -85,3 +85,4 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [031](031-orchestrator-classification-edge-cases-pattern.md) | Orchestrator Classification Edge Cases Pattern — inline example extension convention for ambiguous intent inputs | Proposed | 2026-03-14 |
 | [032](032-orchestrator-clarification-gate-pattern.md) | Orchestrator Clarification Gate Pattern — pre-processing gate for disambiguating single-word and bare-verb inputs via 3-option prompt | Proposed | 2026-03-14 |
 | [033](033-specs-as-subagent-background-convention.md) | Spec Context Loading as Phase-Skill-Owned Cross-Cutting Convention — phase skills self-select relevant master specs via stem matching; orchestrators unchanged | Proposed | 2026-03-14 |
+| [034](034-specs-search-optimization-architecture.md) | Spec Index — Flat YAML as Primary Storage with SQLite/FTS5 as Migration Path | Proposed | 2026-03-14 |

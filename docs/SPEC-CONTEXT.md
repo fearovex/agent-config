@@ -12,9 +12,37 @@ SDD phase skills need access to the behavioral contracts already established for
 
 ---
 
-## Selection Algorithm (stem-based matching)
+## Using the spec index (preferred mechanism)
 
-The same stem-based matching heuristic used for `ai-context/features/` preload in `sdd-propose` and `sdd-spec` Step 0b.
+When `openspec/specs/index.yaml` is present, phase skills use a two-step index-driven lookup as the **primary** selection mechanism. This provides higher recall than stem matching because keyword sets explicitly cover change-slug vocabulary that may not share lexical overlap with domain directory names.
+
+**Algorithm:**
+
+```
+Step 1: Read openspec/specs/index.yaml (single read, if present)
+Step 2: For each entry in domains:
+          if entry.domain in change_name → match
+          OR for any keyword in entry.keywords: if keyword in change_name → match
+Step 3: matches = matches[:3]   ← hard cap at 3
+Step 4: If index absent → fall back to stem-based name scan (see next section)
+```
+
+**Examples:**
+
+| Change name | Matched via index | Matched domains |
+|---|---|---|
+| `add-resilience-layer` | keyword `retry` in `sdd-warning-classification` | `sdd-warning-classification` |
+| `fix-project-audit-score` | domain `project-audit-core` in slug | `project-audit-core`, `audit-scoring` |
+| `update-sdd-archive-flow` | domain `sdd-archive-execution` in slug | `sdd-archive-execution` |
+| `add-new-widget` | no domain or keyword match | none → silent skip → stem fallback |
+
+**Maintenance:** `openspec/specs/index.yaml` is maintained by `sdd-archive` (Step 3a) — one entry is appended per new spec domain created during archiving. Hand-editing is permitted for keyword corrections or additions.
+
+---
+
+## Selection Algorithm — Stem-based matching (fallback)
+
+Used when `openspec/specs/index.yaml` is absent. The stem-based algorithm is the **fallback** mechanism; the index-driven lookup above is preferred when the index exists.
 
 ```
 stems = change_name.split("-").filter(s => s.length > 1)
@@ -41,7 +69,7 @@ matches = matches[:3]   ← hard cap at 3
 
 A hard cap of **3 spec files** per phase invocation applies. The cap bounds token cost reliably. For broader cross-cutting changes where more than 3 domains match, the fallback to `ai-context/` (which summarizes all domains) is the appropriate mechanism.
 
-If the companion `specs-search-optimization` proposal is implemented (indexed full-text search), the selection quality may improve without increasing the cap.
+The index-driven lookup (see above) improves selection quality without increasing the cap — a single YAML read replaces exhaustive directory scanning.
 
 ---
 
@@ -95,17 +123,13 @@ This fallback is the expected path for cross-cutting changes or changes whose do
 
 ---
 
-## Relationship to Companion Proposal (specs-search-optimization)
+## Relationship to specs-search-optimization
 
-The stem-based matching heuristic used here is deterministic but vocabulary-constrained: it only matches when change slug stems share lexical overlap with spec domain directory names. A change named `add-resilience-layer` may not match the `retry-policy` spec domain even if the two are semantically related.
+The `specs-search-optimization` change (2026-03-14) introduced `openspec/specs/index.yaml` and the index-driven lookup described above. The stem-based algorithm is now the fallback, not the primary mechanism.
 
-The companion proposal `specs-search-optimization` addresses this gap by building a richer index (full-text or keyword-based) over `openspec/specs/`. When that change is implemented:
+This document is the single source of truth for the loading contract. Skill authors MUST NOT implement domain-specific selection logic inside SKILL.md files — all spec selection is driven by the algorithm documented here (index-first, stem-based fallback).
 
-- The selection algorithm in this convention doc will be updated to reference the index
-- Skills will gain higher-recall spec loading without increasing the load cap
-- This document is the single source of truth for the loading contract; skill authors should not implement domain-specific selection logic in SKILL.md files
-
-Until `specs-search-optimization` is implemented, the stem-based fallback is the authoritative algorithm.
+For the architecture decision behind this change, see `docs/adr/034-specs-search-optimization-architecture.md`.
 
 ---
 
@@ -116,4 +140,4 @@ For changes that intentionally span multiple domains or whose vocabulary does no
 1. The spec context preload will produce zero matches and skip silently — this is correct behavior
 2. `ai-context/architecture.md` and `ai-context/conventions.md` (loaded in Step 0a) remain the behavioral context source
 3. If a specific spec file is known to be relevant despite no vocabulary match, a skill author may add a hard-coded read for that file within the phase skill's Step 1 (not Step 0) — Step 0 preloading remains generic and slug-driven only
-4. The `specs-search-optimization` companion proposal is the long-term solution for cross-cutting cases
+4. Expanding the keyword set in `openspec/specs/index.yaml` for the relevant domain is the recommended fix for persistent vocabulary-mismatch cases
