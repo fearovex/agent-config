@@ -4,6 +4,40 @@
 
 ---
 
+## [2026-03-17] — specs-verify-config (archived)
+
+**Type**: SDD archive phase
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `specs-verify-config`
+
+**What was done**: SDD cycle completed and archived. Master specs were already updated during apply. CLOSURE.md created at `openspec/changes/archive/2026-03-17-specs-verify-config/CLOSURE.md`. Change folder moved to archive. Verify: PASS (0 CRITICAL, 0 WARNINGS).
+
+---
+
+## [2026-03-17] — specs-verify-config
+
+**Type**: SDD apply phase
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**Change**: `specs-verify-config`
+
+**What changed**:
+- `openspec/specs/sdd-verify-execution/spec.md` — appended new `## Requirement` section for `verify.test_commands` (priority level 2), covering all seven scenarios (used when verify_commands absent, verify_commands priority, empty list fallthrough, multiple commands in sequence, build_command/type_check_command overrides, source label); appended three new Rules entries
+- `openspec/specs/config-schema/spec.md` — appended new `## Requirement` sections for `verify:` top-level section, `verify.test_commands`, `verify.build_command`, `verify.type_check_command`, `project-setup` population behavior, and `memory-init` back-fill behavior; appended five new Rules entries
+- `skills/sdd-verify/SKILL.md` — Step 6 updated: inserted three-level priority model with level 2 block for `verify.test_commands`; Step 7 updated: added config override check for `verify.build_command` and `verify.type_check_command`; Rules section extended with three new entries
+- `skills/project-setup/SKILL.md` — Step 4 extended: added `verify:` section comment block and conditional generation logic (detect_test_runner, detect_build_command, detect_type_check_command) with guard for absent detection
+- `skills/memory-init/SKILL.md` — Step 8 added (verify: back-fill): non-blocking step that appends `verify:` to existing config.yaml when absent; Rules extended with non-blocking guarantee
+- `openspec/config.yaml` — added `verify:` section block with full inline comments documenting three-level priority model and all sub-keys
+
+**Decisions made**:
+- `verify.test_commands` is level 2 priority between `verify_commands` (level 1) and auto-detection (level 3)
+- Empty `verify.test_commands: []` falls through to auto-detection (prevents silent zero-command success)
+- `memory-init` back-fill is strictly non-blocking: failures emit INFO only
+- `project-setup` omits `verify:` section entirely when no test runner is detected (absence is valid)
+
+**Notes**: All changes are additive; no existing behavior was removed or modified.
+
+---
+
 ## [2026-03-14] — specs-search-optimization (SDD archive)
 
 **Type**: SDD archive phase
