@@ -112,9 +112,169 @@ The schema documentation for `openspec/config.yaml` (in `ai-context/` or inline 
 
 ---
 
+---
+
+### Requirement: verify: top-level section in openspec/config.yaml
+*(Added in: 2026-03-17 by change "specs-verify-config")*
+
+`openspec/config.yaml` MUST accept an optional `verify:` top-level key. Its absence MUST NOT break any existing skill run or verification behavior.
+
+#### Scenario: config.yaml without verify: section does not affect sdd-verify behavior
+
+- **GIVEN** a project whose `openspec/config.yaml` does not contain a `verify:` key
+- **WHEN** `sdd-verify` reads `openspec/config.yaml`
+- **THEN** all verification steps proceed using existing fallback behavior (auto-detection, verify_commands)
+- **AND** no error or warning is emitted about the absence of `verify:`
+
+#### Scenario: config.yaml with a valid verify: section is parsed without errors
+
+- **GIVEN** a project whose `openspec/config.yaml` contains a `verify:` section with valid sub-keys
+- **WHEN** any skill reads `openspec/config.yaml`
+- **THEN** no parse errors or warnings are emitted about the `verify:` key
+- **AND** skills that do not use `verify:` ignore it silently
+
+---
+
+### Requirement: verify.test_commands sub-key
+*(Added in: 2026-03-17 by change "specs-verify-config")*
+
+The `test_commands` key under `verify:` MUST be a list of strings. It is optional. When present and non-empty, it provides level 2 priority test commands for `sdd-verify`. An empty list MUST be treated as absent.
+
+#### Scenario: verify.test_commands accepted as a list of strings
+
+- **GIVEN** `openspec/config.yaml` contains:
+  ```yaml
+  verify:
+    test_commands:
+      - "npm test"
+      - "npm run lint"
+  ```
+- **WHEN** `sdd-verify` reads the config
+- **THEN** both commands are available for level 2 execution
+- **AND** no validation error is emitted
+
+#### Scenario: non-list verify.test_commands treated as absent with WARNING
+
+- **GIVEN** `openspec/config.yaml` contains `verify.test_commands: "npm test"` (a string, not a list)
+- **WHEN** `sdd-verify` reads the config
+- **THEN** `verify.test_commands` is treated as absent
+- **AND** a WARNING is emitted noting the invalid type
+
+---
+
+### Requirement: verify.build_command sub-key
+*(Added in: 2026-03-17 by change "specs-verify-config")*
+
+The `build_command` key under `verify:` MUST be a single string. It is optional. When present, it overrides the auto-detected build command in `sdd-verify`.
+
+#### Scenario: verify.build_command accepted as a string
+
+- **GIVEN** `openspec/config.yaml` contains:
+  ```yaml
+  verify:
+    build_command: "npm run build:prod"
+  ```
+- **WHEN** `sdd-verify` runs the build/type-check step
+- **THEN** `npm run build:prod` is used instead of the auto-detected build command
+
+#### Scenario: non-string verify.build_command treated as absent with WARNING
+
+- **GIVEN** `openspec/config.yaml` contains `verify.build_command: ["npm run build"]` (a list, not a string)
+- **WHEN** `sdd-verify` reads the config
+- **THEN** `verify.build_command` is treated as absent
+- **AND** a WARNING is emitted noting the invalid type
+
+---
+
+### Requirement: verify.type_check_command sub-key
+*(Added in: 2026-03-17 by change "specs-verify-config")*
+
+The `type_check_command` key under `verify:` MUST be a single string. It is optional. When present, it overrides the auto-detected type check command in `sdd-verify`.
+
+#### Scenario: verify.type_check_command accepted as a string
+
+- **GIVEN** `openspec/config.yaml` contains:
+  ```yaml
+  verify:
+    type_check_command: "npx tsc --noEmit --strict"
+  ```
+- **WHEN** `sdd-verify` runs the build/type-check step
+- **THEN** `npx tsc --noEmit --strict` is used instead of the auto-detected type check command
+
+---
+
+### Requirement: project-setup populates verify: section on initialization
+*(Added in: 2026-03-17 by change "specs-verify-config")*
+
+The `project-setup` skill MUST conditionally emit a `verify:` section in the generated `openspec/config.yaml` when a test runner is detected during stack analysis.
+
+#### Scenario: verify: section emitted when test runner is detected
+
+- **GIVEN** `project-setup` detects a test runner (e.g., `npm test`, `pytest`, `make test`)
+- **WHEN** it generates `openspec/config.yaml`
+- **THEN** the generated file MUST include a `verify:` section with `test_commands` populated
+- **AND** `build_command` and `type_check_command` are included when detected
+
+#### Scenario: verify: section omitted when no test runner is detected
+
+- **GIVEN** `project-setup` cannot detect any test runner
+- **WHEN** it generates `openspec/config.yaml`
+- **THEN** the `verify:` section MUST be omitted entirely
+- **AND** the absence MUST NOT cause errors in any downstream skill
+
+#### Scenario: detection failure does not abort config.yaml generation
+
+- **GIVEN** stack detection encounters an error or inconclusive result
+- **WHEN** `project-setup` generates `openspec/config.yaml`
+- **THEN** `openspec/config.yaml` is generated without the `verify:` section
+- **AND** the generation continues and completes successfully
+
+---
+
+### Requirement: memory-init optionally back-fills verify: section
+*(Added in: 2026-03-17 by change "specs-verify-config")*
+
+The `memory-init` skill MUST include a non-blocking final step that appends a `verify:` section to `openspec/config.yaml` when the file exists but the `verify:` key is absent.
+
+#### Scenario: verify: section appended when config.yaml exists and verify: is absent
+
+- **GIVEN** `openspec/config.yaml` exists in the project
+- **AND** it does NOT contain a `verify:` key
+- **WHEN** `memory-init` runs its verify: back-fill step
+- **THEN** a `verify:` section is appended to `openspec/config.yaml`
+- **AND** the INFO message `"verify: section added to openspec/config.yaml"` is emitted
+
+#### Scenario: back-fill is idempotent when verify: is already present
+
+- **GIVEN** `openspec/config.yaml` exists and already contains a `verify:` key
+- **WHEN** `memory-init` runs its verify: back-fill step
+- **THEN** the existing `verify:` section is NOT modified
+- **AND** the step is skipped silently
+
+#### Scenario: back-fill is skipped when config.yaml does not exist
+
+- **GIVEN** `openspec/config.yaml` does NOT exist in the project
+- **WHEN** `memory-init` runs its verify: back-fill step
+- **THEN** the step is skipped
+- **AND** at most an INFO-level note is emitted
+
+#### Scenario: back-fill failure does not block memory-init
+
+- **GIVEN** back-fill detection or write fails for any reason
+- **WHEN** `memory-init` runs its verify: back-fill step
+- **THEN** `memory-init` does NOT produce `status: blocked` or `status: failed`
+- **AND** at most an INFO-level note is emitted
+
+---
+
 ## Rules
 
 - The `feature_docs` section is optional — its absence is always valid
 - The three `convention` values (`skill`, `markdown`, `mixed`) are the only accepted values; any other value is treated as a configuration error by D10
 - The `exclude` list under `feature_detection` applies to all heuristic-discovered features too (when falling back to heuristic mode, the same exclude names apply)
 - Schema documentation is the authoritative source for what keys are accepted — SKILL.md should reference the schema documentation rather than duplicating it inline
+- The `verify:` section is optional at the top level — its absence MUST NOT break any skill *(added: 2026-03-17)*
+- `verify.test_commands` MUST be a list of strings; non-list values are treated as absent with a WARNING *(added: 2026-03-17)*
+- `verify.build_command` and `verify.type_check_command` MUST be strings; non-string values are treated as absent with a WARNING *(added: 2026-03-17)*
+- `project-setup` emits the `verify:` section only when a test runner is detected; omission is valid *(added: 2026-03-17)*
+- `memory-init` back-fill is non-blocking: failures produce at most an INFO note *(added: 2026-03-17)*

@@ -211,6 +211,32 @@ testing:
 #   - "npm run lint"
 
 # ---------------------------------------------------------------------------
+# verify (optional) — Auto-detected verification commands for /sdd-verify
+# ---------------------------------------------------------------------------
+# Populated automatically by project-setup on initialization and optionally
+# by memory-init when the section is absent.
+# Priority in sdd-verify Step 6:
+#   Level 1: verify_commands (manual override — highest, unchanged)
+#   Level 2: verify.test_commands (this section)
+#   Level 3: auto-detection table (package.json, pytest, Makefile, etc.)
+#
+# test_commands (list of strings, optional):
+#   Commands to run the project test suite. Empty list is treated as absent
+#   and falls through to auto-detection — it is NOT treated as zero-command success.
+#
+# build_command (string, optional):
+#   Single command to build the project. Overrides auto-detected build command.
+#
+# type_check_command (string, optional):
+#   Single command to run type checking. Overrides auto-detected type check.
+#
+# verify:
+#   test_commands:
+#     - "npm test"
+#   build_command: "npm run build"
+#   type_check_command: "npx tsc --noEmit"
+
+# ---------------------------------------------------------------------------
 # coverage (optional) — Coverage threshold for /sdd-verify
 # ---------------------------------------------------------------------------
 # Uncomment and configure to enable coverage validation in /sdd-verify.

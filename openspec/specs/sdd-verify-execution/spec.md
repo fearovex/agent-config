@@ -326,6 +326,71 @@ The `openspec/config.yaml` file MUST support an optional `verify_commands` key t
 
 ---
 
+### Requirement: verify.test_commands — priority level 2 config key
+*(Added in: 2026-03-17 by change "specs-verify-config")*
+
+The `sdd-verify` skill MUST support an optional `verify.test_commands` key in `openspec/config.yaml` as a mid-priority (level 2) override between `verify_commands` (level 1) and auto-detection (level 3). This key is only consulted when `verify_commands` is absent.
+
+#### Scenario: verify.test_commands used when verify_commands is absent
+
+- **GIVEN** `openspec/config.yaml` does NOT contain a `verify_commands` key
+- **AND** `openspec/config.yaml` contains a `verify.test_commands` list with at least one command
+- **WHEN** `sdd-verify` runs the tool execution step
+- **THEN** it MUST use the commands from `verify.test_commands` in order
+- **AND** it MUST NOT run auto-detection (level 3)
+- **AND** the `## Tool Execution` section MUST label the source as `"verify.test_commands (config level 2)"`
+
+#### Scenario: verify_commands takes priority over verify.test_commands
+
+- **GIVEN** `openspec/config.yaml` contains BOTH a `verify_commands` key AND a `verify.test_commands` key
+- **WHEN** `sdd-verify` runs the tool execution step
+- **THEN** it MUST use `verify_commands` (level 1)
+- **AND** it MUST NOT use `verify.test_commands`
+
+#### Scenario: empty verify.test_commands falls through to auto-detection
+
+- **GIVEN** `openspec/config.yaml` does NOT contain a `verify_commands` key
+- **AND** `openspec/config.yaml` contains `verify.test_commands: []` (empty list)
+- **WHEN** `sdd-verify` runs the tool execution step
+- **THEN** it MUST treat `verify.test_commands` as absent
+- **AND** it MUST proceed to level 3 auto-detection
+- **AND** it MUST NOT report a zero-command success
+
+#### Scenario: multiple commands in verify.test_commands run in sequence
+
+- **GIVEN** `openspec/config.yaml` contains:
+  ```yaml
+  verify:
+    test_commands:
+      - "npm test"
+      - "npm run lint"
+  ```
+- **AND** `verify_commands` is absent
+- **WHEN** `sdd-verify` runs the tool execution step
+- **THEN** it MUST run `npm test` first, then `npm run lint`
+- **AND** it MUST capture exit code and output for each command independently
+- **AND** the `## Tool Execution` section MUST list each command and its result
+
+#### Scenario: verify.build_command overrides auto-detected build command
+
+- **GIVEN** `openspec/config.yaml` contains `verify.build_command: "npm run build:prod"`
+- **WHEN** `sdd-verify` runs the build/type-check step
+- **THEN** it MUST use `npm run build:prod` instead of the auto-detected build command
+
+#### Scenario: verify.type_check_command overrides auto-detected type check command
+
+- **GIVEN** `openspec/config.yaml` contains `verify.type_check_command: "npx tsc --noEmit --strict"`
+- **WHEN** `sdd-verify` runs the build/type-check step
+- **THEN** it MUST use `npx tsc --noEmit --strict` instead of the auto-detected type check command
+
+#### Scenario: source label in ## Tool Execution for level 2 commands
+
+- **GIVEN** `verify.test_commands` was used (level 2)
+- **WHEN** `sdd-verify` writes the `## Tool Execution` section
+- **THEN** the section MUST identify the command source as `"verify.test_commands (config level 2)"`
+
+---
+
 ## Rules
 
 - These specs describe observable outcomes only -- not how detection or execution is implemented internally
@@ -338,3 +403,6 @@ The `openspec/config.yaml` file MUST support an optional `verify_commands` key t
 - A `[x]` criterion MUST have verifiable evidence (tool output or explicit user statement) *(added: 2026-03-10)*
 - `verify_commands` in config overrides auto-detection entirely when present — they are not additive *(added: 2026-03-10)*
 - Commands listed under `verify_commands` are assumed non-destructive — the user is responsible for this *(added: 2026-03-10)*
+- `verify.test_commands` activates only when `verify_commands` is absent; empty list falls through to auto-detection *(added: 2026-03-17)*
+- `verify.build_command` and `verify.type_check_command` override their respective auto-detected commands when present *(added: 2026-03-17)*
+- Non-list `verify.test_commands` and non-string `verify.build_command`/`verify.type_check_command` are treated as absent with a WARNING *(added: 2026-03-17)*
