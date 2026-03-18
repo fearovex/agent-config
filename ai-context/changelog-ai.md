@@ -4,6 +4,43 @@
 
 ---
 
+## [2026-03-18] — specs-opus-routing (ARCHIVED)
+
+**Type**: SDD archive phase
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+**Change**: `2026-03-18-specs-opus-routing`
+
+**Archive summary**: Change archived successfully. Delta specs confirmed merged into master specs (both `openspec/specs/config-schema/spec.md` and `openspec/specs/sdd-orchestration/spec.md`). Folder moved to `openspec/changes/archive/2026-03-18-specs-opus-routing/`. CLOSURE.md created. Verify verdict: PASS WITH WARNINGS (0 critical issues).
+
+---
+
+## [2026-03-18] — specs-opus-routing
+
+**Type**: SDD apply phase
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+**Change**: `2026-03-18-specs-opus-routing`
+
+**What changed**:
+- `skills/sdd-ff/SKILL.md` — added pre-processing sub-step at Step 0: detects `--opus`/`--power` flag in `$ARGUMENTS`, sets `use_opus`, reads `model_routing.phases` from `openspec/config.yaml` into `phase_map`; all Task call blocks updated with `model: resolve(phase, use_opus, phase_map)` using three-level priority chain
+- `skills/sdd-new/SKILL.md` — same pre-processing sub-step and Task model resolution applied (identical to sdd-ff)
+- `openspec/config.yaml` — appended commented-out `model_routing:` template block with `phases:` map example
+- `openspec/specs/config-schema/spec.md` — appended delta spec: `model_routing` optional top-level key, absent-key, valid-key, and CLI-flag override priority scenarios
+- `openspec/specs/sdd-orchestration/spec.md` — appended delta spec: flag parsing (strip before slug), `use_opus` propagation, three-level priority chain scenarios
+- `docs/adr/036-opus-routing-convention.md` — created ADR documenting the model resolution priority chain as a cross-cutting convention
+- `docs/adr/README.md` — ADR 036 row added to index table
+- `CLAUDE.md` — sub-agent launch pattern updated with `model: [resolved]` field and resolution order comment; Fast-Forward section updated with `--opus`/`--power` flag documentation
+
+**Decisions made**:
+- Three-level resolution priority: CLI flag (`--opus`/`--power`) > `model_routing.phases` per-phase config > `claude-sonnet-4-5` default
+- Full model IDs used (`claude-opus-4-5`, `claude-sonnet-4-5`) — shorthand aliases rejected for Task tool compatibility
+- Flag stripped before slug inference — never appears in change slug
+- `phase_map` read is non-blocking: any failure sets `phase_map = {}` and emits INFO only
+- Resolution logic is inline in each orchestrator (sdd-ff, sdd-new) — no shared skill; duplication documented in ADR 036
+
+**Notes**: All changes are additive; existing invocations without the flag are unaffected.
+
+---
+
 ## [2026-03-17] — specs-verify-config (archived)
 
 **Type**: SDD archive phase

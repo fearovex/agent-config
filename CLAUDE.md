@@ -392,6 +392,8 @@ When I receive a meta-tool command, I read the corresponding skill and execute i
 ```
 Task tool:
   subagent_type: "general-purpose"
+  model: [resolved: claude-opus-4-5 if --opus/--power flag, else phase_map[phase] if set, else claude-sonnet-4-5]
+  # Resolution order: CLI flag (--opus/--power) → per-phase config (model_routing.phases) → claude-sonnet-4-5 default
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -452,12 +454,19 @@ explore (optional)
 
 Exploration is mandatory — it runs as Step 0 with no user gate.
 
-0. Infer slug from description + Launch `sdd-explore` → wait (mandatory, no user prompt)
-1. Launch `sdd-propose` → wait (reads exploration.md)
-2. Launch `sdd-spec` + `sdd-design` in parallel → wait for both
-3. Launch `sdd-tasks` → wait
-4. Present COMPLETE summary (explore, propose, spec, design, tasks)
-5. Ask: "Ready to implement with `/sdd-apply`?"
+**Model routing flags (optional):**
+- `/sdd-ff --opus <description>` — all phases use `model: claude-opus-4-5`
+- `/sdd-ff --power <description>` — alias for `--opus`; same effect
+- Without flag: each phase resolves via `model_routing.phases` config, falling back to `claude-sonnet-4-5`
+- Flag is stripped before slug inference — it never appears in the change slug
+
+0. Pre-process: detect `--opus`/`--power` flag; read `model_routing.phases` from config
+1. Infer slug from description + Launch `sdd-explore` → wait (mandatory, no user prompt)
+2. Launch `sdd-propose` → wait (reads exploration.md)
+3. Launch `sdd-spec` + `sdd-design` in parallel → wait for both
+4. Launch `sdd-tasks` → wait
+5. Present COMPLETE summary (explore, propose, spec, design, tasks)
+6. Ask: "Ready to implement with `/sdd-apply`?"
 
 ---
 
