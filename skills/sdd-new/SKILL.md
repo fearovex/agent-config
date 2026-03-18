@@ -46,7 +46,36 @@ Provide a description of the change. Example:
 
 Stop here if argument is missing.
 
+**Pre-processing sub-step — Flag detection and model routing setup** (runs before slug inference):
+
+```
+# 1. Detect --opus or --power flag
+if $ARGUMENTS contains "--opus" or "--power":
+  use_opus = true
+  description = $ARGUMENTS with "--opus" and "--power" tokens stripped
+else:
+  use_opus = false
+  description = $ARGUMENTS
+
+# 2. Read openspec/config.yaml for per-phase model overrides (non-blocking)
+try:
+  phase_map = openspec/config.yaml → model_routing.phases  (map of phase_name → model_id)
+catch (file missing, key absent, parse error, non-map value):
+  phase_map = {}  # INFO note only — does NOT block execution
+
+# 3. Resolution function (used at each Task call below)
+resolve(phase, use_opus, phase_map):
+  if use_opus == true  → return "claude-opus-4-5"
+  if phase_map[phase] exists  → return phase_map[phase]
+  return "claude-sonnet-4-5"  # existing default
+
+# Warning: sdd-ff and sdd-new contain near-identical resolution sub-steps.
+# Future edits to the algorithm MUST be applied to both files (see ADR 036).
+```
+
 Apply the slug inference algorithm (canonical definition: `docs/sdd-slug-algorithm.md`):
+
+> Note: slug inference operates on `description` (flag-stripped), never on raw `$ARGUMENTS`.
 
 ```
 STOP_WORDS = { "fix", "add", "update", "the", "a", "an", "for", "of", "in", "with",
@@ -77,7 +106,8 @@ Launch the explore sub-agent unconditionally:
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: sonnet
+  model: resolve("explore", use_opus, phase_map)
+  # [resolved: claude-opus-4-5 if use_opus, else phase_map["explore"] if set, else claude-sonnet-4-5]
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -109,7 +139,8 @@ Wait for result. Present the exploration summary to the user. If status is `bloc
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: sonnet
+  model: resolve("propose", use_opus, phase_map)
+  # [resolved: claude-opus-4-5 if use_opus, else phase_map["propose"] if set, else claude-sonnet-4-5]
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -158,7 +189,8 @@ Use two Task tool calls simultaneously:
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: sonnet
+  model: resolve("spec", use_opus, phase_map)
+  # [resolved: claude-opus-4-5 if use_opus, else phase_map["spec"] if set, else claude-sonnet-4-5]
   prompt: |
     You are a specialized SDD sub-agent.
 
@@ -186,7 +218,8 @@ Task tool:
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: sonnet
+  model: resolve("design", use_opus, phase_map)
+  # [resolved: claude-opus-4-5 if use_opus, else phase_map["design"] if set, else claude-sonnet-4-5]
   thinking: enabled
   prompt: |
     You are a specialized SDD sub-agent.
@@ -235,7 +268,8 @@ If user says N, stop gracefully.
 ```
 Task tool:
   subagent_type: "general-purpose"
-  model: sonnet
+  model: resolve("tasks", use_opus, phase_map)
+  # [resolved: claude-opus-4-5 if use_opus, else phase_map["tasks"] if set, else claude-sonnet-4-5]
   prompt: |
     You are a specialized SDD sub-agent.
 
