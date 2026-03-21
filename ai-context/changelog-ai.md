@@ -4,6 +4,20 @@
 
 ---
 
+## [2026-03-20] — sdd-archive-move-incomplete (archived)
+
+**Type**: Bug fix — source directory deletion gap in sdd-archive Step 4
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+
+**Summary**: Fixed `sdd-archive` Step 4 which copied change files to archive destination but never deleted the source directory, leaving ghost duplicates under `openspec/changes/`. Added three-sentence deletion block: semantic anchor, deletion instruction gated on copy confirmation, and confirmation output line. Master spec updated with two new requirements (deletion mandatory, date-stripping block preserved). Deployed via `install.sh`.
+
+**Files changed**:
+- `skills/sdd-archive/SKILL.md` — Step 4 deletion instruction added
+- `~/.claude/skills/sdd-archive/SKILL.md` — Deployed (install.sh confirmed)
+- `openspec/specs/sdd-archive-execution/spec.md` — Two new requirements with full scenario coverage
+
+---
+
 ## [2026-03-20] — remove-gentleman-programming (applied)
 
 **Type**: Cosmetic cleanup — brand reference removal across 7 file groups
