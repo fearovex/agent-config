@@ -4,6 +4,34 @@
 
 ---
 
+## [2026-03-22] — standardize-phase-completion-messages (applied)
+
+**Type**: SDD cycle — apply complete
+**What was done**: Standardized phase completion messages across SDD phase skills to use the canonical natural language gate pattern. `sdd-new` completion message replaced from "Ready to implement? Run: /sdd-apply" with "Continue with implementation? Reply **yes** to proceed or **no** to pause." `sdd-apply` completion message replaced from "Implementation complete. Next step: /sdd-verify" with "Continue with verification? Reply **yes** to proceed or **no** to pause." `sdd-verify` had no completion gate — one was added for sdd-archive transition. Audited sdd-explore, sdd-propose, sdd-spec, sdd-design, sdd-tasks — all confirmed as JSON-only output, no command-as-gate prose.
+**Modified files**:
+- `skills/sdd-new/SKILL.md` — completion gate replaced with natural language pattern
+- `skills/sdd-apply/SKILL.md` — completion suggestion replaced with natural language gate
+- `skills/sdd-verify/SKILL.md` — natural language gate added for sdd-archive transition
+**Decisions made**:
+- sdd-explore, sdd-propose, sdd-spec, sdd-design, sdd-tasks confirmed to have no prose gates (JSON-only output) — no change needed for those files
+- Command references kept as secondary `_(Manual: ...)_` references — not removed
+
+---
+
+## [2026-03-22] — model_routing activated in openspec/config.yaml + standardize-phase-completion-messages proposal created
+
+**Type**: Configuration change + new proposal
+**What was done**: Activated `model_routing` block in `openspec/config.yaml`: `propose` and `design` phases now route to `claude-opus-4-5`; all other phases use `claude-sonnet-4-5`. Key insight documented: sub-agents have independent context windows — `proposal.md` is the only context bridge across phases, so the propose phase deserves Opus because it synthesizes the conversation into the artifact all downstream phases depend on. Separately, created `openspec/changes/2026-03-22-standardize-phase-completion-messages/proposal.md` to extend natural language gates (introduced in 2026-03-21-orchestrator-mandatory-new-session) to `sdd-verify` and `sdd-archive`, and to audit remaining phase skills for mechanical command-as-gate patterns.
+**Modified files**:
+- `openspec/config.yaml` — model_routing block activated: propose → claude-opus-4-5, design → claude-opus-4-5, others → claude-sonnet-4-5
+- `openspec/changes/2026-03-22-standardize-phase-completion-messages/proposal.md` — created (new proposal)
+**Decisions made**:
+- propose phase deserves Opus: it synthesizes a multi-turn conversation into a structured artifact (proposal.md) that all downstream phases (spec, design, tasks, apply) read as their primary context source
+- design phase deserves Opus: it produces the architectural blueprint sub-agents follow during implementation
+- Natural language gates (reply yes to proceed) should be consistent across all SDD phases that present a confirmation checkpoint to the user
+
+---
+
 ## [2026-03-22] — 2026-03-21-orchestrator-mandatory-new-session (applied)
 
 **Type**: SDD cycle — apply complete
