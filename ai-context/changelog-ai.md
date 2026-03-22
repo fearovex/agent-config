@@ -4,6 +4,138 @@
 
 ---
 
+## [2026-03-22] — 2026-03-21-orchestrator-natural-language (archived)
+
+**Type**: SDD cycle — archive complete
+**What was done**: Archived change `2026-03-21-orchestrator-natural-language`. Master spec updated: marked original session banner requirement as superseded by the natural-tone version; added 6 validation criteria entries for the communication persona requirements. Change moved to `openspec/changes/archive/2026-03-22-orchestrator-natural-language/`. CLOSURE.md created.
+**Modified files**:
+- `openspec/specs/orchestrator-behavior/spec.md` — original banner requirement annotated as superseded; 6 validation criteria added
+- `openspec/changes/archive/2026-03-22-orchestrator-natural-language/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — archive entry added
+
+---
+
+## [2026-03-22] — 2026-03-21-orchestrator-scope-estimation (archived)
+
+**Type**: SDD cycle — archive complete
+**What was done**: Archived change `2026-03-21-orchestrator-scope-estimation`. Master spec updated with modified "never inline code" requirement annotation. Change moved to `openspec/changes/archive/2026-03-22-orchestrator-scope-estimation/`. CLOSURE.md created.
+**Modified files**:
+- `openspec/specs/orchestrator-behavior/spec.md` — original "never inline code" requirement annotated as superseded; validation criteria added
+- `openspec/changes/archive/2026-03-22-orchestrator-scope-estimation/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — archive entry added
+
+---
+
+## [2026-03-22] — 2026-03-21-orchestrator-scope-estimation (apply phases 1-6)
+
+**Type**: SDD cycle — apply phase complete
+**Agent**: Claude Opus 4.6 (sdd-apply sub-agent)
+
+**Summary**: Implemented the scope estimation heuristic for Change Request routing across 9 tasks in 6 phases. Added `### Scope Estimation Heuristic` subsection to CLAUDE.md with three tiers (Trivial/Moderate/Complex), keyword signal lists, routing behavior, and classification examples. Updated Classification Decision Table's Change Request branch with scope estimation cross-reference. Added parenthetical Trivial tier exception clause to Unbreakable Rule 1. Updated Orchestrator Session Banner with scope-aware routing mention. Updated Orchestrator Response Signal to document scope tier suffix for Trivial and Complex. Merged all delta spec requirements into `openspec/specs/orchestrator-behavior/spec.md`. Updated `openspec/specs/index.yaml` with scope-estimation keywords. All changes are additive — existing Moderate routing behavior is preserved as the default.
+
+**Files modified**:
+- `CLAUDE.md` — Scope Estimation Heuristic section, Classification Decision Table cross-reference, Rule 1 exception clause, Session Banner update, Response Signal tier suffix documentation
+- `openspec/specs/orchestrator-behavior/spec.md` — 7 new requirements merged from delta spec (scope estimation, three tiers, CLAUDE.md section, Rule 1 exception, tier visibility, inline code exception)
+- `openspec/specs/index.yaml` — added scope-estimation and scope-tier keywords to orchestrator-behavior domain
+- `ai-context/architecture.md` — decision #27 (scope estimation heuristic)
+- `ai-context/changelog-ai.md` — this entry
+
+---
+
+## [2026-03-22] — 2026-03-21-orchestrator-teaching (archived)
+
+**Type**: SDD cycle — archive complete
+**What was done**: Archived change `2026-03-21-orchestrator-teaching`. Delta specs were already merged into master spec during apply (task 7.1). Change moved to `openspec/changes/archive/2026-03-22-orchestrator-teaching/`. CLOSURE.md created.
+**Modified files**:
+- `openspec/changes/archive/2026-03-22-orchestrator-teaching/CLOSURE.md` — created
+- `ai-context/changelog-ai.md` — archive entry added
+
+---
+
+## [2026-03-22] — 2026-03-21-orchestrator-teaching (apply phases 1-8)
+
+**Type**: SDD cycle — apply phase complete
+**Agent**: Claude Opus 4.6 (sdd-apply sub-agent)
+
+**Summary**: Implemented the orchestrator teaching personality layer across 10 tasks in 8 phases. Added `## Teaching Principles` section to CLAUDE.md (5 rules: why-framing, educational gates, error reformulation, post-cycle reflection, progressive disclosure). Added why-sentence to Change Request classification template. Added consequence sentences to Rule 7 removal confirmation and sdd-ff contradiction gate. Added error reformulation pattern to sdd-ff for blocked/failed sub-agent statuses. Added post-cycle narrative reflection paragraph to sdd-ff Step 4 summary. Added new-user detection logic to CLAUDE.md (checks `openspec/changes/archive/` subdirectory count). Merged all delta spec requirements into `openspec/specs/orchestrator-behavior/spec.md`. All changes are additive — no routing logic or classification rules modified.
+
+**Files modified**:
+- `CLAUDE.md` — Teaching Principles section, why-sentence in classification, Rule 7 consequence sentence, new-user detection logic
+- `skills/sdd-ff/SKILL.md` — error reformulation pattern, contradiction gate consequence sentence, post-cycle narrative in Step 4
+- `openspec/specs/orchestrator-behavior/spec.md` — 8 new requirements merged from delta spec
+- `ai-context/architecture.md` — decision #26 (teaching principles layer)
+- `ai-context/changelog-ai.md` — this entry
+
+---
+
+## [2026-03-21] — orchestrator-comprehension-gap-analysis (feedback session)
+
+**Type**: Feedback session — gap analysis + 5 proposals created; no SDD execution
+**Agent**: Claude Sonnet 4.6 (orchestrator + sdd-explore sub-agent)
+
+**Summary**: User requested a structured analysis of the orchestrator's comprehension gaps across 4 dimensions: natural language understanding, action control, SDD cycle decision logic, and teaching personality. An Explore sub-agent produced a detailed gap analysis identifying 8 comprehension gaps. Based on findings, user decided that each SDD cycle must run in a separate chat session (proposed as "One Cycle Per Session" rule). Five proposal.md files were created (feedback session — no SDD implementation in this session).
+
+**Proposals created**:
+- `openspec/changes/2026-03-21-orchestrator-teaching-personality/proposal.md` — orchestrator teaching personality and guided feedback behavior
+- `openspec/changes/2026-03-21-orchestrator-scope-estimation/proposal.md` — scope estimation and complexity signaling before SDD cycles
+- `openspec/changes/2026-03-21-orchestrator-natural-language/proposal.md` — natural language comprehension improvements
+- `openspec/changes/2026-03-21-orchestrator-action-control-gates/proposal.md` — action control gates and confirmation flow improvements
+- `openspec/changes/2026-03-21-orchestrator-mandatory-new-session/proposal.md` — mandatory new session rule for each SDD cycle (One Cycle Per Session)
+
+**Decisions made**:
+- Each SDD cycle must run in a separate chat session to prevent context bleed and ensure clean orchestrator state
+- 8 comprehension gaps identified across: ambiguous intent resolution, removal confirmation UX, exploration gate verbosity, scope underestimation, teaching moment gaps, session boundary enforcement, action control granularity, natural language edge cases
+
+---
+
+## [2026-03-21] — fix-archive-residue-specs-loading (archived)
+
+**Type**: Archive — SDD cycle closed; master specs updated; CLOSURE.md written
+**Agent**: Claude Sonnet 4.6 (sdd-archive)
+
+**Summary**: Archived change `2026-03-21-fix-archive-residue-specs-loading`. Three master specs updated: `sdd-archive-execution` (deletion verification requirement added), `sdd-orchestration` (post-explore contradiction gate added), `spec-context-discovery` (new domain — index-first algorithm spec). Source directory deletion verified via MCP fallback (FileNotFoundError → confirmed deleted).
+
+**Files changed**:
+- `openspec/specs/sdd-archive-execution/spec.md` — Step 4 deletion verification requirement appended
+- `openspec/specs/sdd-orchestration/spec.md` — post-explore contradiction gate requirements appended
+- `openspec/specs/spec-context-discovery/spec.md` — created (new master spec)
+- `openspec/specs/index.yaml` — `spec-context-discovery` entry added
+- `openspec/changes/archive/2026-03-21-fix-archive-residue-specs-loading/CLOSURE.md` — created
+
+**Decisions made**:
+- `spec-context-discovery` is a new first-class spec domain covering index-first discovery for all 7 phase skills
+- User docs checkbox unchecked at archive time; new behaviors (gate prompt, deletion WARNING) may warrant future scenarios.md updates
+
+---
+
+## [2026-03-21] — fix-archive-residue-specs-loading (applied)
+
+**Type**: Enhancement — sdd-archive deletion verification + index-first spec loading in all phase skills + sdd-ff contradiction gate pre-existing detection + project-setup index.yaml scaffolding
+**Agent**: Claude Sonnet 4.6 (sdd-apply)
+
+**Summary**: Four coordinated improvements to the SDD meta-system:
+1. **sdd-archive deletion verification** — Added two-branch post-deletion check to Step 4. Branch A uses `test -d` (bash); Branch B uses `mcp__filesystem__list_directory` fallback. Non-blocking: sets `status: warning` on failure, never blocks Step 5.
+2. **Index-first spec loading in 7 phase skills** — All 7 skills (sdd-explore, sdd-propose, sdd-spec, sdd-design, sdd-tasks, sdd-apply, sdd-verify) now implement the index-first algorithm: tries `openspec/specs/index.yaml` EXACT/STEM scoring before falling back to directory stem scan. Cap at 3 domains. Non-blocking guarantee preserved.
+3. **sdd-ff pre-existing exploration.md detection** — Contradiction gate now detects whether exploration.md was pre-existing before the current run. Pre-existing files skip the gate entirely, preventing false positives when re-running /sdd-ff on an existing change.
+4. **project-setup index.yaml scaffolding** — New Step 5 creates `openspec/specs/index.yaml` with empty domains list if absent. Idempotent, non-blocking.
+
+**Files changed**:
+- `skills/sdd-archive/SKILL.md` — deletion verification block added to Step 4
+- `skills/project-setup/SKILL.md` — Step 5 index.yaml scaffold added
+- `skills/sdd-explore/SKILL.md` — index-first spec preload algorithm
+- `skills/sdd-propose/SKILL.md` — index-first spec preload algorithm
+- `skills/sdd-spec/SKILL.md` — index-first spec preload algorithm
+- `skills/sdd-design/SKILL.md` — index-first spec preload algorithm
+- `skills/sdd-tasks/SKILL.md` — index-first spec preload algorithm
+- `skills/sdd-apply/SKILL.md` — index-first spec preload algorithm inserted
+- `skills/sdd-verify/SKILL.md` — index-first spec preload algorithm inserted
+- `skills/sdd-ff/SKILL.md` — PRECONDITION block added to contradiction gate sub-step
+- `CLAUDE.md` — Fast-Forward section updated with gate behavior note
+- `openspec/config.yaml` — apply phase strategy comment block added
+- All 10 skills deployed to `~/.claude/skills/` via `install.sh`
+
+---
+
 ## [2026-03-20] — sdd-archive-move-incomplete (archived)
 
 **Type**: Bug fix — source directory deletion gap in sdd-archive Step 4

@@ -99,23 +99,43 @@ for each feature_file in ai-context/features/ (excluding _ prefix files):
 
 This step is **non-blocking**: any failure (missing directory, unreadable file, no match) MUST produce at most an INFO-level note. This step MUST NOT produce `status: blocked` or `status: failed`.
 
-1. **List candidates**: list subdirectory names in `openspec/specs/`. If the directory does not exist, log `INFO: openspec/specs/ not found — skipping spec context preload` and skip this step.
+If `openspec/specs/` directory does not exist: log `INFO: openspec/specs/ not found — skipping spec context preload` and skip this step.
 
-2. **Apply stem matching**:
-   ```
-   stems = change_name.split("-").filter(s => s.length > 1)
-   matches = []
-   for domain in candidates:
-     if domain in change_name OR any stem in domain:
-       matches.append(domain)
-   matches = matches[:3]   ← hard cap at 3
-   ```
+**Index-first lookup algorithm:**
 
-3. **Load matches**: for each matched domain, read `openspec/specs/<domain>/spec.md` and treat its content as an **authoritative behavioral contract** (precedence over `ai-context/` for behavioral questions; `ai-context/` remains supplementary for architecture and naming context). If a file cannot be read, log an INFO note and skip that file.
+```
+STEP 1: Try index-first lookup
+  IF openspec/specs/index.yaml exists:
+    a) Parse index.yaml → read domains[] array
+    b) For each domain entry:
+       - Extract domain.keywords[] and domain.domain
+       - Score: EXACT (1.0) if any keyword matches case-insensitively in change_name tokens
+                STEM (0.5) if any keyword is a substring of any change_name token (len > 1)
+                SKIP if score == 0.0
+    c) Collect scoring > 0, sort by (score desc, domain asc), cap at 3
+    d) Load openspec/specs/<domain>/spec.md for each matched domain
+    e) Log: "Spec context loaded from index: [domain/spec.md, ...]"
+    f) Return (do not fall through to STEP 2)
 
-4. **If no match**: skip silently — proceed to Step 1 without error or warning.
+  [If index present but no domain matched]: fall through to STEP 2
+  [If index absent]: fall through to STEP 2
 
-5. **When files are loaded**: emit the log line `Spec context loaded from: [domain/spec.md, ...]` and include the loaded paths in the artifacts list (read, not written).
+STEP 2: Stem-based directory matching (fallback)
+  a) List subdirs in openspec/specs/
+  b) Split change_name on "-" → stems; for each subdir, check if any stem (len > 1) appears
+  c) Cap at 3 matches
+  d) Load openspec/specs/<domain>/spec.md for each matched domain
+  e) Log: "Spec context loaded from directory scan: [domain/spec.md, ...]"
+  f) Log: "INFO: index.yaml not found or no index match — using fallback stem matching"
+
+[If no match in either step]
+  → Log: "INFO: No matching spec domains found for [change-name]"
+  → Proceed without loaded specs (non-blocking)
+```
+
+For each loaded spec file: treat its content as an **authoritative behavioral contract** (precedence over `ai-context/` for behavioral questions; `ai-context/` remains supplementary for architecture and naming context). If a file cannot be read, log an INFO note and skip that file.
+
+Include loaded spec paths in the artifacts list (read, not written).
 
 See `docs/SPEC-CONTEXT.md` for the full convention reference, load cap rationale, and fallback behavior.
 

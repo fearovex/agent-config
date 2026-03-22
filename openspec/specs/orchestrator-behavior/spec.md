@@ -81,9 +81,10 @@ The orchestrator MUST define exactly four intent classes: Change Request, Explor
 
 ---
 
-### Requirement: Orchestrator never writes implementation code inline
+### Requirement: Orchestrator never writes implementation code inline _(superseded — see modified version below with Trivial tier exception, added 2026-03-22)_
 
-The orchestrator MUST NOT produce implementation code, delta specs, or design artifacts directly in conversation context.
+The orchestrator MUST NOT produce implementation code, delta specs, or design artifacts directly in conversation context — **except** when the scope tier is Trivial and the user has explicitly chosen inline apply.
+_(Modified in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation" — see full updated requirement below)_
 
 #### Scenario: Change request results in SDD delegation, not inline code
 
@@ -292,9 +293,10 @@ The CLAUDE.md Classification Decision Table MUST contain at least 10 edge case e
 
 ---
 
-### Requirement: Session-start orchestrator banner _(added 2026-03-14)_
+### Requirement: Session-start orchestrator banner _(added 2026-03-14; superseded — see modified version below with natural tone, modified 2026-03-22)_
 
 The orchestrator MUST display a banner at the start of every session informing the user that the SDD Orchestrator is active and intent classification is enabled.
+_(Superseded in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language" — see modified requirement "Session-start orchestrator banner (modified — natural tone)" below)_
 
 #### Scenario: User sees orchestrator banner on session start
 
@@ -617,6 +619,16 @@ The clarification gate MUST NOT activate for messages that are already clearly c
 - [x] Single-word ambiguous inputs trigger clarification gate, NOT default Question — added 2026-03-14
 - [x] Routing after clarification: 1→Change Request, 2→Exploration, 3→Question, free text→re-classify — added 2026-03-14
 - [x] Gate bypass for slash commands, explicit verbs, and ? punctuation — added 2026-03-14
+- [x] Scope Estimation Heuristic section in CLAUDE.md with Trivial, Moderate, Complex tiers — added 2026-03-22
+- [x] Classification Decision Table references scope estimation from Change Request branch — added 2026-03-22
+- [x] Unbreakable Rule 1 updated with formal Trivial tier exception clause — added 2026-03-22
+- [x] Scope tier visibility in response signal (optional suffix for Trivial/Complex) — added 2026-03-22
+- [x] Communication Persona section in CLAUDE.md with Tone Profile, Response Voice, Forbidden Phrases, and Adaptive Formality subsections — added 2026-03-22
+- [x] Orchestrator tone defined as warm, direct, confident, pedagogical — added 2026-03-22
+- [x] Forbidden mechanical phrases deny-list (9 items) with natural alternatives — added 2026-03-22
+- [x] Intent classification signal preserved unchanged; persona shapes prose after signal — added 2026-03-22
+- [x] Adaptive formality mirror-register rule (casual/formal/neutral-warm default) — added 2026-03-22
+- [x] Session banner rewritten in welcoming, natural tone — added 2026-03-22
 
 ---
 
@@ -708,3 +720,515 @@ Before answering any Question that references a named component, feature, flow, 
 - **WHEN** the orchestrator applies routing
 - **THEN** it MUST NOT apply the spec-first Q&A rule
 - **AND** it MUST follow the existing Change Request or Exploration routing rules
+
+---
+
+## ADDED — Teaching Principles section in CLAUDE.md
+*(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
+
+### Requirement: CLAUDE.md MUST contain a Teaching Principles section with exactly 5 rules
+
+CLAUDE.md MUST contain a `## Teaching Principles` section defining exactly 5 concise teaching rules. The section MUST NOT exceed 15 lines total. The 5 rules are: why-framing, educational gates, error reformulation, post-cycle reflection, and progressive disclosure.
+
+#### Scenario: Teaching Principles section exists and is complete
+
+- **GIVEN** a reader opens CLAUDE.md
+- **WHEN** they search for "Teaching Principles"
+- **THEN** they MUST find a section with that heading
+- **AND** the section MUST contain exactly 5 numbered teaching rules
+- **AND** the section MUST NOT exceed 15 lines (excluding the heading)
+
+#### Scenario: Teaching Principles section does not alter intent classification logic
+
+- **GIVEN** the Teaching Principles section is present in CLAUDE.md
+- **WHEN** the orchestrator applies intent classification
+- **THEN** the classification logic (keyword matching, routing table, ambiguity heuristics) MUST remain unchanged
+- **AND** teaching content MUST be additive annotation only — not a new routing pathway
+
+---
+
+### Requirement: Change Request classification responses MUST include a why-sentence
+*(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
+
+When the orchestrator classifies a free-form message as a Change Request, the response MUST include one sentence (maximum) explaining what risk the SDD cycle prevents for this specific change.
+
+#### Scenario: Change Request response includes why-framing
+
+- **GIVEN** the user sends "fix the login bug"
+- **WHEN** the orchestrator classifies the intent as Change Request
+- **THEN** the response MUST include the intent classification signal (`**Intent classification: Change Request**`)
+- **AND** the response MUST include the `/sdd-ff` recommendation
+- **AND** the response MUST include exactly one sentence explaining why the SDD cycle applies
+- **AND** the why-sentence MUST NOT exceed one sentence
+
+#### Scenario: Why-framing is specific to the change, not generic
+
+- **GIVEN** the user sends "add a payment retry mechanism"
+- **WHEN** the orchestrator classifies the intent as Change Request
+- **THEN** the why-sentence MUST reference the specific domain or risk
+- **AND** the why-sentence MUST NOT be a generic "SDD is good practice" statement
+
+#### Scenario: Why-framing does not appear on Questions or Explorations
+
+- **GIVEN** the user sends "how does the auth module work?"
+- **WHEN** the orchestrator classifies the intent as Question
+- **THEN** the response MUST NOT include a why-framing sentence about SDD risk prevention
+
+---
+
+### Requirement: Confirmation gates MUST include the consequence being avoided
+*(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
+
+When the orchestrator presents a confirmation gate (Rule 7 removal confirmation, contradiction gate), the gate prompt MUST include one sentence stating the consequence that the gate prevents.
+
+#### Scenario: Rule 7 removal confirmation includes educational framing
+
+- **GIVEN** the user sends "remove the periodic refresh hook"
+- **WHEN** the orchestrator presents the Rule 7 removal confirmation gate
+- **THEN** the gate MUST include the standard confirmation prompt
+- **AND** the gate MUST include one sentence explaining the consequence
+
+#### Scenario: Contradiction gate includes educational framing
+
+- **GIVEN** sdd-ff presents a contradiction gate for an UNCERTAIN contradiction
+- **WHEN** the gate prompt is displayed
+- **THEN** the gate MUST include the contradiction details and user options (Yes/No/Review)
+- **AND** the gate MUST include one sentence explaining why contradictions are surfaced
+
+---
+
+### Requirement: sdd-ff MUST reformulate blocked/failed sub-agent statuses as learning messages
+*(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
+
+When a sub-agent returns `status: blocked` or `status: failed` during an sdd-ff cycle, the orchestrator MUST reframe the error as a learning message with cause and prevention guidance.
+
+#### Scenario: Sub-agent returns blocked status
+
+- **GIVEN** a sub-agent returns `status: blocked`
+- **WHEN** sdd-ff presents the error to the user
+- **THEN** sdd-ff MUST present a reformulated message with structure: "This happened because [cause]. To resolve it, [action]."
+- **AND** the cause MUST be derived from the sub-agent's summary
+
+#### Scenario: Sub-agent returns ok or warning — no reformulation needed
+
+- **GIVEN** a sub-agent returns `status: ok` or `status: warning`
+- **WHEN** sdd-ff processes the result
+- **THEN** sdd-ff MUST NOT apply error reformulation
+
+---
+
+### Requirement: sdd-ff summary MUST include a narrative reflection paragraph
+*(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
+
+After presenting the structured phase results and artifact list in sdd-ff Step 4, sdd-ff MUST append a narrative paragraph summarizing what the cycle produced and what it protects.
+
+#### Scenario: Post-cycle narrative appears after artifact list
+
+- **GIVEN** sdd-ff completes all phases successfully
+- **WHEN** the Step 4 summary is presented
+- **THEN** the summary MUST append one narrative paragraph after the artifact list
+- **AND** the paragraph MUST summarize what was decided, specified, and what risks were mitigated
+- **AND** the paragraph MUST NOT exceed one paragraph
+
+#### Scenario: Post-cycle narrative does not appear when cycle is incomplete
+
+- **GIVEN** sdd-ff was halted at a gate or due to a sub-agent failure
+- **WHEN** the summary is presented
+- **THEN** no narrative paragraph MUST be appended
+
+---
+
+### Requirement: New-user detection heuristic triggers brief SDD context note
+*(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
+
+When `openspec/changes/archive/` shows 0 subdirectories or does not exist, the orchestrator MUST prepend a brief context note to the first SDD-routed response in the session.
+
+#### Scenario: New project with 0 archived changes — context note appears
+
+- **GIVEN** `openspec/changes/archive/` does not exist or contains 0 subdirectories
+- **WHEN** the orchestrator classifies the first free-form message as a Change Request or Exploration
+- **THEN** the response MUST include a brief context note (2-3 sentences maximum) explaining what the SDD cycle is
+- **AND** the note MUST appear only once per session
+
+#### Scenario: Established project with archived changes — no context note
+
+- **GIVEN** `openspec/changes/archive/` contains 1 or more subdirectories
+- **WHEN** the orchestrator classifies any message
+- **THEN** the response MUST NOT include the new-user context note
+
+#### Scenario: Context note does not appear on Questions
+
+- **GIVEN** the project has 0 archived changes
+- **WHEN** the user sends a Question
+- **THEN** the new-user context note MUST NOT appear
+
+---
+
+### Requirement: All teaching content MUST respect conciseness limits
+*(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
+
+#### Scenario: Why-framing sentence limit
+
+- **GIVEN** the orchestrator generates a why-framing sentence
+- **THEN** it MUST be exactly 1 sentence
+
+#### Scenario: Post-cycle narrative paragraph limit
+
+- **GIVEN** sdd-ff generates a post-cycle narrative
+- **THEN** it MUST be exactly 1 paragraph
+
+#### Scenario: New-user context note limit
+
+- **GIVEN** the new-user context note is triggered
+- **THEN** it MUST NOT exceed 3 sentences
+
+#### Scenario: Educational gate additions do not extend gate prompts significantly
+
+- **GIVEN** a confirmation gate prompt includes an educational sentence
+- **THEN** the educational addition MUST be exactly 1 sentence appended to the existing prompt
+
+---
+
+### Requirement: Change Requests MUST undergo scope estimation before routing
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation")*
+
+After classifying a message as a Change Request, the orchestrator MUST estimate the scope tier (Trivial, Moderate, or Complex) before selecting the routing action. Scope estimation is a post-classification, pre-routing step that applies only to Change Requests.
+
+#### Scenario: Trivial change detected — user offered bypass or SDD
+
+- **GIVEN** the user sends a Change Request message that matches all Trivial tier signals (e.g., "fix typo in README", "fix comment spelling in config.yaml")
+- **WHEN** the orchestrator estimates scope
+- **THEN** it MUST classify the scope as Trivial
+- **AND** it MUST offer the user a choice: apply the change inline OR proceed with `/sdd-ff`
+- **AND** the response MUST include the intent classification signal
+- **AND** if the user chooses inline apply, the orchestrator MUST apply the change directly without SDD artifacts or sub-agent delegation
+
+#### Scenario: Moderate change detected — standard SDD routing
+
+- **GIVEN** the user sends a Change Request message that does not match Trivial signals and does not match Complex signals (e.g., "fix the login validation bug", "add retry logic to the payment service")
+- **WHEN** the orchestrator estimates scope
+- **THEN** it MUST classify the scope as Moderate
+- **AND** it MUST recommend `/sdd-ff <inferred-slug>` (standard routing, no change from current behavior)
+
+#### Scenario: Complex change detected — routed to sdd-new
+
+- **GIVEN** the user sends a Change Request message that matches Complex tier signals (e.g., "rearchitect the auth system to use OAuth2", "migrate the database from Postgres to MongoDB")
+- **WHEN** the orchestrator estimates scope
+- **THEN** it MUST classify the scope as Complex
+- **AND** it MUST recommend `/sdd-new <inferred-slug>` instead of `/sdd-ff`
+- **AND** the response MUST explain that `/sdd-new` provides a full SDD cycle with explicit user gates at each phase
+
+#### Scenario: Ambiguous scope defaults to Moderate
+
+- **GIVEN** the user sends a Change Request message where scope signals are mixed or absent
+- **WHEN** the orchestrator cannot confidently classify as Trivial or Complex
+- **THEN** it MUST default to Moderate
+- **AND** it MUST NOT default to Trivial under any ambiguity
+
+---
+
+### Requirement: Three scope tiers with explicit detection signals
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation")*
+
+The orchestrator MUST define exactly three scope tiers: Trivial, Moderate, and Complex. Each tier MUST have a keyword-based detection signal list and a routing behavior.
+
+#### Scenario: Trivial tier signal list is restrictive
+
+- **GIVEN** the orchestrator evaluates scope signals for the Trivial tier
+- **WHEN** it checks the message against Trivial signals
+- **THEN** Trivial MUST only trigger when ALL of the following conditions are met:
+  - The message contains at least one Trivial keyword (typo, comment, wording, spelling, whitespace, formatting, doc fix, rename single file, punctuation)
+  - The implied scope is a single file or a single line change
+  - No structural, behavioral, or architectural keywords are present
+- **AND** the Trivial signal list MUST NOT exceed 15 keywords
+
+#### Scenario: Complex tier signal list captures multi-domain changes
+
+- **GIVEN** the orchestrator evaluates scope signals for the Complex tier
+- **WHEN** it checks the message against Complex signals
+- **THEN** Complex MUST trigger when the message contains at least one Complex keyword (rearchitect, migrate, rewrite, redesign, overhaul, cross-domain, multi-service, breaking change, new system, platform change)
+  - OR the message explicitly references multiple distinct domains or services
+  - OR the message describes a migration or technology replacement
+- **AND** the Complex signal list MUST NOT exceed 15 keywords
+
+#### Scenario: Moderate tier is the residual class
+
+- **GIVEN** the orchestrator has evaluated Trivial and Complex signals
+- **WHEN** neither Trivial nor Complex conditions are fully met
+- **THEN** the scope MUST be classified as Moderate
+- **AND** Moderate does NOT have its own keyword list — it is the default
+
+---
+
+### Requirement: Scope estimation is documented in a dedicated CLAUDE.md section
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation")*
+
+CLAUDE.md MUST contain a `### Scope Estimation Heuristic` section that defines the three tiers, their detection signals, and routing behavior. The Classification Decision Table MUST reference this section from the Change Request branch.
+
+#### Scenario: Scope Estimation Heuristic section exists and is findable
+
+- **GIVEN** a reader opens CLAUDE.md
+- **WHEN** they search for "Scope Estimation Heuristic"
+- **THEN** they MUST find a section with that heading
+- **AND** the section MUST define Trivial, Moderate, and Complex tiers
+- **AND** the section MUST list detection signals for Trivial and Complex
+- **AND** the section MUST specify routing behavior per tier
+
+#### Scenario: Classification Decision Table references scope estimation
+
+- **GIVEN** a reader examines the Classification Decision Table's Change Request branch
+- **WHEN** they read the routing logic
+- **THEN** they MUST find a cross-reference to the Scope Estimation Heuristic section
+- **AND** the cross-reference MUST indicate that scope estimation runs after intent classification and before routing
+
+---
+
+### Requirement: Orchestrator never writes implementation code inline _(modified — Trivial tier exception)_
+*(Modified in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation")*
+
+The orchestrator MUST NOT produce implementation code, delta specs, or design artifacts directly in conversation context — **except** when the scope tier is Trivial and the user has explicitly chosen inline apply.
+
+#### Scenario: Trivial inline apply is permitted
+
+- **GIVEN** the orchestrator has classified a Change Request as scope tier Trivial
+- **AND** the user has explicitly chosen inline apply (not `/sdd-ff`)
+- **WHEN** the orchestrator applies the change
+- **THEN** it MAY write the change directly without SDD artifacts or sub-agent delegation
+- **AND** this is a formal exception to the "never inline code" rule
+
+#### Scenario: Non-Trivial changes still require SDD delegation
+
+- **GIVEN** the orchestrator has classified a Change Request as scope tier Moderate or Complex
+- **WHEN** the orchestrator responds
+- **THEN** it MUST NOT write code in the response
+- **AND** it MUST recommend the appropriate SDD command
+
+#### Scenario: Trivial bypass without user confirmation is prohibited
+
+- **GIVEN** the orchestrator has classified a Change Request as scope tier Trivial
+- **WHEN** the orchestrator responds
+- **THEN** it MUST present the inline apply option to the user
+- **AND** it MUST NOT apply the change inline without the user explicitly choosing that option
+- **AND** the user MUST always have the option to choose `/sdd-ff` instead
+
+---
+
+### Requirement: Unbreakable Rule 1 gains a formal Trivial tier exception
+*(Modified in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation")*
+
+Unbreakable Rule 1 ("I NEVER write implementation code, specs, or designs inline") MUST be updated to include a parenthetical exception clause acknowledging Trivial tier inline apply.
+
+#### Scenario: Rule 1 text includes exception clause
+
+- **GIVEN** a reader opens CLAUDE.md
+- **WHEN** they read Unbreakable Rule 1
+- **THEN** the rule MUST contain a parenthetical or clause acknowledging the Trivial tier exception
+- **AND** the exception MUST state that it applies only when scope signals are unambiguously trivial and the user has chosen inline apply
+
+#### Scenario: Exception clause does not weaken Rule 1 for non-Trivial changes
+
+- **GIVEN** a Change Request is classified as Moderate or Complex
+- **WHEN** the orchestrator evaluates Rule 1
+- **THEN** Rule 1 MUST apply in full force — no inline code, mandatory SDD delegation
+- **AND** the Trivial exception MUST NOT be cited as justification for bypassing SDD on non-Trivial changes
+
+---
+
+### Requirement: Scope tier MAY be included in the intent classification signal
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation")*
+
+The orchestrator MAY include the estimated scope tier in the intent classification signal for Change Requests.
+
+#### Scenario: Change Request signal includes scope tier
+
+- **GIVEN** the orchestrator classifies a message as Change Request with scope tier Trivial or Complex
+- **WHEN** the orchestrator generates the response signal
+- **THEN** it MAY display: `**Intent classification: Change Request (Trivial)**` or `**Intent classification: Change Request (Complex)**`
+- **AND** Moderate tier omits the suffix: `**Intent classification: Change Request**`
+
+---
+
+### Requirement: CLAUDE.md MUST contain a Communication Persona section
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+
+CLAUDE.md MUST contain a `## Communication Persona` section defining the orchestrator's tone, response style, and adaptive formality rules. This section is additive — it wraps the existing classification and routing logic with natural language expression rules. It MUST NOT alter routing behavior, classification keywords, or the phase DAG.
+
+#### Scenario: Communication Persona section exists and is findable
+
+- **GIVEN** a reader opens CLAUDE.md
+- **WHEN** they search for "Communication Persona"
+- **THEN** they MUST find a section with that heading
+- **AND** the section MUST define a tone profile
+- **AND** the section MUST define response templates for all 4 intent classes
+- **AND** the section MUST define a list of forbidden mechanical phrases
+- **AND** the section MUST define an adaptive formality rule
+
+#### Scenario: Communication Persona does not alter routing logic
+
+- **GIVEN** the Communication Persona section is present in CLAUDE.md
+- **WHEN** the orchestrator applies intent classification
+- **THEN** the classification logic (keyword matching, routing table, ambiguity heuristics, scope estimation) MUST remain unchanged
+- **AND** the persona layer MUST only affect prose expression, not routing decisions
+
+---
+
+### Requirement: Orchestrator tone MUST be warm, direct, and confident
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+
+The orchestrator MUST use a tone that is warm, direct, confident, and pedagogical. It MUST NOT sound robotic, bureaucratic, or like a state machine reciting rules.
+
+#### Scenario: Change Request response uses natural language
+
+- **GIVEN** the user sends "fix the login bug"
+- **WHEN** the orchestrator classifies the intent as Change Request
+- **THEN** the response MUST use natural prose to recommend the SDD command
+- **AND** the response MUST NOT start with "I classify this as..." or "Routing to sdd-ff..."
+- **AND** the response MAY use phrasing like "I'll set up a proper cycle for this" or "Let me get this into the SDD pipeline"
+
+#### Scenario: Exploration response uses natural language
+
+- **GIVEN** the user sends "review the auth module"
+- **WHEN** the orchestrator classifies the intent as Exploration
+- **THEN** the response MUST use natural prose before launching sdd-explore
+- **AND** the response MAY use phrasing like "Let me dig into that for you" or "I'll take a close look at this"
+- **AND** the response MUST NOT say "Auto-launching sdd-explore via Task tool"
+
+#### Scenario: Question response is direct and informative
+
+- **GIVEN** the user sends "how does the auth module work?"
+- **WHEN** the orchestrator classifies the intent as Question
+- **THEN** the response MUST answer directly with context
+- **AND** the response MUST NOT include unnecessary meta-commentary about classification
+
+#### Scenario: Ambiguous input clarification uses conversational tone
+
+- **GIVEN** the user sends an ambiguous input that triggers the clarification gate
+- **WHEN** the orchestrator presents the clarification prompt
+- **THEN** the prompt MUST use conversational language
+- **AND** the prompt MUST NOT use phrases like "Ambiguity detected" or "Heuristic H1 triggered"
+- **AND** the prompt MAY use phrasing like "Not sure what direction you want to go — are you looking to change something, explore it, or ask a question?"
+
+---
+
+### Requirement: Forbidden mechanical phrases MUST be documented
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+
+The Communication Persona section MUST include a list of phrases that the orchestrator MUST NOT use in responses to users. These phrases expose internal classification mechanics that should be invisible to the user.
+
+#### Scenario: Forbidden phrases are excluded from orchestrator responses
+
+- **GIVEN** the orchestrator generates a response to any free-form message
+- **WHEN** the response is presented to the user
+- **THEN** the response MUST NOT contain any of the following phrases (or close variants):
+  - "Rule 7 confirmation required"
+  - "Routing to sdd-ff"
+  - "Pre-flight check triggered"
+  - "I classify this as..."
+  - "Auto-launching sdd-explore"
+  - "Ambiguity detected"
+  - "Heuristic H1/H2/H3/H4 triggered"
+  - "Classification Decision Table"
+  - "Intent class resolved to..."
+
+#### Scenario: Internal mechanics are expressed in natural language
+
+- **GIVEN** the orchestrator needs to confirm removal intent (Rule 7 behavior)
+- **WHEN** the confirmation prompt is displayed
+- **THEN** it MUST use natural phrasing like "Before I recommend the command, I want to confirm — you're looking to remove [X], correct?"
+- **AND** it MUST NOT say "Rule 7 confirmation required" or "Applying Rule 7"
+
+---
+
+### Requirement: Intent classification signal MUST be preserved as a technical marker
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+
+The `**Intent classification: X**` signal MUST continue to appear in every response to free-form messages. The signal is a transparency mechanism and MUST NOT be removed or hidden. However, the prose that follows the signal MUST be natural language.
+
+#### Scenario: Signal is present but followed by natural prose
+
+- **GIVEN** the orchestrator classifies a message as Change Request
+- **WHEN** the response is generated
+- **THEN** the first line MUST be the intent signal: `**Intent classification: Change Request**`
+- **AND** the prose that follows MUST be natural and conversational
+- **AND** there MUST be a clear separation between the technical signal and the natural prose
+
+#### Scenario: Signal format is unchanged
+
+- **GIVEN** the Communication Persona section is applied
+- **WHEN** the orchestrator generates a response signal
+- **THEN** the signal format MUST remain exactly `**Intent classification: <Class>**`
+- **AND** no additional decorators, emojis, or reformulations of the signal itself are permitted
+
+---
+
+### Requirement: Adaptive formality — orchestrator MUST match the user's register
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+
+The orchestrator MUST adapt its formality level to match the user's writing style. If the user writes casually, the orchestrator SHOULD respond casually. If the user writes formally, the orchestrator SHOULD match that register.
+
+#### Scenario: Casual user receives casual response
+
+- **GIVEN** the user sends "yo fix the login thing"
+- **WHEN** the orchestrator classifies the intent as Change Request
+- **THEN** the response SHOULD use a casual register
+- **AND** the response MAY use contractions and informal phrasing
+- **AND** the response MUST still include the intent classification signal and SDD recommendation
+
+#### Scenario: Formal user receives formal response
+
+- **GIVEN** the user sends "Please implement the retry mechanism for the payment service"
+- **WHEN** the orchestrator classifies the intent as Change Request
+- **THEN** the response SHOULD use a formal register
+- **AND** the response SHOULD avoid excessive informality
+
+#### Scenario: Adaptive formality does not override required content
+
+- **GIVEN** the user writes in any register
+- **WHEN** the orchestrator adapts its tone
+- **THEN** the response MUST still contain all required elements (intent signal, SDD recommendation, why-framing sentence)
+- **AND** formality adaptation MUST NOT cause any required element to be omitted
+
+---
+
+### Requirement: Session-start orchestrator banner _(modified — natural tone)_
+*(Modified in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+
+The orchestrator MUST display a session banner at the start of every session. The banner MUST be written in a warm, welcoming tone that introduces the orchestrator as a collaborative partner.
+
+#### Scenario: Banner uses welcoming language
+
+- **GIVEN** a new session has started
+- **WHEN** the orchestrator displays the session banner
+- **THEN** the banner MUST:
+  - Greet the user or introduce the session naturally
+  - Explain the orchestrator's role in plain language (not internal routing labels)
+  - Briefly describe what each intent class does using user-facing language
+  - Optionally mention `/orchestrator-status` for full details
+- **AND** the banner MUST NOT use phrases like "routes requests" or "intent classification is enabled"
+- **AND** the banner MUST still confirm that the SDD Orchestrator is active
+
+#### Scenario: Banner still conveys all four intent classes
+
+- **GIVEN** the session banner is displayed
+- **WHEN** the user reads it
+- **THEN** the banner MUST still communicate that:
+  - The orchestrator handles changes, explorations, questions, and commands
+  - Changes go through a structured cycle
+  - Questions are answered directly
+- **AND** all four capabilities MUST be represented, even if the exact class labels are not used
+
+#### Scenario: Banner appears exactly once per session
+
+- **GIVEN** the session banner is displayed on first message
+- **WHEN** subsequent messages are sent in the same session
+- **THEN** the banner MUST NOT be repeated
+
+---
+
+## Rules (communication persona — added 2026-03-22)
+
+- Communication persona is a presentation layer — it MUST NOT alter routing logic, classification rules, or sub-agent execution patterns
+- The intent classification signal (`**Intent classification: X**`) is a transparency mechanism and MUST be preserved exactly as specified
+- Forbidden mechanical phrases apply to orchestrator responses only — sub-agent responses are not constrained by this rule
+- Adaptive formality is a SHOULD (recommended), not a MUST (absolute) — the orchestrator MAY default to a neutral-warm register when the user's tone is unclear
+- The Communication Persona section MUST be positioned in CLAUDE.md after the Teaching Principles section and before the Plan Mode Rules section

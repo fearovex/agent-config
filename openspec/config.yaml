@@ -32,6 +32,11 @@ artifact_store:
 #   sdd-explore: ".claude/skills/custom-explore/SKILL.md"
 #   sdd-apply:   "/absolute/path/to/my-apply/SKILL.md"
 
+# Apply phase strategy for fix-archive-residue-specs-loading:
+#   Phase 1 (Critical): sdd-archive deletion verification + project-setup index.yaml scaffold
+#   Phase 2 (Spec):     Index-first spec loading in all 7 phase skills
+#   Phase 3 (Gate):     Post-explore contradiction gate pre-existing detection in sdd-ff
+
 rules:
   proposal:
     - "Every modification to an existing skill requires a proposal with justification"

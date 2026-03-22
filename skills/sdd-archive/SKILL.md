@@ -249,7 +249,28 @@ I move the change folder:
 
 After ALL files are confirmed present at `openspec/changes/archive/<date>-<archive_slug>/`, I MUST delete `openspec/changes/<change-name>/` and all its contents. Source deletion MUST NOT execute before destination files are confirmed — if confirmation fails, I halt and report an error without deleting the source.
 
-I confirm the source directory `openspec/changes/<change-name>/` no longer exists before continuing to Step 5. I output "Source directory deleted: openspec/changes/<change-name>/" to confirm completion. If deletion fails after a successful copy, I output a WARNING with the exact path to delete manually and continue to Step 5 with `status: warning`.
+**Deletion verification (non-blocking — always proceeds to Step 5):**
+
+After executing the deletion command, verify the source directory no longer exists using the following two-branch logic:
+
+**Branch A — bash available:**
+```bash
+test -d 'openspec/changes/<change-name>' && echo 'exists' || echo 'deleted'
+```
+- If result == "deleted": log `✓ Source directory deleted and verified: openspec/changes/<change-name>/` → status remains ok
+- If result == "exists": log the following WARNING and set `status: warning`:
+  ```
+  WARNING: Source directory still exists after move attempt: openspec/changes/<change-name>/
+  Manual recovery required — run:
+    rm -rf 'openspec/changes/<change-name>'
+  ```
+
+**Branch B — bash unavailable (Windows fallback):**
+Use `mcp__filesystem__list_directory('openspec/changes/<change-name>')` as fallback:
+- If call fails with FileNotFoundError or similar: source is deleted → log `✓ Source directory deleted and verified: openspec/changes/<change-name>/`
+- If call succeeds (directory listing returned): source still exists → log WARNING with exact path and `rm -rf` recovery command; set `status: warning`
+
+Verification is **non-blocking**: execution proceeds to Step 5 regardless of outcome. If status was previously `ok` and verification fails, set `status: warning`. Do NOT halt or return `status: failed` for a failed deletion verification.
 
 ### Step 5 — Create closure note
 

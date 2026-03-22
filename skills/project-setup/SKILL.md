@@ -345,7 +345,25 @@ else:
     failure during detection MUST NOT abort config.yaml generation
 ```
 
-### Step 5 — Final report
+### Step 5 — Scaffold openspec/specs/index.yaml
+
+This step is **non-blocking**: any failure (permission error, write error) MUST produce at most an INFO-level note. This step MUST NOT produce `status: blocked` or `status: failed`.
+
+1. Check whether `openspec/specs/index.yaml` exists.
+2. If absent: create it with the following minimal scaffold content:
+   ```yaml
+   # openspec/specs/index.yaml
+   # Maps spec domains to keywords for index-first spec context lookup.
+   # Each phase skill reads this file in Step 0 to select relevant specs.
+   # Format: domains is a flat list; each entry requires domain, summary, and keywords (3–8 terms).
+   domains: []
+   ```
+   Log: `✓ openspec/specs/index.yaml scaffolded (empty domains list).`
+3. If already exists: log `INFO: openspec/specs/index.yaml already present — skipping scaffold.`
+
+Step is idempotent — running `/project-setup` multiple times will not overwrite an existing index.yaml. Failure to create the file logs an INFO note and does not abort setup.
+
+### Step 6 — Final report
 
 I present to the user:
 

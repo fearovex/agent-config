@@ -155,11 +155,20 @@ Task tool:
     - risks: identified risks (if any)
 ```
 
-Wait for result. If status is `blocked` or `failed`, stop and report to user. If status is `warning`, continue but surface the warning prominently.
+Wait for result. If status is `blocked` or `failed`, stop and present a reformulated error message (see Error Reformulation below). If status is `warning`, continue but surface the warning prominently.
 
 **Contradiction gate sub-step** (runs after explore completes, before launching propose):
 
 ```
+PRECONDITION — Pre-existing exploration.md detection:
+  Before reading ## Contradiction Analysis, check whether exploration.md was pre-existing:
+  - If openspec/changes/[inferred-slug]/exploration.md existed BEFORE this sdd-ff run
+    (i.e., the explore sub-agent did not create it — it was already present):
+    → Log: "INFO: exploration.md was pre-existing — contradiction gate skipped."
+    → Skip this entire gate sub-step and proceed to Step 1 (propose) immediately.
+  - If exploration.md was created by the explore sub-agent in this run:
+    → Continue with the gate logic below.
+
 Read openspec/changes/[inferred-slug]/exploration.md → ## Contradiction Analysis section.
 
 If section absent or states "No contradictions detected.":
@@ -176,6 +185,8 @@ If section contains one or more UNCERTAIN contradictions:
     [For each UNCERTAIN item:]
       - [Item name]: [explanation of what conflicts with what]
         Severity: [INFO|WARNING|CRITICAL]
+
+    Resolving contradictions now prevents the spec and design from making conflicting assumptions that would surface later during implementation.
 
     Does this proposal intend to change/remove the above? Please confirm:
       Yes    — Proceed; I'll record your decision in the proposal.
@@ -236,7 +247,7 @@ Task tool:
     - risks: identified risks (if any)
 ```
 
-Wait for the result. If status is `blocked` or `failed`, stop and report to user. If status is `warning`, continue but surface the warning prominently.
+Wait for the result. If status is `blocked` or `failed`, stop and present a reformulated error message (see Error Reformulation below). If status is `warning`, continue but surface the warning prominently.
 
 ---
 
@@ -303,7 +314,7 @@ Task tool:
     - risks: identified risks (if any)
 ```
 
-Wait for **both** to complete before proceeding. If either is `blocked` or `failed`, stop and report. Surface any warnings from either.
+Wait for **both** to complete before proceeding. If either is `blocked` or `failed`, stop and present a reformulated error message (see Error Reformulation below). Surface any warnings from either.
 
 ---
 
@@ -338,7 +349,21 @@ Task tool:
     - risks: identified risks (if any)
 ```
 
-Wait for the result.
+Wait for the result. If status is `blocked` or `failed`, stop and present a reformulated error message (see Error Reformulation below). If status is `warning`, continue but surface the warning prominently.
+
+---
+
+### Error Reformulation
+
+When any sub-agent returns `status: blocked` or `status: failed`, do NOT relay the raw status verbatim as the only content. Instead, present a reformulated message:
+
+```
+⚠️ [Phase name] returned [status]: [original summary from sub-agent]
+This happened because [cause derived from the sub-agent's summary].
+To resolve it, [concrete next step the user can take].
+```
+
+This pattern applies to explore (Step 0), propose (Step 1), spec and design (Step 2), and tasks (Step 3). Statuses `ok` and `warning` are NOT affected — they follow the normal summary presentation.
 
 ---
 
@@ -366,8 +391,11 @@ Artifacts created:
 [If any warnings] Warnings:
   - [warning text]
 
-Ready to implement? Run:
-  /sdd-apply [inferred-slug]
+[1-paragraph narrative reflection — only when all phases completed successfully, not when halted:]
+This cycle [summarize what was decided and specified, what architectural decisions were captured in the design, and what risks the structured SDD approach mitigated that ad-hoc implementation would have missed — reference the specific change domain, not generic SDD praise].
+
+Continue with implementation? Reply **yes** to proceed.
+_(Manual: `/sdd-apply [inferred-slug]`)_
 
 Note: When the cycle completes, /sdd-archive will auto-update ai-context/ memory.
 ```

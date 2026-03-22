@@ -480,4 +480,88 @@ If the user confirms or clarifies at the contradiction gate, `sdd-ff` MUST recor
 - User confirmation at the gate is binding — it updates the proposal.md and flows to all downstream phases
 - If user cannot confirm at the gate (chooses "Clarify"), `sdd-ff` MUST return to exploration with clarification request
 - Pre-populated proposal.md is a skeleton only; `sdd-propose` phase may refine or override all sections
+
+---
+
+## ADDED — sdd-ff Post-Explore Contradiction Gate (ADR 023 Implementation)
+*(Added in: 2026-03-21 by change "fix-archive-residue-specs-loading")*
+
+### Requirement: sdd-ff MUST check for UNCERTAIN contradictions after exploration
+
+After the `sdd-explore` sub-agent completes (Step 0 of sdd-ff), and before launching `sdd-propose` (Step 1), the orchestrator MUST examine the generated `exploration.md` file for a `## Contradiction Analysis` section. If UNCERTAIN contradictions are found, the orchestrator MUST present a user confirmation gate.
+
+The gate serves two purposes:
+1. Surface ambiguities that exploration could not fully resolve
+2. Capture explicit user intent before committing to the proposal
+
+#### Scenario: Exploration reports no contradictions — gate does not fire
+
+- **GIVEN** the user invokes `/sdd-ff add-email-notification-system`
+- **WHEN** sdd-explore completes and generates exploration.md
+- **AND** the exploration.md `## Contradiction Analysis` section states: "No contradictions detected"
+- **THEN** sdd-ff MUST NOT present a gate
+- **AND** sdd-ff MUST proceed immediately to sdd-propose (Step 1) with no user interaction
+- **AND** the summary output MUST include: "Exploration complete (no contradictions)"
+
+#### Scenario: Exploration reports UNCERTAIN contradictions — gate fires
+
+- **GIVEN** the exploration.md reports an UNCERTAIN contradiction
+- **WHEN** sdd-ff finishes exploration and checks for contradictions
+- **THEN** sdd-ff MUST present a gate listing each UNCERTAIN contradiction with its severity and description
+- **AND** the gate MUST wait for the user's response before proceeding
+- **AND** user options MUST include: Yes (confirm + proceed), No (halt), Review (show full analysis)
+
+#### Scenario: CERTAIN contradictions do not trigger the gate
+
+- **GIVEN** exploration.md reports only CERTAIN contradictions
+- **WHEN** sdd-ff checks for UNCERTAIN contradictions
+- **THEN** CERTAIN contradictions MUST NOT trigger the gate
+- **AND** sdd-ff proceeds to sdd-propose with no gate
+
+#### Scenario: Pre-existing exploration.md — gate does not re-fire
+
+- **GIVEN** a change directory already contains an exploration.md from a prior session
+- **WHEN** sdd-ff detects the existing exploration.md
+- **THEN** sdd-ff MUST NOT re-run exploration and MUST NOT re-fire the contradiction gate
+- **AND** the gate only fires when a NEW exploration.md is created in the current session
+
+---
+
+### Requirement: User confirmation at the gate updates proposal.md with explicit intent
+
+When the user confirms at the contradiction gate (Yes), sdd-ff MUST record the confirmation in the proposal.md `## Decisions` section with an ISO 8601 timestamp.
+
+---
+
+### Requirement: Gate placement in sdd-ff sequence
+
+The contradiction gate MUST run as a sub-step between Step 0 (Exploration) and Step 1 (Propose). It is called "Step 0c: Post-explore contradiction gate" in the orchestration sequence.
+
+#### Scenario: sdd-ff execution sequence includes the contradiction gate
+
+- **GIVEN** the sdd-ff orchestrator processes a change
+- **WHEN** the execution sequence is examined
+- **THEN** the steps MUST be:
+  - Step 0: sdd-explore
+  - **Step 0c: Check for UNCERTAIN contradictions and present gate if found** (NEW)
+  - Step 1: sdd-propose
+  - Step 2: sdd-spec + sdd-design (parallel)
+  - Step 3: sdd-tasks
+
+---
+
+### Requirement: Contradiction Analysis section format in exploration.md
+
+For the post-explore gate to function, exploration.md MUST include a `## Contradiction Analysis` section. Each entry MUST have `Classification: [CERTAIN | UNCERTAIN]`, `Severity:`, and `Description:` fields.
+
+---
+
+## Rules (post-explore gate — added 2026-03-21)
+
+- Gate fires ONLY if exploration.md contains one or more UNCERTAIN contradictions
+- Gate is a blocking pause: user MUST respond before sdd-ff continues
+- User confirmation at the gate is binding — updates proposal.md `## Decisions` section
+- Pre-existing exploration.md does NOT trigger the gate
+- CERTAIN contradictions are informational; they do NOT trigger a gate
+- Gate is a sub-step of Step 0 (post-explore, pre-propose) and does NOT affect step numbering of subsequent phases
 - Gate only appears between exploration and propose; not at any other phase boundary

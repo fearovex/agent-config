@@ -106,7 +106,7 @@ domains:
 
   - domain: orchestrator-behavior
     summary: Always-on intent classification — Change Request, Exploration, Question, Meta-Command routing
-    keywords: [orchestrator, intent-classification, routing, change-request, exploration, question]
+    keywords: [orchestrator, intent-classification, routing, change-request, exploration, question, scope-estimation, scope-tier]
     related: [feedback-session, sdd-orchestration, skill-authoring-conventions]
 
   - domain: prd-system
@@ -317,3 +317,8 @@ domains:
     summary: Spec GC skill for discovering and removing stale, provisional, orphaned, contradictory, or duplicate requirements from master specs
     keywords: [spec-gc, garbage-collection, stale, provisional, orphaned, contradictory, dry-run, cleanup]
     related: [spec-index, orchestrator-behavior]
+
+  - domain: spec-context-discovery
+    summary: Index-first spec discovery algorithm for all SDD phase skills — keyword scoring, directory fallback, non-blocking contract
+    keywords: [spec-context, discovery, index-first, keyword-scoring, stem-matching, phase-skills, fallback]
+    related: [sdd-phase-context-loading, sdd-archive-execution, spec-index]

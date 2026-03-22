@@ -92,3 +92,4 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [038](038-sdd-archive-orphan-validation-convention.md) | SDD Archive Orphan Validation Convention — Two-Tier Severity Gate Before Archiving | Proposed | 2026-03-19 |
 | [039](039-orphan-change-disposition-convention.md) | Orphan Change Disposition Convention — 7-day threshold, three disposal options, and MUST_RESOLVE gate in sdd-archive | Proposed | 2026-03-19 |
 | [040](040-context-contradiction-handling-convention.md) | Context Contradiction Handling Convention — Unified artifact contracts for replacement changes, prior-attempt discovery, and contradiction detection | Proposed | 2026-03-19 |
+| [041](041-slim-orchestrator-context.md) | Slim Orchestrator Context — Inline-vs-Skill Boundary and Budget Governance | Accepted | 2026-03-22 |
