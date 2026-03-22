@@ -327,3 +327,8 @@ domains:
     summary: sdd-spec creates index.yaml when absent on first domain spec write — idempotent, non-blocking side effect
     keywords: [sdd-spec, index-yaml, creation, idempotent, non-blocking, first-spec]
     related: [spec-index, sdd-archive-execution, orchestrator-behavior]
+
+  - domain: sdd-phase-completion-messages
+    summary: Uniform natural language confirmation gate pattern for all SDD phase skill completion messages — replaces command-as-gate pattern
+    keywords: [phase-completion, natural-language, gate, confirmation, standardize, sdd-verify, sdd-apply, sdd-new]
+    related: [sdd-orchestration, sdd-verify-execution, sdd-apply-execution]
