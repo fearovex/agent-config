@@ -110,17 +110,21 @@ _(Modified in: 2026-03-22 by change "2026-03-21-orchestrator-scope-estimation" �
 
 ---
 
-### Requirement: CLAUDE.md documents the Always-On Orchestrator behavior
+### Requirement: CLAUDE.md documents the Always-On Orchestrator behavior _(modified — 2026-03-22 by change "2026-03-22-slim-orchestrator-context")_
 
-CLAUDE.md MUST contain a dedicated section that defines intent classification rules, the four intent classes, and the routing table.
+_(Before: "CLAUDE.md MUST contain a dedicated section that defines intent classification rules, the four intent classes, and the routing table." — no distinction between inline-required and extractable content.)_
 
-#### Scenario: Section exists and is findable
+CLAUDE.md MUST contain the intent classification rules, the four intent classes, and the routing table **inline**. Presentation-layer content (Communication Persona, Teaching Principles, Session Banner, New-User Detection) MUST be located in `skills/orchestrator-persona/SKILL.md`, not inline in CLAUDE.md. A loading instruction in CLAUDE.md MUST reference the persona skill.
+
+#### Scenario: Section exists with inline classification content and a persona skill reference
 
 - **GIVEN** a reader opens CLAUDE.md
 - **WHEN** they search for "Always-On Orchestrator" or "Intent Classification"
 - **THEN** they MUST find a section with that heading
-- **AND** the section MUST contain the four intent classes and their routing actions
-- **AND** the section MUST state the "never inline code" rule
+- **AND** the section MUST contain the four intent classes and their routing actions inline
+- **AND** the section MUST state the "never inline code" rule (with Trivial exception)
+- **AND** the section MUST reference `skills/orchestrator-persona/SKILL.md` for tone, teaching, and persona rules
+- **AND** the section MUST NOT contain the full Communication Persona or Teaching Principles content
 
 #### Scenario: CLAUDE.md updated in global and project files
 
@@ -595,6 +599,222 @@ The clarification gate MUST NOT activate for messages that are already clearly c
 
 ---
 
+---
+
+## ADDED — Slim Orchestrator Context: Inline-vs-Skill Boundary and Budget Governance
+*(Added in: 2026-03-22 by change "2026-03-22-slim-orchestrator-context")*
+
+### Requirement: Orchestrator content MUST be split into classification-critical (inline) and presentation (skill-based) layers
+
+The global CLAUDE.md MUST contain only classification-critical orchestrator content inline. Presentation-layer content (Communication Persona, Teaching Principles, New-User Detection, Session Banner) MUST reside in a dedicated skill file (`skills/orchestrator-persona/SKILL.md`) loaded on demand.
+
+#### Scenario: Classification-critical content remains inline in global CLAUDE.md
+
+- **GIVEN** a new session starts and Claude reads the global CLAUDE.md
+- **WHEN** the first free-form user message arrives
+- **THEN** the Classification Decision Table MUST be available in CLAUDE.md for immediate use
+- **AND** the Scope Estimation Heuristic MUST be available in CLAUDE.md for immediate use
+- **AND** the Ambiguity Detection Heuristics MUST be available in CLAUDE.md for immediate use
+- **AND** the Intent Classes and Routing table MUST be available in CLAUDE.md for immediate use
+- **AND** the Unbreakable Rules (1-7) MUST be available in CLAUDE.md for immediate use
+
+#### Scenario: Presentation content is absent from global CLAUDE.md
+
+- **GIVEN** a reader opens the global CLAUDE.md after this change is applied
+- **WHEN** they search for "Communication Persona" or "Teaching Principles" or "New-User Detection" or "Tone Profile" or "Forbidden Mechanical Phrases"
+- **THEN** they MUST NOT find those sections inline in CLAUDE.md
+- **AND** they MUST find a reference or loading instruction pointing to `skills/orchestrator-persona/SKILL.md`
+
+#### Scenario: Orchestrator loads persona skill before generating first free-form response
+
+- **GIVEN** the orchestrator has classified a free-form message (Change Request, Exploration, Question, or Ambiguous)
+- **WHEN** the orchestrator generates the response prose (after the intent classification signal)
+- **THEN** the orchestrator MUST have loaded `skills/orchestrator-persona/SKILL.md` to apply tone, teaching, and persona rules
+- **AND** if the persona skill cannot be loaded, the orchestrator MUST still generate a response (graceful degradation) using a neutral-warm default tone
+- **AND** classification accuracy MUST NOT be affected by persona skill availability
+
+#### Scenario: Slash command responses do not require persona skill loading
+
+- **GIVEN** the user sends a slash command (Meta-Command)
+- **WHEN** the orchestrator executes the command
+- **THEN** the orchestrator MUST NOT be required to load the persona skill
+- **AND** sub-agent responses from skill execution are not constrained by persona rules
+
+---
+
+### Requirement: Orchestrator persona skill MUST contain all presentation-layer content
+
+A new skill `skills/orchestrator-persona/SKILL.md` MUST exist and MUST contain all orchestrator presentation-layer content extracted from CLAUDE.md.
+
+#### Scenario: Persona skill contains Communication Persona content
+
+- **GIVEN** a reader opens `skills/orchestrator-persona/SKILL.md`
+- **WHEN** they read the skill content
+- **THEN** the skill MUST contain the Tone Profile (warm, direct, confident, pedagogical)
+- **AND** the skill MUST contain Response Voice templates for all 4 intent classes
+- **AND** the skill MUST contain the Forbidden Mechanical Phrases deny-list
+- **AND** the skill MUST contain the Adaptive Formality rules
+
+#### Scenario: Persona skill contains Teaching Principles content
+
+- **GIVEN** a reader opens `skills/orchestrator-persona/SKILL.md`
+- **WHEN** they read the skill content
+- **THEN** the skill MUST contain the 5 teaching principles (why-framing, educational gates, error reformulation, post-cycle reflection, progressive disclosure)
+- **AND** the skill MUST contain the New-User Detection heuristic (archive directory check)
+
+#### Scenario: Persona skill contains Session Banner content
+
+- **GIVEN** a reader opens `skills/orchestrator-persona/SKILL.md`
+- **WHEN** they read the skill content
+- **THEN** the skill MUST contain the session-start orchestrator banner template
+- **AND** the banner MUST retain its warm, welcoming tone
+
+#### Scenario: Persona skill is under 8,000 characters
+
+- **GIVEN** the persona skill has been created
+- **WHEN** its character count is measured
+- **THEN** it MUST be under 8,000 characters
+- **AND** it MUST conform to the SKILL.md structural contract (YAML frontmatter with `format:` field, `**Triggers**`, required sections per format, `## Rules`)
+
+---
+
+### Requirement: Redundant SDD flow documentation MUST be removed from global CLAUDE.md
+
+Sections that duplicate content already present in skill files MUST be removed from the global CLAUDE.md.
+
+#### Scenario: Fast-Forward section is absent from global CLAUDE.md
+
+- **GIVEN** a reader opens the global CLAUDE.md after this change
+- **WHEN** they search for "## Fast-Forward" or "## Fast-Forward (/sdd-ff)"
+- **THEN** they MUST NOT find that section
+- **AND** the authoritative source for the fast-forward algorithm MUST be `skills/sdd-ff/SKILL.md`
+
+#### Scenario: Apply Strategy section is absent from global CLAUDE.md
+
+- **GIVEN** a reader opens the global CLAUDE.md after this change
+- **WHEN** they search for "## Apply Strategy"
+- **THEN** they MUST NOT find that section
+
+#### Scenario: SDD Flow Phase DAG section is absent from global CLAUDE.md
+
+- **GIVEN** a reader opens the global CLAUDE.md after this change
+- **WHEN** they search for "## SDD Flow" or "Phase DAG"
+- **THEN** they MUST NOT find that section as a standalone heading
+- **AND** a brief reference to the phase DAG MAY exist in the Architecture section (as a pointer, not a full diagram)
+
+#### Scenario: How I Execute Commands delegation pattern is absent from global CLAUDE.md
+
+- **GIVEN** a reader opens the global CLAUDE.md after this change
+- **WHEN** they search for "## How I Execute Commands" or "Sub-agent launch pattern"
+- **THEN** they MUST NOT find that section
+- **AND** the delegation pattern MUST remain documented in `skills/sdd-ff/SKILL.md` and `skills/sdd-new/SKILL.md`
+
+#### Scenario: Classification and routing logic remains unaffected
+
+- **GIVEN** the redundant sections have been removed
+- **WHEN** the orchestrator classifies a user message
+- **THEN** the classification MUST produce identical results as before the removal
+- **AND** no classification keyword, routing rule, scope estimation signal, or ambiguity heuristic MUST have been removed
+
+---
+
+### Requirement: Global CLAUDE.md MUST stay under 20,000 characters (budget governance)
+
+The global CLAUDE.md (source: `CLAUDE.md` in repo root, deployed to `~/.claude/CLAUDE.md`) MUST NOT exceed 20,000 characters.
+
+#### Scenario: Global CLAUDE.md is within budget after this change
+
+- **GIVEN** the refactoring is complete and all sections have been extracted or condensed
+- **WHEN** the character count of the global CLAUDE.md is measured
+- **THEN** the count MUST be at most 20,000 characters
+
+#### Scenario: Future additions that would exceed the budget are flagged
+
+- **GIVEN** a future change proposes adding content to the global CLAUDE.md
+- **WHEN** the resulting character count would exceed 20,000 characters
+- **THEN** the `/project-audit` budget compliance check SHOULD flag a warning
+- **AND** the change author MUST either extract content to a skill or increase the budget via a governance exception documented in an ADR
+
+---
+
+### Requirement: Project CLAUDE.md MUST be override-only and under 5,000 characters
+
+The project-level CLAUDE.md (in the repo root for this project, or `.claude/CLAUDE.md` in other projects) MUST contain only project-specific overrides and MUST NOT duplicate global orchestrator content.
+
+#### Scenario: Project CLAUDE.md contains only project-specific content
+
+- **GIVEN** a reader opens the project CLAUDE.md after this change
+- **WHEN** they read the content
+- **THEN** it MUST contain a project identity header
+- **AND** it MUST contain the project-specific Tech Stack table
+- **AND** it MUST contain any project-specific Unbreakable Rules additions (if any)
+- **AND** it MUST contain Project Memory section pointers
+- **AND** it MUST contain project-local Skills Registry entries (if any)
+- **AND** it MUST NOT contain the Classification Decision Table
+- **AND** it MUST NOT contain the Scope Estimation Heuristic
+- **AND** it MUST NOT contain the Ambiguity Detection Heuristics
+- **AND** it MUST NOT contain the Communication Persona section
+- **AND** it MUST NOT contain the Teaching Principles section
+- **AND** it MUST NOT contain the SDD Flow, Fast-Forward, Apply Strategy, or delegation pattern sections
+
+#### Scenario: Project CLAUDE.md is within budget
+
+- **GIVEN** the refactoring is complete
+- **WHEN** the character count of the project CLAUDE.md is measured
+- **THEN** the count MUST be at most 5,000 characters
+
+#### Scenario: Combined always-loaded context is under 25,000 characters
+
+- **GIVEN** both global and project CLAUDE.md have been refactored
+- **WHEN** their combined character count is measured
+- **THEN** the combined count MUST be at most 25,000 characters
+
+---
+
+### Requirement: Character budgets MUST be documented and enforceable
+
+Three character budgets MUST be defined and documented: global CLAUDE.md (20k), project CLAUDE.md (5k), and new orchestrator skills (8k per skill).
+
+#### Scenario: Budget constants are documented in an ADR
+
+- **GIVEN** this change is complete
+- **WHEN** a reader opens the new ADR for this change
+- **THEN** the ADR MUST state the three budgets:
+  - Global CLAUDE.md: 20,000 characters maximum
+  - Project CLAUDE.md: 5,000 characters maximum
+  - New orchestrator skills: 8,000 characters maximum per skill
+- **AND** the ADR MUST document the exception process (explicit ADR approval to exceed a budget)
+- **AND** the ADR MUST state that existing skills are grandfathered (budget applies to newly created orchestrator skills only)
+
+#### Scenario: Conventions reflect the inline-vs-skill boundary
+
+- **GIVEN** `ai-context/conventions.md` is updated
+- **WHEN** a reader searches for "inline" or "skill boundary"
+- **THEN** they MUST find a statement reflecting the refined boundary: classification logic stays inline in CLAUDE.md; presentation content (persona, teaching, session banner) is skill-based and loaded on demand
+
+---
+
+### Requirement: ADR MUST document the refined inline-vs-skill boundary
+
+A new ADR MUST be created documenting the decision to refine the inline-vs-skill boundary for orchestrator content. The ADR supersedes the original decision (ADR #18 spirit) that kept all orchestrator behavior inline.
+
+#### Scenario: ADR exists and documents the boundary
+
+- **GIVEN** the change is complete
+- **WHEN** a reader opens `docs/adr/` and examines the new ADR
+- **THEN** the ADR MUST state:
+  - **Context**: CLAUDE.md grew to ~88k characters (global + project) through successive additive changes
+  - **Decision**: Classification logic (Decision Table, Scope Estimation, Ambiguity Heuristics) remains inline; presentation logic (Persona, Teaching, Banner) moves to `skills/orchestrator-persona/SKILL.md`
+  - **Consequences**: Always-loaded context reduced to under 25k characters; classification timing safety preserved; future additions governed by character budgets
+
+#### Scenario: ADR is referenced in the ADR index
+
+- **GIVEN** the ADR is created
+- **WHEN** a reader opens `docs/adr/README.md`
+- **THEN** the new ADR MUST appear in the index with its number, title, and status
+
+---
+
 ## Validation Criteria
 
 - [ ] CLAUDE.md contains a dedicated "Always-On Orchestrator" section
@@ -629,6 +849,15 @@ The clarification gate MUST NOT activate for messages that are already clearly c
 - [x] Intent classification signal preserved unchanged; persona shapes prose after signal — added 2026-03-22
 - [x] Adaptive formality mirror-register rule (casual/formal/neutral-warm default) — added 2026-03-22
 - [x] Session banner rewritten in welcoming, natural tone — added 2026-03-22
+- [x] Classification-critical content (Decision Table, Scope Estimation, Ambiguity Heuristics, Unbreakable Rules, Response Signal) remains inline in CLAUDE.md — added 2026-03-22
+- [x] Presentation-layer content (Communication Persona, Teaching Principles, Session Banner, New-User Detection) relocated to `skills/orchestrator-persona/SKILL.md` — added 2026-03-22
+- [x] `skills/orchestrator-persona/SKILL.md` created and under 8,000 characters — added 2026-03-22
+- [x] Persona skill loaded on first free-form response per session via loading instruction in CLAUDE.md — added 2026-03-22
+- [x] Redundant sections (Fast-Forward, Apply Strategy, SDD Flow, How I Execute Commands) removed from CLAUDE.md — added 2026-03-22
+- [x] Global CLAUDE.md under 20,000 characters — added 2026-03-22
+- [x] Budget governance comment block added to CLAUDE.md with three budget constants — added 2026-03-22
+- [x] ADR-041 created documenting inline-vs-skill boundary and budget governance — added 2026-03-22
+- [x] `ai-context/conventions.md` updated with inline-vs-skill boundary documentation — added 2026-03-22
 
 ---
 
@@ -726,24 +955,25 @@ Before answering any Question that references a named component, feature, flow, 
 ## ADDED — Teaching Principles section in CLAUDE.md
 *(Added in: 2026-03-21 by change "2026-03-21-orchestrator-teaching")*
 
-### Requirement: CLAUDE.md MUST contain a Teaching Principles section with exactly 5 rules
+### Requirement: CLAUDE.md MUST contain a Teaching Principles section with exactly 5 rules _(modified — relocated to skill, 2026-03-22 by change "2026-03-22-slim-orchestrator-context")_
 
-CLAUDE.md MUST contain a `## Teaching Principles` section defining exactly 5 concise teaching rules. The section MUST NOT exceed 15 lines total. The 5 rules are: why-framing, educational gates, error reformulation, post-cycle reflection, and progressive disclosure.
+_(Before: "CLAUDE.md MUST contain a `## Teaching Principles` section defining exactly 5 concise teaching rules.")_
 
-#### Scenario: Teaching Principles section exists and is complete
+The Teaching Principles content MUST be located in `skills/orchestrator-persona/SKILL.md`, NOT inline in CLAUDE.md. The 5 teaching rules remain unchanged — only the storage location changes.
+
+#### Scenario: Teaching Principles is not in CLAUDE.md
 
 - **GIVEN** a reader opens CLAUDE.md
 - **WHEN** they search for "Teaching Principles"
-- **THEN** they MUST find a section with that heading
-- **AND** the section MUST contain exactly 5 numbered teaching rules
-- **AND** the section MUST NOT exceed 15 lines (excluding the heading)
+- **THEN** they MUST NOT find a full section with 5 teaching rules
+- **AND** they MAY find a brief reference or loading instruction
 
-#### Scenario: Teaching Principles section does not alter intent classification logic
+#### Scenario: All teaching behavioral requirements still apply
 
-- **GIVEN** the Teaching Principles section is present in CLAUDE.md
-- **WHEN** the orchestrator applies intent classification
-- **THEN** the classification logic (keyword matching, routing table, ambiguity heuristics) MUST remain unchanged
-- **AND** teaching content MUST be additive annotation only — not a new routing pathway
+- **GIVEN** the orchestrator generates a response that requires why-framing, educational gates, or error reformulation
+- **WHEN** the response is presented
+- **THEN** the teaching principles MUST still be applied
+- **AND** these rules are now sourced from `skills/orchestrator-persona/SKILL.md` instead of CLAUDE.md
 
 ---
 
@@ -1048,24 +1278,31 @@ The orchestrator MAY include the estimated scope tier in the intent classificati
 
 ---
 
-### Requirement: CLAUDE.md MUST contain a Communication Persona section
-*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+### Requirement: CLAUDE.md MUST contain a Communication Persona section _(modified — relocated to skill, 2026-03-22 by change "2026-03-22-slim-orchestrator-context")_
 
-CLAUDE.md MUST contain a `## Communication Persona` section defining the orchestrator's tone, response style, and adaptive formality rules. This section is additive — it wraps the existing classification and routing logic with natural language expression rules. It MUST NOT alter routing behavior, classification keywords, or the phase DAG.
+_(Before: "CLAUDE.md MUST contain a `## Communication Persona` section defining the orchestrator's tone, response style, and adaptive formality rules." — Added 2026-03-22 by change "2026-03-21-orchestrator-natural-language".)_
 
-#### Scenario: Communication Persona section exists and is findable
+The Communication Persona content MUST be located in `skills/orchestrator-persona/SKILL.md`, NOT inline in CLAUDE.md. The behavioral requirements (tone, forbidden phrases, adaptive formality) remain unchanged — only the storage location changes.
+
+#### Scenario: Communication Persona is not in CLAUDE.md
 
 - **GIVEN** a reader opens CLAUDE.md
 - **WHEN** they search for "Communication Persona"
-- **THEN** they MUST find a section with that heading
-- **AND** the section MUST define a tone profile
-- **AND** the section MUST define response templates for all 4 intent classes
-- **AND** the section MUST define a list of forbidden mechanical phrases
-- **AND** the section MUST define an adaptive formality rule
+- **THEN** they MUST NOT find a full section with persona rules
+- **AND** they MAY find a brief reference or loading instruction
+
+#### Scenario: All persona behavioral requirements still apply
+
+- **GIVEN** the orchestrator generates a response to a free-form message
+- **WHEN** the response is presented
+- **THEN** the tone MUST still be warm, direct, confident, and pedagogical
+- **AND** forbidden mechanical phrases MUST still be excluded
+- **AND** adaptive formality MUST still be applied
+- **AND** these rules are now sourced from `skills/orchestrator-persona/SKILL.md` instead of CLAUDE.md
 
 #### Scenario: Communication Persona does not alter routing logic
 
-- **GIVEN** the Communication Persona section is present in CLAUDE.md
+- **GIVEN** the Communication Persona skill is loaded
 - **WHEN** the orchestrator applies intent classification
 - **THEN** the classification logic (keyword matching, routing table, ambiguity heuristics, scope estimation) MUST remain unchanged
 - **AND** the persona layer MUST only affect prose expression, not routing decisions
@@ -1190,8 +1427,25 @@ The orchestrator MUST adapt its formality level to match the user's writing styl
 
 ---
 
-### Requirement: Session-start orchestrator banner _(modified — natural tone)_
-*(Modified in: 2026-03-22 by change "2026-03-21-orchestrator-natural-language")*
+### Requirement: Session-start orchestrator banner _(modified — relocated to skill, 2026-03-22 by change "2026-03-22-slim-orchestrator-context")_
+
+_(Before: "The orchestrator MUST display a session banner at the start of every session. The banner MUST be written in a warm, welcoming tone." — Modified 2026-03-22 by change "2026-03-21-orchestrator-natural-language".)_
+
+The session banner template MUST be located in `skills/orchestrator-persona/SKILL.md`. The behavioral requirement (display once at session start, warm tone, covers all four intent classes) remains unchanged.
+
+#### Scenario: Banner template is not in CLAUDE.md
+
+- **GIVEN** a reader opens CLAUDE.md
+- **WHEN** they search for "Session Banner" or "Orchestrator Session Banner"
+- **THEN** they MUST NOT find the full banner template inline
+- **AND** they MAY find a brief loading instruction referencing the persona skill
+
+#### Scenario: Banner still displays at session start
+
+- **GIVEN** a new session starts and the orchestrator loads the persona skill
+- **WHEN** the first message arrives
+- **THEN** the orchestrator MUST still display the session banner with welcoming tone
+- **AND** the banner MUST appear exactly once per session
 
 The orchestrator MUST display a session banner at the start of every session. The banner MUST be written in a warm, welcoming tone that introduces the orchestrator as a collaborative partner.
 
@@ -1231,4 +1485,149 @@ The orchestrator MUST display a session banner at the start of every session. Th
 - The intent classification signal (`**Intent classification: X**`) is a transparency mechanism and MUST be preserved exactly as specified
 - Forbidden mechanical phrases apply to orchestrator responses only — sub-agent responses are not constrained by this rule
 - Adaptive formality is a SHOULD (recommended), not a MUST (absolute) — the orchestrator MAY default to a neutral-warm register when the user's tone is unclear
-- The Communication Persona section MUST be positioned in CLAUDE.md after the Teaching Principles section and before the Plan Mode Rules section
+- ~~The Communication Persona section MUST be positioned in CLAUDE.md after the Teaching Principles section and before the Plan Mode Rules section~~ _(REMOVED — 2026-03-22 by change "2026-03-22-slim-orchestrator-context": Communication Persona and Teaching Principles are now in `skills/orchestrator-persona/SKILL.md`. Positioning in CLAUDE.md is no longer applicable.)_
+
+---
+
+## Requirements (pre-flight check — added 2026-03-22 by change "2026-03-21-orchestrator-action-control-gates")
+
+### Requirement: Pre-flight Check section exists in CLAUDE.md
+
+The orchestrator MUST have a Pre-flight Check section in `CLAUDE.md` positioned between the Classification Decision Table and the Scope Estimation Heuristic section.
+
+#### Scenario: Pre-flight Check section is present and correctly positioned
+
+- **GIVEN** the CLAUDE.md orchestrator configuration
+- **WHEN** reading the intent classification pipeline
+- **THEN** a "Pre-flight Check" section MUST exist between the Classification Decision Table and the Scope Estimation Heuristic
+- **AND** the section MUST define Gate 1 (active change scan) and Gate 2 (spec drift advisory)
+- **AND** both gates MUST be documented as advisory-only (non-blocking)
+
+---
+
+### Requirement: Gate 1 — Active change scan is advisory and stop-word filtered
+
+When a Change Request is classified, the orchestrator MUST scan `openspec/changes/` (excluding `archive/`) for in-flight changes with semantically overlapping slugs, using stop-word-filtered token overlap. The scan MUST be advisory-only — it MUST NOT block the routing recommendation.
+
+#### Scenario: Advisory emitted when substantive token overlap exists
+
+- **GIVEN** a Change Request is classified
+- **AND** `openspec/changes/` contains a directory whose slug shares ≥1 substantive token with the message (token length > 3, not in stop-word list: fix, add, the, for, and, or, of, to, in, on, at, a, an)
+- **WHEN** Gate 1 runs
+- **THEN** the orchestrator MUST emit: "You have `<change-name>` in progress. Do you want to continue that cycle or start a new one?"
+- **AND** the routing recommendation (`/sdd-ff` or `/sdd-new`) MUST still follow
+
+#### Scenario: No advisory when token overlap is stop-word-only
+
+- **GIVEN** a Change Request is classified
+- **AND** any slug overlap is limited to stop words (fix, add, etc.) or tokens of length ≤ 3
+- **WHEN** Gate 1 runs
+- **THEN** no advisory MUST be emitted
+- **AND** routing proceeds normally
+
+#### Scenario: No advisory when openspec/changes/ is absent or empty
+
+- **GIVEN** `openspec/changes/` does not exist or contains no directories (excluding archive/)
+- **WHEN** Gate 1 runs
+- **THEN** no advisory is emitted and no error is raised
+
+---
+
+### Requirement: Gate 2 — Spec drift advisory degrades gracefully when index.yaml is absent
+
+When a Change Request is classified, the orchestrator MUST attempt to match the message tokens against `openspec/specs/index.yaml` domain keywords and emit an advisory naming the matched domain. If `index.yaml` is absent, the gate MUST skip silently without error.
+
+#### Scenario: Spec drift advisory emitted when domain keyword matches
+
+- **GIVEN** a Change Request is classified
+- **AND** `openspec/specs/index.yaml` is present and contains at least one domain entry
+- **AND** the message tokens (stop-word filtered) match a keyword in a domain's `keywords[]` array
+- **WHEN** Gate 2 runs
+- **THEN** the orchestrator MUST emit: "Your change touches the `<domain>` spec domain — review openspec/specs/<domain>/spec.md before proposing."
+- **AND** the advisory MUST be capped at 3 domains maximum
+- **AND** the routing recommendation MUST still follow
+
+#### Scenario: Gate 2 skips silently when index.yaml is absent
+
+- **GIVEN** a Change Request is classified
+- **AND** `openspec/specs/index.yaml` does not exist
+- **WHEN** Gate 2 runs
+- **THEN** no advisory is emitted
+- **AND** no error or warning is raised
+
+---
+
+## ADDED — Context-Aware Session Handoff and Natural Language Gates
+*(Added in: 2026-03-22 by change "2026-03-21-orchestrator-mandatory-new-session")*
+
+### Requirement: Rule 6 — Cross-session ff handoff (context-aware heuristic)
+
+_(Before: Rule 6 activated only when the user explicitly stated "new session", "next chat", "context reset", or "compaction imminent".)_
+
+The orchestrator MUST evaluate session context depth before recommending `/sdd-ff` and route accordingly using a two-branch heuristic.
+
+**Branch A — Significant prior context (heuristic: ~5+ messages exchanged, or other topics discussed before the change request):**
+1. The orchestrator MUST create `openspec/changes/<slug>/proposal.md` immediately, capturing: problem statement, target files, constraints, and any decisions from the conversation.
+2. The orchestrator MUST display the proposal file path.
+3. The orchestrator MUST recommend a new session: "Open a new chat and run `/sdd-ff <slug>` — the proposal has the context."
+4. The orchestrator MUST offer `/memory-update` before the session ends.
+
+**Branch B — Clean session (heuristic: the change request is the first or second message with no substantial prior discussion):**
+1. The orchestrator MUST create `proposal.md` inside the `sdd-ff` context extraction sub-step (as already designed).
+2. The orchestrator MUST proceed with `/sdd-ff` in the same session — no new-session recommendation.
+
+The heuristic threshold (~5 messages) is advisory. The orchestrator MUST use judgment; false negatives (missing a case where new session would help) are acceptable — the heuristic is not a hard block.
+
+#### Scenario: Change request after long conversation triggers new-session recommendation
+
+- **GIVEN** a session with significant prior context (more than ~5 messages exchanged before the change request, or substantive prior topics discussed)
+- **WHEN** the orchestrator classifies a message as a Change Request
+- **THEN** it MUST create `openspec/changes/<slug>/proposal.md` with problem, files, constraints, and decisions from the conversation
+- **AND** it MUST display the proposal path
+- **AND** it MUST recommend: "Open a new chat and run `/sdd-ff <slug>` — the proposal has the context."
+- **AND** it MUST offer `/memory-update` before the session ends
+
+#### Scenario: Clean session proceeds without new-session recommendation
+
+- **GIVEN** a session where the change request is the first or second message with no substantial prior discussion
+- **WHEN** the orchestrator classifies a message as a Change Request
+- **THEN** it MUST NOT recommend starting a new session
+- **AND** it MUST recommend `/sdd-ff <slug>` for same-session execution (or recommend the user run it directly)
+- **AND** `proposal.md` creation is delegated to the `sdd-ff` context extraction sub-step
+
+#### Scenario: /memory-update offered when proposal is created before session handoff
+
+- **GIVEN** the orchestrator creates `proposal.md` and recommends a new session (Branch A)
+- **WHEN** presenting the recommendation to the user
+- **THEN** the orchestrator MUST include an offer to run `/memory-update` to persist session context before the session ends
+- **AND** the offer MUST appear in the same response as the new-session recommendation
+
+#### Scenario: Explicit user language no longer required to trigger handoff advice
+
+- **GIVEN** a session with significant prior context
+- **WHEN** the user sends a change request WITHOUT using words like "new session", "next chat", or "context reset"
+- **THEN** the orchestrator MUST still apply the context-aware heuristic
+- **AND** it MUST still create `proposal.md` and recommend a new session if the heuristic fires
+- **AND** it MUST NOT wait for explicit opt-in language
+
+---
+
+### Requirement: Natural language confirmation gates in phase transitions
+
+Phase transition confirmations in SDD cycles MUST use natural language prompts as the primary gate. Command references are permitted as secondary, optional references — not as the primary action the user must take.
+
+#### Scenario: Phase transition prompt uses natural language, not command-as-gate
+
+- **GIVEN** an SDD cycle (e.g., sdd-ff) has completed a phase and is ready to proceed to apply
+- **WHEN** the orchestrator presents the gate to the user
+- **THEN** it MUST phrase the gate as a natural language question (e.g., "Continue with implementation? Reply **yes** to proceed.")
+- **AND** it MAY include the command as an optional manual reference (e.g., "_(Manual: `/sdd-apply <slug>`)_")
+- **AND** it MUST NOT frame the command as the only or primary action the user must take
+
+#### Scenario: User replies "yes" to proceed with next phase
+
+- **GIVEN** the orchestrator has presented a natural language confirmation gate
+- **WHEN** the user replies "yes" (or equivalent affirmative: "y", "proceed", "continue", "go ahead")
+- **THEN** the orchestrator MUST interpret the reply as confirmation and launch the next phase
+- **AND** it MUST NOT require the user to type the slash command to proceed
+- **AND** routing proceeds normally

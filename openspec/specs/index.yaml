@@ -322,3 +322,8 @@ domains:
     summary: Index-first spec discovery algorithm for all SDD phase skills — keyword scoring, directory fallback, non-blocking contract
     keywords: [spec-context, discovery, index-first, keyword-scoring, stem-matching, phase-skills, fallback]
     related: [sdd-phase-context-loading, sdd-archive-execution, spec-index]
+
+  - domain: sdd-spec-index-creation
+    summary: sdd-spec creates index.yaml when absent on first domain spec write — idempotent, non-blocking side effect
+    keywords: [sdd-spec, index-yaml, creation, idempotent, non-blocking, first-spec]
+    related: [spec-index, sdd-archive-execution, orchestrator-behavior]
