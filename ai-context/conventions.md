@@ -97,6 +97,11 @@ All formats always require `**Triggers**` and `## Rules`.
 
 The orchestrator's intent classification pipeline (defined in `CLAUDE.md` Classification Decision Table) includes a **clarification gate** for ambiguous inputs. When a user message does not clearly map to any of the first three intent classes (Meta-Command, Change Request, Exploration), and it matches one of the four ambiguity detection heuristics (single-word, standalone verb, vague noun phrase, compound phrase with weak binding), the orchestrator presents a 3-option clarification prompt before defaulting to Question. Non-ambiguous inputs with strong signals (explicit intent verbs, punctuation `?`, slash commands) bypass the gate. This gate is inline procedural logic in CLAUDE.md — no separate skill is required.
 
+**Inline-vs-skill boundary (ADR-041):**
+- Classification-critical content (Decision Table, Scope Estimation, Ambiguity Heuristics, Unbreakable Rules, Response Signal format) stays inline in CLAUDE.md — must be available on first message without file I/O.
+- Presentation-layer content (session banner, communication persona, teaching principles, new-user detection) lives in `skills/orchestrator-persona/SKILL.md` — loaded by the orchestrator on the first free-form response per session.
+- This boundary must not be crossed: do not move classification logic to skills, do not move presentation content back inline.
+
 See: `openspec/specs/orchestrator-behavior/spec.md` for the full requirement spec.
 
 ---

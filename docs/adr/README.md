@@ -93,3 +93,5 @@ ADR files are append-only by convention: once accepted, the original Context, De
 | [039](039-orphan-change-disposition-convention.md) | Orphan Change Disposition Convention — 7-day threshold, three disposal options, and MUST_RESOLVE gate in sdd-archive | Proposed | 2026-03-19 |
 | [040](040-context-contradiction-handling-convention.md) | Context Contradiction Handling Convention — Unified artifact contracts for replacement changes, prior-attempt discovery, and contradiction detection | Proposed | 2026-03-19 |
 | [041](041-slim-orchestrator-context.md) | Slim Orchestrator Context — Inline-vs-Skill Boundary and Budget Governance | Accepted | 2026-03-22 |
+| [042](042-orchestrator-preflight-advisory-gates.md) | Orchestrator Pre-flight Advisory Gates — Inline Two-Gate Architecture | Proposed | 2026-03-22 |
+| [043](043-context-aware-session-handoff-convention.md) | Context-Aware Session Handoff Convention — Replaces Opt-In Rule 6 Trigger with Heuristic Detection | Proposed | 2026-03-22 |

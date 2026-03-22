@@ -4,6 +4,59 @@
 
 ---
 
+## [2026-03-22] — 2026-03-21-orchestrator-mandatory-new-session (applied)
+
+**Type**: SDD cycle — apply complete
+**What was done**: Replaced Rule 6's opt-in explicit-language trigger with a context-aware two-branch heuristic. Branch A fires when significant prior context exists (~5+ messages): orchestrator creates proposal.md, displays path, recommends new session, and offers /memory-update. Branch B (clean session) proceeds inline without new-session recommendation. Also replaced the sdd-ff Step 4 command-as-gate pattern ("Ready to implement? Run: /sdd-apply") with a natural language confirmation prompt ("Continue with implementation? Reply yes to proceed.") with the slash command demoted to an optional manual reference. Delta specs appended to base spec files.
+**Modified files**:
+- `CLAUDE.md` — Rule 6 rewritten with Branch A / Branch B context-aware heuristic; opt-in trigger language removed
+- `skills/sdd-ff/SKILL.md` — Step 4 confirmation prompt replaced with natural language gate
+- `openspec/specs/orchestrator-behavior/spec.md` — Two new requirements appended: context-aware session handoff heuristic + natural language confirmation gate
+- `openspec/specs/sdd-orchestration/spec.md` — New requirement appended: sdd-ff Step 4 natural language gate with scenarios
+**Decisions made**:
+- Heuristic threshold (~5 messages) is advisory — orchestrator uses judgment; false negatives are acceptable
+- /memory-update offer is co-located with Branch A recommendation for contextual clarity
+- Command reference preserved as secondary optional path for power users
+
+---
+
+## [2026-03-22] — 2026-03-21-orchestrator-action-control-gates (archived)
+
+**Type**: SDD cycle — archive complete
+**What was done**: Added two advisory-only Pre-flight Check gates to the orchestrator's Change Request routing pipeline. Gate 1 scans `openspec/changes/` for in-flight cycles with semantic slug overlap (stop-word filtered). Gate 2 keyword-matches against `openspec/specs/index.yaml` domain keywords for spec drift advisory (capped at 3 domains). Both gates are non-blocking. `sdd-spec` updated with Sub-step 3.0 to create `index.yaml` when absent on first spec write. Delta spec for `sdd-spec-index-creation` promoted to new master domain. Change moved to `openspec/changes/archive/2026-03-22-orchestrator-action-control-gates/`. CLOSURE.md created.
+**Modified files**:
+- `CLAUDE.md` — Pre-flight Check section added between Classification Decision Table and Scope Estimation Heuristic
+- `skills/sdd-spec/SKILL.md` — Sub-step 3.0 added: create index.yaml if absent on first spec write
+- `openspec/specs/orchestrator-behavior/spec.md` — New REQ entries appended (pre-flight gates)
+- `openspec/specs/sdd-spec-index-creation/spec.md` — Created as new master spec domain
+- `openspec/specs/index.yaml` — New domain `sdd-spec-index-creation` added
+- `openspec/changes/archive/2026-03-22-orchestrator-action-control-gates/CLOSURE.md` — created
+**Decisions made**:
+- Both pre-flight gates are advisory only — routing recommendation always follows, user is never blocked
+- Gate 2 scope for Trivial tier is an open UX question (potential noise for trivial doc fixes matching spec keywords) — deferred to a future change if noise is observed
+
+---
+
+## [2026-03-22] — 2026-03-22-slim-orchestrator-context (archived)
+
+**Type**: SDD cycle — archive complete
+**What was done**: Archived change `2026-03-22-slim-orchestrator-context`. Reduced always-loaded orchestrator context from ~88k to ~19,863 chars by extracting presentation-layer content (session banner, teaching principles, communication persona) into `skills/orchestrator-persona/SKILL.md`. Established budget governance via ADR-041. Delta specs were merged in Phase 6 (task 6.3) prior to archiving. Change moved to `openspec/changes/archive/2026-03-22-slim-orchestrator-context/`. CLOSURE.md created.
+**Modified files**:
+- `CLAUDE.md` — refactored to 19,863 chars; removed 7 sections; added persona loading instruction and budget governance comment block; condensed Skills Registry and Commands sections
+- `skills/orchestrator-persona/SKILL.md` — created (6,857 chars); contains session banner, teaching principles (5), communication persona
+- `skills/project-audit/SKILL.md` — added Dimension 14: Budget Compliance (INFO severity)
+- `docs/adr/041-slim-orchestrator-context.md` — new ADR: inline-vs-skill boundary + budget governance
+- `docs/adr/README.md` — ADR-041 row added
+- `ai-context/architecture.md` — decision 29 added (slim orchestrator context)
+- `ai-context/conventions.md` — inline-vs-skill boundary documented (line 102)
+- `openspec/specs/orchestrator-behavior/spec.md` — merged delta: persona loading, budget governance, inline-vs-skill boundary requirements
+- `openspec/changes/archive/2026-03-22-slim-orchestrator-context/CLOSURE.md` — created
+**Decisions made**:
+- Inline-vs-skill boundary: classification-critical content stays inline in CLAUDE.md; presentation-layer content moves to on-demand skills (ADR-041)
+- Budget governance: global CLAUDE.md ≤ 20,000 chars; project CLAUDE.md ≤ 5,000 chars; new orchestrator skills ≤ 8,000 chars
+
+---
+
 ## [2026-03-22] — 2026-03-21-orchestrator-natural-language (archived)
 
 **Type**: SDD cycle — archive complete
