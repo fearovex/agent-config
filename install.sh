@@ -2,7 +2,8 @@
 # install.sh — Deploys repo configuration to ~/.claude/ (the Claude Code runtime).
 #
 # Direction : repo/  →  ~/.claude/
-# Scope     : ALL directories (CLAUDE.md, settings.json, skills/, hooks/, openspec/, ai-context/, memory/)
+# Scope     : ALL directories (CLAUDE.md, settings.json, keybindings.json, skills/, hooks/,
+#              openspec/, ai-context/, memory/, output-styles/, mcp/)
 # Note      : memory/ flows the REVERSE direction via sync.sh — run sync.sh periodically
 #             to capture Claude's automatic memory updates back into the repo.
 #
@@ -87,10 +88,13 @@ mkdir -p "$CLAUDE_DIR/skills"
 mkdir -p "$CLAUDE_DIR/hooks"
 mkdir -p "$CLAUDE_DIR/openspec"
 mkdir -p "$CLAUDE_DIR/ai-context"
+mkdir -p "$CLAUDE_DIR/output-styles"
+mkdir -p "$CLAUDE_DIR/mcp"
 
 # Copy single files
-cp "$REPO_DIR/CLAUDE.md"      "$CLAUDE_DIR/CLAUDE.md"
-cp "$REPO_DIR/settings.json"  "$CLAUDE_DIR/settings.json"
+cp "$REPO_DIR/CLAUDE.md"         "$CLAUDE_DIR/CLAUDE.md"
+cp "$REPO_DIR/settings.json"     "$CLAUDE_DIR/settings.json"
+cp "$REPO_DIR/keybindings.json"  "$CLAUDE_DIR/keybindings.json"
 
 # Copy directories (cross-platform: no rsync required)
 copy_dir() {
@@ -102,11 +106,13 @@ copy_dir() {
   fi
 }
 
-copy_dir "$REPO_DIR/memory"     "$CLAUDE_DIR/memory"
-copy_dir "$REPO_DIR/skills"     "$CLAUDE_DIR/skills"
-copy_dir "$REPO_DIR/hooks"      "$CLAUDE_DIR/hooks"
-copy_dir "$REPO_DIR/openspec"   "$CLAUDE_DIR/openspec"
-copy_dir "$REPO_DIR/ai-context" "$CLAUDE_DIR/ai-context"
+copy_dir "$REPO_DIR/memory"        "$CLAUDE_DIR/memory"
+copy_dir "$REPO_DIR/skills"        "$CLAUDE_DIR/skills"
+copy_dir "$REPO_DIR/hooks"         "$CLAUDE_DIR/hooks"
+copy_dir "$REPO_DIR/openspec"      "$CLAUDE_DIR/openspec"
+copy_dir "$REPO_DIR/ai-context"    "$CLAUDE_DIR/ai-context"
+copy_dir "$REPO_DIR/output-styles" "$CLAUDE_DIR/output-styles"
+copy_dir "$REPO_DIR/mcp"           "$CLAUDE_DIR/mcp"
 
 # ---------------------------------------------------------------------------
 # Find the claude CLI — needed for MCP registration
@@ -189,16 +195,20 @@ fi
 
 echo ""
 echo "Done! Claude Code is ready with:"
-echo "  - CLAUDE.md (SDD orchestrator)"
+echo "  - CLAUDE.md (SDD orchestrator + Engram protocol + Gentleman persona)"
 echo "  - $(ls "$CLAUDE_DIR/skills/" | wc -l) skills loaded"
 echo "  - Memory at $CLAUDE_DIR/memory/"
 echo "  - SDD config at $CLAUDE_DIR/openspec/"
 echo "  - AI context at $CLAUDE_DIR/ai-context/"
+echo "  - Output style: Gentleman ($CLAUDE_DIR/output-styles/)"
+echo "  - Keybindings at $CLAUDE_DIR/keybindings.json"
+echo "  - MCP configs at $CLAUDE_DIR/mcp/ (engram, context7)"
 if [ -n "$CLAUDE_CMD" ]; then
-  echo "  - MCP: github + filesystem"
+  echo "  - MCP registered: github + filesystem"
 else
   echo "  - MCP: NOT registered (claude CLI not found — see warning above)"
 fi
 echo ""
 echo "Note: settings.local.json is NOT restored — Claude Code generates it automatically."
 echo "Note: ensure GITHUB_TOKEN is defined as a system environment variable."
+echo "Note: Engram plugin (engram@engram) must be installed separately via Claude Code plugins."

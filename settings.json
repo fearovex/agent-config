@@ -1,32 +1,55 @@
 {
-  "alwaysThinkingEnabled": false,
-  "effortLevel": "low",
-  "model": "sonnet",
   "env": {
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "true"
   },
   "permissions": {
-    "allow": ["Read", "Glob", "Grep", "Bash", "Write", "Edit"]
+    "allow": ["Read", "Glob", "Grep", "Bash", "Write", "Edit"],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(sudo rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(sudo rm -rf ~)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Edit(.env)",
+      "Edit(.env.*)"
+    ],
+    "defaultMode": "bypassPermissions"
   },
-  "mcpServers": {
-    "github": {
-      "type": "stdio",
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+  "enabledPlugins": {
+    "engram@engram": true
+  },
+  "extraKnownMarketplaces": {
+    "engram": {
+      "source": {
+        "source": "github",
+        "repo": "Gentleman-Programming/engram"
       }
-    },
+    }
+  },
+  "outputStyle": "Gentleman",
+  "alwaysThinkingEnabled": false,
+  "effortLevel": "medium",
+  "skipDangerousModePermissionPrompt": true,
+  "mcpServers": {
     "filesystem": {
-      "type": "stdio",
-      "command": "cmd",
       "args": [
         "/c",
         "npx",
         "-y",
         "@modelcontextprotocol/server-filesystem",
         "."
-      ]
+      ],
+      "command": "cmd",
+      "type": "stdio"
+    },
+    "github": {
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-github"],
+      "command": "cmd",
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "type": "stdio"
     }
   }
 }

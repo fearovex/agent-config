@@ -1,4 +1,4 @@
-# User Memory — Juan Pablo
+# User Memory — Fearovex
 
 ## SDD architecture installed (2026-02-23)
 
