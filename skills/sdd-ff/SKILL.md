@@ -4,7 +4,7 @@ description: >
   Fast-forward SDD cycle: includes mandatory exploration as Step 0, then runs propose → spec+design (parallel) → tasks automatically, then asks before apply.
   Trigger: /sdd-ff <description>, quick SDD cycle, fast-forward, fast forward SDD.
 format: procedural
-model: haiku
+model: opus
 ---
 
 # sdd-ff

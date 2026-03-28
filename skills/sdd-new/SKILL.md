@@ -4,7 +4,7 @@ description: >
   Starts a complete SDD cycle with mandatory exploration as first phase and user confirmation gates at each stage.
   Trigger: /sdd-new <description>, new SDD change, start full SDD cycle, new feature SDD.
 format: procedural
-model: haiku
+model: opus
 ---
 
 # sdd-new
