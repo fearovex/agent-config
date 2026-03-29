@@ -90,34 +90,22 @@ If neither source is available:
 
 I match detected keywords (case-insensitive substring match) against the following table:
 
-| Keyword(s)                    | Skill path                                              |
-| ----------------------------- | ------------------------------------------------------- |
-| always (non-doc changes)      | `~/.claude/skills/solid-ddd/SKILL.md`                   |
-| react native, expo            | `~/.claude/skills/react-native/SKILL.md`                |
-| react                         | `~/.claude/skills/react-19/SKILL.md`                    |
-| next, nextjs, next.js         | `~/.claude/skills/nextjs-15/SKILL.md`                   |
-| typescript, ts                | `~/.claude/skills/typescript/SKILL.md`                  |
-| zustand                       | `~/.claude/skills/zustand-5/SKILL.md`                   |
-| zod                           | `~/.claude/skills/zod-4/SKILL.md`                       |
-| tailwind                      | `~/.claude/skills/tailwind-4/SKILL.md`                  |
-| ai sdk, vercel ai, ai-sdk     | `~/.claude/skills/ai-sdk-5/SKILL.md`                    |
-| electron                      | `~/.claude/skills/electron/SKILL.md`                    |
-| django, drf                   | `~/.claude/skills/django-drf/SKILL.md`                  |
-| spring boot, spring-boot      | `~/.claude/skills/spring-boot-3/SKILL.md`               |
-| hexagonal, ports and adapters | `~/.claude/skills/hexagonal-architecture-java/SKILL.md` |
-| java                          | `~/.claude/skills/java-21/SKILL.md`                     |
-| playwright                    | `~/.claude/skills/playwright/SKILL.md`                  |
-| pytest, python test           | `~/.claude/skills/pytest/SKILL.md`                      |
-| github pr, pull request       | `~/.claude/skills/github-pr/SKILL.md`                   |
-| jira task                     | `~/.claude/skills/jira-task/SKILL.md`                   |
-| jira epic                     | `~/.claude/skills/jira-epic/SKILL.md`                   |
-| elixir, phoenix               | `~/.claude/skills/elixir-antipatterns/SKILL.md`         |
-| excel, xlsx, spreadsheet      | `~/.claude/skills/excel-expert/SKILL.md`                |
-| ocr, image text, image ocr    | `~/.claude/skills/image-ocr/SKILL.md`                   |
+| Keyword(s)               | Skill path                                    |
+| ------------------------ | --------------------------------------------- |
+| always (non-doc changes) | `~/.claude/skills/solid-ddd/SKILL.md`         |
+| react native, expo       | `~/.claude/skills/react-native/SKILL.md`      |
+| react                    | `~/.claude/skills/react-19/SKILL.md`          |
+| next, nextjs, next.js    | `~/.claude/skills/nextjs-15/SKILL.md`         |
+| typescript, ts           | `~/.claude/skills/typescript/SKILL.md`        |
+| zustand                  | `~/.claude/skills/zustand-5/SKILL.md`         |
+| tailwind                 | `~/.claude/skills/tailwind-4/SKILL.md`        |
+| go, golang               | `~/.claude/skills/go-testing/SKILL.md`        |
 
-> Note: `react native` and `expo` are matched before `react` to avoid the shorter keyword absorbing the longer one. Match order in the table is top-to-bottom; once a keyword matches a row, that row's skill is queued for loading.
+> Note: `react native` and `expo` are matched before `react` to avoid the shorter keyword absorbing the longer one. Match order is top-to-bottom.
 
-> Note: The `always (non-doc changes)` row is evaluated after the scope guard. If `scope_guard_triggered` is `true` (documentation-only change), this row is also skipped — along with all other rows in the table.
+> Note: The `always (non-doc changes)` row is evaluated after the scope guard. If `scope_guard_triggered` is `true` (documentation-only change), this row is also skipped.
+
+> Note: This table only lists skills that exist in the global catalog. If a skill path does not exist on disk, it is silently skipped.
 
 #### Step 0b — Initialize retry counter
 
@@ -169,7 +157,7 @@ Tech skill preload: skipped (no stack source found — ai-context/stack.md absen
 ```
 
 The list of loaded skills is carried forward and included in the Step 2 detection output line:
-`"Technology skills loaded: [typescript, react-19, playwright]"` (or `"none"` if preload was skipped or no matches).
+`"Technology skills loaded: [typescript, react-19, tailwind-4]"` (or `"none"` if preload was skipped or no matches).
 
 ---
 
