@@ -92,9 +92,10 @@ run /memory-update so the AI updates them.
 
 ## SDD — Spec-Driven Development
 
-This project uses SDD. Artifacts live in openspec/.
-To start a change: /sdd-new <change-name>
-For fast cycle: /sdd-ff <change-name>
+This project uses SDD.
+Entry points: `/sdd-explore <topic>` (investigate first) or `/sdd-propose <change-name>` (start from proposal).
+Multi-phase flows are handled by the orchestrator as meta-commands — type them directly in conversation.
+Phase skills: `/sdd-explore`, `/sdd-propose`, `/sdd-spec`, `/sdd-design`, `/sdd-tasks`, `/sdd-apply`, `/sdd-verify`, `/sdd-archive`.
 ```
 
 ### Step 3 — Initialize ai-context/
@@ -250,6 +251,11 @@ This file records significant changes made by Claude.
 
 ### Step 4 — Create openspec/config.yaml
 
+**Mode selection** (run before generating config):
+- Check if Engram MCP is reachable (call `mem_context`).
+- If reachable → set `artifact_store.mode: engram`. Log `INFO: Engram detected — setting artifact_store.mode to engram`.
+- If not reachable → set `artifact_store.mode: openspec`. Log `INFO: Engram not available — defaulting artifact_store.mode to openspec`.
+
 ```yaml
 project:
   name: "[detected name]"
@@ -263,7 +269,7 @@ project:
     structure: "[feature|layer|mono]"
 
 artifact_store:
-  mode: openspec
+  mode: [engram|openspec — selected by mode detection above]
 
 rules:
   proposal:
@@ -386,7 +392,7 @@ Files created:
 
 Next steps:
   1. Review and adjust CLAUDE.md with details I could not detect
-  2. To start a change: /sdd-new <name>
+  2. To start a change: /sdd-explore <topic> or /sdd-propose <change-name>
   3. To create project-specific skills: /skill-create <name>
 ```
 

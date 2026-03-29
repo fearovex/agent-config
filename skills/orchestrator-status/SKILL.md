@@ -42,7 +42,7 @@ From CLAUDE.md's `## Skills Registry` section, collect all lines matching `` `~/
 Count total as `skills_registry_count`.
 
 Identify orchestrator + SDD phase skills specifically:
-- Core: `sdd-ff`, `sdd-new`, `sdd-status`, `orchestrator-status`
+- Core: `sdd-status`, `orchestrator-status`, `sdd-init`
 - Phases: `sdd-explore`, `sdd-propose`, `sdd-spec`, `sdd-design`, `sdd-tasks`, `sdd-apply`, `sdd-verify`, `sdd-archive`
 
 ### Step 4 — Build JSON output
@@ -93,7 +93,7 @@ Loaded Skills: <orchestrator-skill-count> orchestrator + SDD phase skills
   Phases: <list phase skill names>
   Project catalog: <skills_registry_count> total skills
 
-Ready to accept: /sdd-ff <slug> | /sdd-explore <topic> | /sdd-new <change>
+Ready to accept: /sdd-explore <topic> | /sdd-propose <change> | /sdd-apply <change> | /sdd-status
 ```
 
 ## Rules

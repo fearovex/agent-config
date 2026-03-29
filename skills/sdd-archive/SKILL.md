@@ -295,60 +295,17 @@ Use `mcp__filesystem__list_directory('openspec/changes/<change-name>')` as fallb
 
 Verification is **non-blocking**: execution proceeds to Step 5 regardless of outcome. If status was previously `ok` and verification fails, set `status: warning`. Do NOT halt or return `status: failed` for a failed deletion verification.
 
-### Step 5 — Create closure note
+### Step 5 — Save closure to engram (replaces CLOSURE.md)
 
-I create `openspec/changes/archive/YYYY-MM-DD-<archive_slug>/CLOSURE.md` (using the same `archive_slug` computed in Step 4):
+**CLOSURE.md is no longer created.** No downstream skill consumes it. Instead, save a compact closure record:
 
-```markdown
-# Closure: [change-name]
-
-Start date: [date from proposal.md]
-Close date: [YYYY-MM-DD]
-
-## Summary
-
-[What was done in one or two lines]
-
-## Modified Specs
-
-| Domain   | Action                 | Change        |
-| -------- | ---------------------- | ------------- |
-| [domain] | Added/Modified/Created | [description] |
-
-## Modified Code Files
-
-[List of main files that changed]
-
-## Key Decisions Made
-
-[The architecture.md decisions relevant for the future]
-
-## Lessons Learned
-
-[If there were deviations, problems, or insights during the cycle]
-
-## User Docs Reviewed
-
-[YES — updated scenarios.md / quick-reference.md / onboarding.md as needed | NO — change does not affect user-facing workflows | N/A — pre-dates this requirement]
-
-Skipped phases: [phase1, phase2]
-```
-
-**Conditional field — `Skipped phases:`**: Include this field ONLY when the user selected option 2 during a WARNING-level completeness check in Step 1. Derive phase names from the absent artifacts: `design.md` → `design`, absent or empty `specs/` → `spec`. If no phases were skipped (happy-path archive), omit this field entirely — do NOT write `Skipped phases: none` or leave the line blank.
-
-### Step 5b — Verify-report template (for reference when creating verify-report.md)
-
-When writing a `verify-report.md` as part of an SDD cycle, include this checkbox at the end:
-
-```markdown
-## User Documentation
-
-- [ ] Review user docs (ai-context/scenarios.md / ai-context/quick-reference.md / ai-context/onboarding.md)
-      if this change adds, removes, or renames skills, changes onboarding workflows, or introduces new commands.
-      Mark [x] when confirmed reviewed (or confirmed no update needed).
-```
-
-This checkbox is **not blocking** — you may archive even if unchecked.
+- **engram** / **hybrid**: Call `mem_save` with `topic_key: sdd/{change-name}/archive-report`, `type: architecture`, content = compact summary:
+  ```
+  Archived: {change-name}. Dates: {start} → {close}. Summary: {1-2 sentences}.
+  Specs updated: {domain list}. Skipped phases: {list or "none"}.
+  ```
+- **openspec**: Skip — the archived change directory already contains all artifacts.
+- **none**: Skip — closure is informational only.
 
 ### Step 6 — Auto-update memory
 
@@ -360,7 +317,7 @@ After the archive is complete, I automatically update `ai-context/` with the dec
 2. Execute the `/memory-update` process inline, using the archived change as session context:
    - Change name: `<change-name>`
    - Archive path: `openspec/changes/archive/YYYY-MM-DD-<archive_slug>/`
-   - Artifacts: proposal, specs, design, tasks, closure note
+   - Artifacts: proposal, specs, design, tasks
 3. Report the result
 
 **Non-blocking error handling:**

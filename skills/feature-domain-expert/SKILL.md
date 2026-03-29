@@ -172,7 +172,7 @@ Below is an abbreviated illustration of the pattern each section should follow:
 
 **Business Rules and Invariants** (declarative always-true statements):
 ```
-- Every skill modification MUST be preceded by at minimum /sdd-ff before /sdd-apply.
+- Every skill modification MUST go through the SDD planning cycle (at minimum /sdd-propose) before /sdd-apply.
 - sync.sh MUST only move memory/ from ~/.claude/ to the repo.
 - Developers MUST NOT edit files under ~/.claude/ directly.
 ```

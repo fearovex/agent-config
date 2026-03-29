@@ -120,7 +120,7 @@ If detected as global-config:
 | Has Skills registry                                                      | Search for skills table                      | ⚠️ HIGH           |
 | Has Unbreakable Rules                                                    | Search for `## Unbreakable Rules` or similar | ⚠️ MEDIUM         |
 | Has Plan Mode Rules                                                      | Search for `## Plan Mode`                    | ℹ️ LOW            |
-| Mentions SDD (`/sdd-new` or `/sdd-ff`)                                   | Search for text `/sdd-`                      | ⚠️ HIGH           |
+| Mentions SDD (any `/sdd-*` command)                                      | Search for text `/sdd-`                      | ⚠️ HIGH           |
 | References to ai-context/ are correct                                    | Verify that mentioned paths exist            | ⚠️ MEDIUM         |
 
 **For the stack**: I read `package.json` (or equivalent), extract the 5-10 most important dependencies, and compare with what is declared in CLAUDE.md. I report specific discrepancies with declared version vs real version.
@@ -233,18 +233,25 @@ If any is missing → ❌ CRITICAL (SDD cannot function without the phases).
 
 #### 3b. openspec/ in the project
 
-| Check                                             | Severity                                         |
-| ------------------------------------------------- | ------------------------------------------------ |
-| `openspec/` exists                                | ❌ CRITICAL (SDD has nowhere to store artifacts) |
-| `openspec/config.yaml` exists                     | ❌ CRITICAL (orchestrator cannot start)          |
-| `config.yaml` has `artifact_store.mode: openspec` | ⚠️ HIGH                                          |
-| `config.yaml` has project name and stack          | ℹ️ LOW                                           |
+**Mode detection** (run before openspec checks):
+1. If `openspec/config.yaml` exists AND has `artifact_store.mode` set → use that value as active mode.
+2. If absent: check if Engram MCP is reachable (call `mem_context`) → if yes: active mode = `engram`; if no: active mode = `none`.
+
+If active mode is `engram` or `none`: SKIP all openspec/ existence checks below. Log `INFO: project uses {mode} mode — openspec/ checks skipped` and proceed to 3c.
+If active mode is `openspec` or `hybrid`: run the checks as-is.
+
+| Check                                                    | Severity                                         |
+| -------------------------------------------------------- | ------------------------------------------------ |
+| `openspec/` exists                                       | ❌ CRITICAL (SDD has nowhere to store artifacts) |
+| `openspec/config.yaml` exists                            | ❌ CRITICAL (orchestrator cannot start)          |
+| `config.yaml` has `artifact_store.mode` set to a valid value (`openspec`, `engram`, `hybrid`, `none`) | ⚠️ HIGH |
+| `config.yaml` has project name and stack                 | ℹ️ LOW                                           |
 
 #### 3c. CLAUDE.md mentions SDD
 
 | Check                               | Severity |
 | ----------------------------------- | -------- |
-| Contains `/sdd-new` or `/sdd-ff`    | ⚠️ HIGH  |
+| Contains any `/sdd-*` command       | ⚠️ HIGH  |
 | Has section explaining the SDD flow | ℹ️ LOW   |
 
 #### 3d. Orphaned changes

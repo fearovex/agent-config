@@ -119,7 +119,7 @@ remediation: Add a ## Skills Registry section to .claude/CLAUDE.md listing all s
 ```
 
 If **Skills Registry section found**, classify each path-bearing line in the file:
-- A line containing `~/.claude/skills/` → **global-tier registration**; extract skill name from the segment after `skills/` (e.g., `~/.claude/skills/sdd-ff/SKILL.md` → name = `sdd-ff`)
+- A line containing `~/.claude/skills/` → **global-tier registration**; extract skill name from the segment after `skills/` (e.g., `~/.claude/skills/sdd-explore/SKILL.md` → name = `sdd-explore`)
 - A line containing `.claude/skills/` but NOT `~/.claude/skills/` → **local-tier registration**; extract skill name (e.g., `.claude/skills/my-skill/SKILL.md` → name = `my-skill`)
 
 > **Important**: always match `~/.claude/skills/` before `.claude/skills/` to avoid the substring overlap. A line with `~/.claude/skills/` must never be classified as local-tier.
@@ -172,14 +172,14 @@ remediation: Consider expanding .claude/CLAUDE.md with richer context — aim fo
 
 If **more than 50 lines** → no finding for line count.
 
-**SDD command reference check** — scan the entire file for at least one occurrence of `/sdd-ff` or `/sdd-new` anywhere in the content.
+**SDD command reference check** — scan the entire file for at least one occurrence of `/sdd-` anywhere in the content.
 
-If **neither is found**:
+If **none is found**:
 ```
 severity: LOW
 check: P1
-title: CLAUDE.md has no SDD command references (/sdd-ff, /sdd-new) — SDD workflow may not be configured
-detail: Neither /sdd-ff nor /sdd-new was found anywhere in PROJECT_CLAUDE_DIR/CLAUDE.md.
+title: CLAUDE.md has no SDD command references — SDD workflow may not be configured
+detail: No /sdd-* command reference was found anywhere in PROJECT_CLAUDE_DIR/CLAUDE.md.
 remediation: Add SDD commands to the Available Commands section; consult the global CLAUDE.md for the standard SDD command table
 ```
 

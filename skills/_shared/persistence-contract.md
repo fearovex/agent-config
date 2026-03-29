@@ -12,6 +12,21 @@ Default resolution (when orchestrator does not explicitly set a mode):
 
 When falling back to `none`, recommend the user enable `engram` or `openspec`.
 
+## Mode Detection for Standalone Skills
+
+Skills that run outside the orchestrator pipeline (project-setup, project-audit, project-fix, project-onboard, codebase-teach, memory-*, sdd-status, sdd-spec-gc, config-export) do NOT receive `artifact_store.mode` from a launch context. They MUST detect the active mode themselves using this algorithm:
+
+```
+1. Check if openspec/config.yaml exists AND has artifact_store.mode set
+   → If yes: use that value (engram | openspec | hybrid | none)
+2. If openspec/config.yaml is absent or has no artifact_store.mode:
+   → Check if Engram MCP is reachable (try mem_context or mem_search)
+   → If reachable: active_mode = "engram"
+   → If not reachable: active_mode = "none"
+```
+
+**Key rule**: The ABSENCE of `openspec/` does NOT mean the project is broken. It means the project MAY be using engram mode. Skills MUST NOT create `openspec/` infrastructure unless the detected mode is `openspec` or `hybrid`.
+
 ## Behavior Per Mode
 
 | Mode | Read from | Write to | Project files |

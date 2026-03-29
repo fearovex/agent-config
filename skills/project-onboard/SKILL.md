@@ -56,7 +56,11 @@ Stop here if Case 1.
 
 Read `openspec/config.yaml`.
 
-**If absent → Case 2: CLAUDE.md present but no SDD infrastructure**
+**If absent**: first check if Engram MCP is reachable (call `mem_context`).
+- If Engram is reachable AND openspec/ is absent → this is an **engram-mode project**. SDD infrastructure lives in Engram, not the filesystem. Treat the project as healthy for this check and continue to Check 3.
+- If Engram is NOT reachable AND openspec/ is absent → **Case 2** (below).
+
+**If absent and Engram not reachable → Case 2: CLAUDE.md present but no SDD infrastructure**
 
 ```
 ## Diagnosis
@@ -66,7 +70,8 @@ Project state: Case 2 — CLAUDE.md Without SDD Infrastructure
 Detected:
 - .claude/CLAUDE.md: FOUND
 - openspec/config.yaml: NOT FOUND
-- SDD cannot function without openspec/
+- Engram MCP: NOT REACHABLE
+- SDD cannot function without openspec/ or Engram
 
 Warnings:
 - [list any ai-context/ files found or note if ai-context/ is absent]
@@ -199,16 +204,18 @@ Warnings:
 ## Recommended Command Sequence
 
 For a well-understood change:
-  1. /sdd-ff <change-name>       — fast-forward: propose → spec+design → tasks
+  1. /sdd-propose <change-name>  — create proposal (orchestrator fast-forwards planning automatically)
   2. /sdd-apply <change-name>    — implement the task plan
 
 For a complex or vague change:
-  1. /sdd-new <change-name>      — full SDD cycle with optional explore + confirmation gates
-  2. /sdd-apply <change-name>    — implement the task plan
+  1. /sdd-explore <topic>        — investigate the area before committing to a change
+  2. /sdd-propose <change-name>  — create proposal from exploration findings
+  3. /sdd-apply <change-name>    — implement the task plan
 
 ## Notes
-Use /sdd-ff when requirements are clear. Use /sdd-new when the change is complex or you want to review
-the proposal before proceeding. See ai-context/quick-reference.md for the /sdd-ff vs /sdd-new decision rule.
+Multi-phase flows (propose → spec+design → tasks in one shot, or full cycles with exploration) are handled
+by the orchestrator as meta-commands typed directly in conversation — not invoked as skills.
+See ai-context/quick-reference.md for entry-point guidance.
 ```
 
 ---

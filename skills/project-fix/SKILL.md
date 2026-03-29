@@ -161,6 +161,13 @@ I process actions in order of severity. Each phase has a checkpoint.
 
 #### Phase 1 — Critical Corrections (block SDD)
 
+**Mode detection** (run once before 1.1–1.2):
+1. If `openspec/config.yaml` exists AND has `artifact_store.mode` → active mode = that value.
+2. If absent: check if Engram MCP is reachable (`mem_context`) → if yes: active mode = `engram`; if no: active mode = `none`.
+
+If active mode is `engram`: SKIP steps 1.1 and 1.2. Log `INFO: project uses engram mode — skipping openspec infrastructure creation`. Continue from 1.3.
+If active mode is `openspec`, `hybrid`, or `none`: proceed with 1.1 and 1.2 as written.
+
 I execute in this order:
 
 **1.1 Initialize openspec/ if it does not exist**
@@ -260,12 +267,15 @@ If CLAUDE.md does not mention `/sdd-*`, I add this section at the end of CLAUDE.
 
 This project uses SDD. Artifacts live in `openspec/`.
 
-| Command                | Action                                      |
-| ---------------------- | ------------------------------------------- |
-| `/sdd-new <change>`    | Start complete SDD cycle                    |
-| `/sdd-ff <change>`     | Fast-forward: propose → spec+design → tasks |
-| `/sdd-explore <topic>` | Explore without committing to changes       |
-| `/sdd-status`          | View status of active changes               |
+| Command                    | Action                                      |
+| -------------------------- | ------------------------------------------- |
+| `/sdd-explore <topic>`     | Explore without committing to changes       |
+| `/sdd-propose <change>`    | Create a change proposal                    |
+| `/sdd-apply <change>`      | Implement the task plan                     |
+| `/sdd-verify <change>`     | Validate implementation against specs       |
+| `/sdd-status`              | View status of active changes               |
+
+Multi-phase flows (explore → propose → spec+design → tasks, or the full cycle) are handled by the orchestrator as meta-commands — type them directly in conversation, they do not appear as skills.
 
 **Full flow**: explore → propose → spec + design → tasks → apply → verify → archive
 ```
@@ -595,7 +605,7 @@ SDD Status: [FULL / PARTIAL / NOT CONFIGURED]
 
 To verify the result:
   → /project-audit  (should show a higher score)
-  → To start development with SDD: /sdd-new <change-name>
+  → To start development with SDD: /sdd-explore <topic> or /sdd-propose <change-name>
 
 Changes recorded in: ai-context/changelog-ai.md
 ```

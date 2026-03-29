@@ -87,3 +87,56 @@ Example:
 **Skill Resolution**: injected — 3 skills (react-19, typescript, tailwind-4)
 (other values: `fallback-registry`, `fallback-path`, or `none — no registry found`)
 ```
+
+## E. Project Context Load (Step 0)
+
+This step is **non-blocking**: any failure MUST produce at most an INFO-level note. MUST NOT produce `status: blocked` or `status: failed`.
+
+1. Read `ai-context/stack.md` — tech stack, versions, key tools.
+2. Read `ai-context/architecture.md` — architectural decisions and their rationale.
+3. Read `ai-context/conventions.md` — naming patterns, code conventions.
+4. Read the full project `CLAUDE.md` (at project root). Extract and log:
+   - Count of items listed under `## Unbreakable Rules`
+   - Value of the primary language from `## Tech Stack`
+   - Whether `intent_classification:` is `disabled`
+   Output: `Governance loaded: [N] unbreakable rules, tech stack: [language], intent classification: [enabled|disabled]`
+   If CLAUDE.md is absent: `INFO: project CLAUDE.md not found — governance falls back to global defaults.`
+
+For each file:
+- If absent: `INFO: [filename] not found — proceeding without it.`
+- If present and `Last updated:` date is older than 7 days: `NOTE: [filename] last updated [date] — context may be stale.`
+
+Loaded context is enrichment — it does NOT override explicit content in the proposal or design.
+
+## F. Spec Context Preload (Step 0 sub-step)
+
+This sub-step is **non-blocking**: any failure MUST produce at most an INFO-level note.
+
+If `openspec/specs/` directory does not exist: `INFO: openspec/specs/ not found — skipping` and skip.
+
+**Index-first lookup algorithm:**
+
+```
+STEP 1: Try index-first lookup
+  IF openspec/specs/index.yaml exists:
+    a) Parse index.yaml → read domains[] array
+    b) For each domain: score EXACT (1.0) keyword match or STEM (0.5) substring match
+    c) Collect scoring > 0, sort by (score desc, domain asc), cap at 3
+    d) Load openspec/specs/<domain>/spec.md for each matched domain
+    e) Log: "Spec context loaded from index: [domain/spec.md, ...]"
+    f) Return (do not fall through)
+
+  [If index present but no domain matched OR index absent]: fall through to STEP 2
+
+STEP 2: Stem-based directory matching (fallback)
+  a) List subdirs in openspec/specs/
+  b) Split change_name on "-" → stems; match if any stem (len > 1) appears in subdir name
+  c) Cap at 3 matches, load spec.md for each
+  d) Log fallback note
+
+[If no match]: INFO note, proceed without loaded specs.
+```
+
+Loaded specs are **authoritative behavioral contracts** (precedence over `ai-context/` for behavioral questions). Include loaded spec paths in artifacts list (read, not written).
+
+See `docs/SPEC-CONTEXT.md` for the full convention reference.

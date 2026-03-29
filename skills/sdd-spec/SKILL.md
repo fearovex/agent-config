@@ -47,28 +47,7 @@ Project-local skills override the global catalog. See `docs/SKILL-RESOLUTION.md`
 
 ### Step 0a — Load project context
 
-This step is **non-blocking**: any failure (missing file, unreadable file) MUST produce
-at most an INFO-level note. This step MUST NOT produce `status: blocked` or `status: failed`.
-
-1. Read `ai-context/stack.md` — tech stack, versions, key tools.
-2. Read `ai-context/architecture.md` — architectural decisions and their rationale.
-3. Read `ai-context/conventions.md` — naming patterns, code conventions.
-4. Read the full project `CLAUDE.md` (at project root). Extract and log:
-   - Count of items listed under `## Unbreakable Rules`
-   - Value of the primary language from `## Tech Stack`
-   - Whether `intent_classification:` is `disabled` (check for Override section)
-   Output a single governance log line:
-   `Governance loaded: [N] unbreakable rules, tech stack: [language], intent classification: [enabled|disabled]`
-   If CLAUDE.md is absent: log `INFO: project CLAUDE.md not found — governance falls back to global defaults.`
-
-For each file:
-- If absent: log `INFO: [filename] not found — proceeding without it.`
-- If present: extract `Last updated:` or `Last analyzed:` date. If date is older than 7 days:
-  log `NOTE: [filename] last updated [date] — context may be stale. Consider running /memory-update or /project-analyze.`
-
-Loaded context is used as enrichment throughout all subsequent steps. It informs architectural
-coherence, naming consistency, and skill alignment checks—but does NOT override explicit
-content in the proposal or design.
+Follow `skills/_shared/sdd-phase-common.md` **Section E** (Project Context Load). Non-blocking.
 
 ### Step 0b — Domain context preload
 
@@ -87,47 +66,7 @@ After loading project context and before identifying affected domains, I perform
 
 ### Step 0c — Spec context preload
 
-This step is **non-blocking**: any failure (missing directory, unreadable file, no match) MUST produce at most an INFO-level note. This step MUST NOT produce `status: blocked` or `status: failed`.
-
-If `openspec/specs/` directory does not exist: log `INFO: openspec/specs/ not found — skipping spec context preload` and skip this step.
-
-**Index-first lookup algorithm:**
-
-```
-STEP 1: Try index-first lookup
-  IF openspec/specs/index.yaml exists:
-    a) Parse index.yaml → read domains[] array
-    b) For each domain entry:
-       - Extract domain.keywords[] and domain.domain
-       - Score: EXACT (1.0) if any keyword matches case-insensitively in change_name tokens
-                STEM (0.5) if any keyword is a substring of any change_name token (len > 1)
-                SKIP if score == 0.0
-    c) Collect scoring > 0, sort by (score desc, domain asc), cap at 3
-    d) Load openspec/specs/<domain>/spec.md for each matched domain
-    e) Log: "Spec context loaded from index: [domain/spec.md, ...]"
-    f) Return (do not fall through to STEP 2)
-
-  [If index present but no domain matched]: fall through to STEP 2
-  [If index absent]: fall through to STEP 2
-
-STEP 2: Stem-based directory matching (fallback)
-  a) List subdirs in openspec/specs/
-  b) Split change_name on "-" → stems; for each subdir, check if any stem (len > 1) appears
-  c) Cap at 3 matches
-  d) Load openspec/specs/<domain>/spec.md for each matched domain
-  e) Log: "Spec context loaded from directory scan: [domain/spec.md, ...]"
-  f) Log: "INFO: index.yaml not found or no index match — using fallback stem matching"
-
-[If no match in either step]
-  → Log: "INFO: No matching spec domains found for [change-name]"
-  → Proceed without loaded specs (non-blocking)
-```
-
-For each loaded spec file: treat its content as an **authoritative behavioral contract** (precedence over `ai-context/` for behavioral questions; `ai-context/` remains supplementary for architecture and naming context). If a file cannot be read, log an INFO note and skip that file.
-
-Include loaded spec paths in the artifacts list (read, not written).
-
-See `docs/SPEC-CONTEXT.md` for the full convention reference, load cap rationale, and fallback behavior.
+Follow `skills/_shared/sdd-phase-common.md` **Section F** (Spec Context Preload). Non-blocking.
 
 ---
 

@@ -27,7 +27,7 @@ If it does NOT exist:
 No openspec/changes/ directory found.
 
 This project has no SDD changes yet.
-To start a new change: /sdd-new <change-name>
+To start a new change: /sdd-explore <topic> or /sdd-propose <change-name>
 ```
 
 Stop here.
@@ -44,7 +44,7 @@ Each subdirectory is a change. If there are no non-archive directories:
 No active changes found in openspec/changes/.
 
 Archived: [N] changes in openspec/changes/archive/
-To start a new change: /sdd-new <change-name>
+To start a new change: /sdd-explore <topic> or /sdd-propose <change-name>
 ```
 
 Stop here.
@@ -140,7 +140,7 @@ Rules for this format:
 
 - Filesystem-only: I only inspect files and directories — no git history, no git status, no network
 - I never modify any files in this phase
-- If `openspec/changes/` does not exist, I report gracefully and suggest `/sdd-new`
+- If `openspec/changes/` does not exist, I report gracefully and suggest `/sdd-explore <topic>` or `/sdd-propose <change-name>`
 - Archived changes (under `archive/`) are counted but not listed in the active table
 - The `specs/` check is satisfied by the presence of the directory with at least one file inside
 - I do not attempt to parse file contents — presence/absence only
